@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+{% import "_macros.html" as m with context %}
+{% block title %}Dashboard{% endblock %}
+{% block page_title %}<i class="bi bi-speedometer2 text-primary"></i> Dashboard{% endblock %}
+{% block content %}
+
+{{ m.period_filter(url_for('dashboard'), preset, d_from, d_to) }}
+
+<div class="row g-3 mb-3">
+  {{ m.stat_card("Pemasukan (Kas Masuk)", stats.pemasukan|rupiah, "bi-arrow-down-circle", "success", "Sesuai periode terpilih") }}
+  {{ m.stat_card("Pengeluaran (Kas Keluar)", stats.pengeluaran|rupiah, "bi-arrow-up-circle", "danger", "Sesuai periode terpilih") }}
+  {{ m.stat_card("Laba Bersih", stats.laba_bersih|rupiah, "bi-graph-up-arrow", "primary", "Pendapatan " ~ stats.total_pendapatan|rupiah ~ " − Beban " ~ stats.total_beban|rupiah) }}
+  {{ m.stat_card("Saldo Kas Saat Ini", stats.saldo_kas|rupiah, "bi-wallet2", "warning", "Seluruh waktu (Kas + Bank/E-Wallet)") }}
+</div>
+<div class="row g-3 mb-4">
+  {{ m.stat_card("Order Aktif / Antrian", stats.order_aktif, "bi-list-ol", "info", "Masuk + Antri + Proses + Revisi") }}
+  {{ m.stat_card("Minta Revisi", stats.order_revisi, "bi-arrow-counterclockwise", "danger", "Perlu dikerjakan ulang") }}
+  {{ m.stat_card("Order Selesai", stats.order_selesai ~ " / " ~ stats.total_order, "bi-patch-check", "success", "Sudah jadi / total semua order") }}
+  {{ m.stat_card("Piutang (Belum Lunas)", stats.total_piutang|rupiah, "bi-hourglass-split", "secondary", "Nilai order periode ini: " ~ stats.nilai_order_periode|rupiah) }}
+</div>
+
+<!-- Antrian sekarang -->
+<div class="card queue-now shadow mb-4">
+  <div class="card-body">
+    <div class="row align-items-center">
+      <div class="col-md-8">
+        <div class="text-uppercase small fw-bold opacity-75"><i class="bi bi-broadcast"></i> Sedang Dikerjakan / Antrian Terdepan</div>
+        {% if sedang_proses %}
+          <h3 class="fw-bold mb-1">Antrian #{{ sedang_proses.queue_no }} — {{ sedang_proses.client_name }}</h3>
+          <div>{{ sedang_proses.order_code }} &middot; {{ sedang_proses.judul }} &middot; {{ m.status_badge(sedang_proses.status) }}
+            &middot; Progress {{ sedang_proses.progress }}% &middot; Deadline {{ sedang_proses.deadline|tanggal }}</div>
+        {% else %}
+          <h3 class="fw-bold mb-1">Antrian kosong 🎉</h3><div>Tidak ada order aktif saat ini.</div>
+        {% endif %}
+      </div>
+      <div class="col-md-4 text-md-end mt-3 mt-md-0">
+        {% if sedang_proses %}
+          <a class="btn btn-light fw-bold me-1" href="{{ url_for('order_detail', order_id=sedang_proses.id) }}"><i class="bi bi-eye"></i> Kerjakan / Detail</a>
+          <a class="btn btn-success fw-bold" target="_blank" href="{{ wa_link(sedang_proses) }}"><i class="bi bi-whatsapp"></i> WA Client</a>
+        {% endif %}
+        <a class="btn btn-outline-light ms-1" href="{{ url_for('antrian') }}">Semua Antrian</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-lg-8">
+    <div class="card shadow-sm h-100">
+      <div class="card-header bg-white fw-bold"><i class="bi bi-bar-chart-line text-primary"></i> Pemasukan vs Pengeluaran — 6 Bulan Terakhir</div>
+      <div class="card-body"><canvas id="chartArus" height="120"></canvas></div>
+    </div>
+  </div>
+  <div class="col-lg-4">
+    <div class="card shadow-sm h-100">
+      <div class="card-header bg-white fw-bold"><i class="bi bi-pie-chart text-primary"></i> Order per Status</div>
+      <div class="card-body"><canvas id="chartStatus" height="180"></canvas></div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3">
+  <div class="col-lg-7">
+    <div class="card shadow-sm h-100">
+      <div class="card-header bg-white d-flex justify-content-between align-items-center">
+        <span class="fw-bold"><i class="bi bi-list-ol text-primary"></i> Urutan Antrian Aktif</span>
+        <a class="btn btn-sm btn-outline-primary" href="{{ url_for('orders_list') }}">Lihat Semua Order</a>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-hover mb-0">
+          <thead><tr><th>Antri</th><th>Client / Pesanan</th><th>Status</th><th>Progress</th><th class="text-end">WA</th></tr></thead>
+          <tbody>
+          {% for o in aktif %}
+            <tr>
+              <td><span class="badge rounded-pill text-bg-dark">#{{ o.queue_no }}</span></td>
+              <td><a class="fw-bold text-decoration-none" href="{{ url_for('order_detail', order_id=o.id) }}">{{ o.client_name }}</a>
+                <div class="small text-muted">{{ o.order_code }} — {{ o.judul }} &middot; Deadline {{ o.deadline|tanggal }}</div></td>
+              <td>{{ m.status_badge(o.status) }}</td>
+              <td style="min-width:120px"><div class="progress"><div class="progress-bar" style="width:{{ o.progress }}%"></div></div>
+                <span class="small text-muted">{{ o.progress }}%</span></td>
+              <td class="text-end"><a class="btn btn-sm btn-success" target="_blank" title="{{ o.wa_number }}" href="{{ wa_link(o) }}"><i class="bi bi-whatsapp"></i></a></td>
+            </tr>
+          {% else %}<tr><td colspan="5" class="text-center text-muted py-4">Belum ada antrian aktif.</td></tr>{% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-5">
+    <div class="card shadow-sm h-100">
+      <div class="card-header bg-white d-flex justify-content-between align-items-center">
+        <span class="fw-bold"><i class="bi bi-arrow-down-up text-primary"></i> Transaksi Terbaru</span>
+        <a class="btn btn-sm btn-outline-primary" href="{{ url_for('transactions_list', periode='semua') }}">Semua Transaksi</a>
+      </div>
+      <div class="list-group list-group-flush">
+        {% for t in recent_trx %}
+          <div class="list-group-item d-flex justify-content-between align-items-start">
+            <div>
+              <div class="fw-semibold small">{{ t.keterangan }}</div>
+              <div class="small text-muted">{{ t.tanggal|tanggal }} &middot; {{ account_label(t.akun_debit) }} → {{ account_label(t.akun_kredit) }}</div>
+            </div>
+            <span class="money fw-bold small">{{ t.jumlah|rupiah }}</span>
+          </div>
+        {% else %}<div class="list-group-item text-muted">Belum ada transaksi.</div>{% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<script>
+const CH = {{ chart | tojson }};
+new Chart(document.getElementById('chartArus'), {
+  type: 'bar',
+  data: { labels: CH.labels, datasets: [
+    { label: 'Pemasukan', data: CH.masuk, backgroundColor: '#198754' },
+    { label: 'Pengeluaran', data: CH.keluar, backgroundColor: '#dc3545' }
+  ]},
+  options: { responsive: true, plugins: { legend: { position: 'bottom' } },
+    scales: { y: { ticks: { callback: v => 'Rp' + Number(v).toLocaleString('id-ID') } } } }
+});
+new Chart(document.getElementById('chartStatus'), {
+  type: 'doughnut',
+  data: { labels: CH.status_labels, datasets: [{ data: CH.status_data,
+    backgroundColor: ['#0d6efd','#6c757d','#ffc107','#dc3545','#198754','#212529'] }]},
+  options: { plugins: { legend: { position: 'bottom' } } }
+});
+</script>
+{% endblock %}

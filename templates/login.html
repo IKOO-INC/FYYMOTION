@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Login — {{ settings.nama_usaha or 'FYY MOTION' }} Portal</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
+</head>
+<body>
+<div class="login-wrap">
+  <div class="card login-card shadow-lg">
+    <div class="card-body p-4 p-md-5">
+      <div class="text-center mb-4">
+        <span class="brand-icon mx-auto mb-3" style="width:64px;height:64px;font-size:2rem;display:flex"><i class="bi bi-collection-play-fill m-auto text-white"></i></span>
+        <h4 class="fw-bold mb-0">{{ settings.nama_usaha or 'FYY MOTION' }}</h4>
+        <p class="text-muted small mb-0">{{ settings.tagline or 'Jasa Pembuatan Animasi Motion Graphic' }}<br>Portal Order &amp; Keuangan</p>
+      </div>
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for cat, msg in messages %}
+          <div class="alert alert-{{ cat }} py-2">{{ msg }}</div>
+        {% endfor %}
+      {% endwith %}
+      <form method="post">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="mb-3">
+          <label class="form-label fw-bold small">Username</label>
+          <div class="input-group"><span class="input-group-text"><i class="bi bi-person"></i></span>
+            <input name="username" class="form-control" required autofocus placeholder="admin"></div>
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-bold small">Password</label>
+          <div class="input-group"><span class="input-group-text"><i class="bi bi-lock"></i></span>
+            <input name="password" type="password" class="form-control" required placeholder="••••••••"></div>
+        </div>
+        <button class="btn btn-primary w-100 fw-bold" type="submit"><i class="bi bi-box-arrow-in-right"></i> Masuk ke Portal</button>
+      </form>
+      {% if default_hint %}
+      <div class="alert alert-info small mt-3 mb-0">
+        <i class="bi bi-info-circle"></i> Akun bawaan: <code>admin</code> / <code>fyymotion123</code><br>
+        Ganti lewat Environment Variables (<code>ADMIN_USERNAME</code>, <code>ADMIN_PASSWORD</code>, <code>SECRET_KEY</code>) di lokal / Vercel sebelum dipakai publik.
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+</body>
+</html>

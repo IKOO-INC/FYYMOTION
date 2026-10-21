@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% import "_macros.html" as m with context %}
+{% block title %}Neraca Saldo{% endblock %}
+{% block page_title %}<i class="bi bi-scale text-primary"></i> Neraca Saldo (Trial Balance){% endblock %}
+{% block content %}
+<p class="text-muted">Ringkasan saldo akhir semua akun dari <a href="{{ url_for('buku_besar') }}">Buku Besar</a>. Total kolom <b>Saldo Debit</b> wajib sama dengan <b>Saldo Kredit</b>.</p>
+
+<form class="card shadow-sm mb-3 no-print" method="get">
+  <div class="card-body py-2"><div class="row g-2 align-items-end">
+    <div class="col-md-3"><label class="form-label small fw-bold mb-1">Periode</label>
+      <select name="periode" class="form-select form-select-sm">
+        <option value="semua" {% if preset=='semua' %}selected{% endif %}>Semua Waktu (posisi saat ini)</option>
+        <option value="bulan_ini" {% if preset=='bulan_ini' %}selected{% endif %}>Mutasi Bulan Ini</option>
+        <option value="bulan_lalu" {% if preset=='bulan_lalu' %}selected{% endif %}>Mutasi Bulan Lalu</option>
+        <option value="tahun_ini" {% if preset=='tahun_ini' %}selected{% endif %}>Mutasi Tahun Ini</option>
+        <option value="custom" {% if preset=='custom' %}selected{% endif %}>Custom</option>
+      </select></div>
+    <div class="col-md-2"><input type="date" name="from" value="{{ d_from }}" class="form-control form-control-sm"></div>
+    <div class="col-md-2"><input type="date" name="to" value="{{ d_to }}" class="form-control form-control-sm"></div>
+    <div class="col-auto"><button class="btn btn-primary btn-sm"><i class="bi bi-funnel"></i> Filter</button>
+      <a class="btn btn-outline-success btn-sm" href="{{ url_for('export_neraca') }}"><i class="bi bi-filetype-csv"></i> CSV</a>
+      <button type="button" class="btn btn-outline-secondary btn-sm" onclick="window.print()"><i class="bi bi-printer"></i></button></div>
+  </div></div>
+</form>
+
+<div class="card shadow-sm">
+  <div class="card-header bg-white text-center">
+    <div class="fw-bold fs-5">{{ settings.nama_usaha or 'FYY MOTION' }}</div>
+    <div class="fw-bold">NERACA SALDO</div>
+    <div class="small text-muted">{% if d_from or d_to %}Mutasi periode {{ d_from|tanggal }} s/d {{ d_to|tanggal }}{% else %}Per hari ini (semua waktu){% endif %}</div>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-bordered table-hover mb-0">
+      <thead class="table-light"><tr><th>Kode</th><th>Nama Akun</th><th>Tipe</th><th class="text-end">Total Debit</th><th class="text-end">Total Kredit</th><th class="text-end">Saldo Debit</th><th class="text-end">Saldo Kredit</th></tr></thead>
+      <tbody>
+      {% for r in rows %}
+        <tr class="{% if not r.total_debit and not r.total_kredit %}text-muted{% endif %}">
+          <td><a class="text-decoration-none fw-bold" href="{{ url_for('buku_besar', akun=r.kode) }}">{{ r.kode }}</a></td>
+          <td><a class="text-decoration-none text-dark" href="{{ url_for('buku_besar', akun=r.kode) }}">{{ r.nama }}</a></td>
+          <td><span class="badge text-bg-light border">{{ r.tipe }}</span></td>
+          <td class="text-end money">{{ r.total_debit|rupiah if r.total_debit else '—' }}</td>
+          <td class="text-end money">{{ r.total_kredit|rupiah if r.total_kredit else '—' }}</td>
+          <td class="text-end money fw-bold">{{ r.saldo_debit|rupiah if r.saldo_debit else '—' }}</td>
+          <td class="text-end money fw-bold">{{ r.saldo_kredit|rupiah if r.saldo_kredit else '—' }}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+      <tfoot class="table-primary fw-bold"><tr><td colspan="5" class="text-end">TOTAL NERACA SALDO</td>
+        <td class="text-end money">{{ td|rupiah }}</td><td class="text-end money">{{ tk|rupiah }}</td></tr></tfoot>
+    </table>
+  </div>
+</div>
+{% if seimbang %}
+  <div class="alert alert-success mt-3"><i class="bi bi-check-circle-fill"></i> <b>SEIMBANG (BALANCE)</b> — Total Saldo Debit = Total Saldo Kredit = {{ td|rupiah }}.</div>
+{% else %}
+  <div class="alert alert-danger mt-3"><i class="bi bi-exclamation-triangle-fill"></i> <b>TIDAK SEIMBANG</b> — selisih {{ (td-tk)|abs|rupiah }}. Periksa Jurnal &amp; input transaksi.</div>
+{% endif %}
+<p class="small text-muted">Klik kode/nama akun untuk membuka Buku Besar akun tersebut.</p>
+{% endblock %}

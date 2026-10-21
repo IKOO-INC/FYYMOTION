@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% block title %}Daftar Akun{% endblock %}
+{% block page_title %}<i class="bi bi-diagram-3 text-primary"></i> Daftar Akun — Chart of Accounts (COA){% endblock %}
+{% block content %}
+<p class="text-muted">Daftar akun dipakai di Jurnal/Buku Besar/Neraca Saldo. Akun yang dicentang <b>Kas/Bank</b> menentukan hitungan Pemasukan vs Pengeluaran. Klik nama akun untuk melihat Buku Besarnya.</p>
+
+<div class="row g-3">
+  <div class="col-lg-8">
+    <div class="card shadow-sm"><div class="table-responsive">
+      <table class="table table-hover mb-0">
+        <thead class="table-light"><tr><th>Kode</th><th>Nama Akun</th><th>Tipe</th><th>Saldo Normal</th><th>Kas?</th><th class="text-end">Saldo (D−K)</th><th class="text-end no-print">Aksi</th></tr></thead>
+        <tbody>
+        {% for a in accounts %}
+          <tr>
+            <td class="fw-bold">{{ a.kode }}</td>
+            <td><a class="text-decoration-none fw-semibold" href="{{ url_for('buku_besar', akun=a.kode) }}">{{ a.nama }}</a></td>
+            <td><span class="badge text-bg-light border">{{ a.tipe }}</span></td>
+            <td>{{ a.saldo_normal }}</td>
+            <td>{% if a.is_cash %}<span class="badge text-bg-success">KAS</span>{% endif %}</td>
+            <td class="text-end money fw-bold">{{ saldo_map.get(a.kode, 0)|rupiah }}</td>
+            <td class="text-end no-print text-nowrap">
+              <button type="button" class="btn btn-sm btn-warning" title="Edit"
+                onclick="isiForm('{{ a.kode }}','{{ a.nama|e }}','{{ a.tipe }}','{{ a.saldo_normal }}', {{ 'true' if a.is_cash else 'false' }})"><i class="bi bi-pencil"></i></button>
+              {% if a.kode not in used %}
+              <form class="d-inline" method="post" action="{{ url_for('account_delete', kode=a.kode) }}" onsubmit="return confirm('Hapus akun {{ a.kode }} — {{ a.nama }}?')">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="btn btn-sm btn-danger"><i class="bi bi-trash"></i></button></form>
+              {% else %}<span class="badge text-bg-secondary" title="Sudah dipakai di Jurnal, tidak bisa dihapus">terpakai</span>{% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div></div>
+  </div>
+
+  <div class="col-lg-4">
+    <div class="card shadow-sm sticky-top" style="top:80px">
+      <div class="card-header bg-white fw-bold"><i class="bi bi-plus-circle text-primary"></i> <span id="formTitle">Tambah Akun Baru</span></div>
+      <div class="card-body">
+        <form method="post" action="{{ url_for('account_save') }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <input type="hidden" name="old_kode" id="fOldKode">
+          <label class="form-label fw-bold">Kode Akun *</label>
+          <input name="kode" id="fKode" class="form-control mb-2" required placeholder="cth: 506">
+          <label class="form-label fw-bold">Nama Akun *</label>
+          <input name="nama" id="fNama" class="form-control mb-2" required placeholder="cth: Beban Transport">
+          <label class="form-label fw-bold">Tipe</label>
+          <select name="tipe" id="fTipe" class="form-select mb-2">
+            {% for t in TIPE_AKUN %}<option>{{ t }}</option>{% endfor %}
+          </select>
+          <label class="form-label fw-bold">Saldo Normal</label>
+          <select name="saldo_normal" id="fSaldoNormal" class="form-select mb-2">
+            <option>Debit</option><option>Kredit</option>
+          </select>
+          <div class="form-check mb-3">
+            <input class="form-check-input" type="checkbox" name="is_cash" value="1" id="fIsCash">
+            <label class="form-check-label" for="fIsCash">Ini akun Kas / Bank / E-Wallet (untuk hitung pemasukan-pengeluaran)</label>
+          </div>
+          <button class="btn btn-primary w-100 fw-bold" type="submit"><i class="bi bi-save"></i> Simpan Akun</button>
+          <button class="btn btn-outline-secondary w-100 mt-2" type="button" onclick="resetForm()">Bersihkan (mode tambah baru)</button>
+        </form>
+        <hr>
+        <div class="small text-muted">
+          <b>Panduan kode:</b> 1xx Aset, 2xx Kewajiban, 3xx Modal, 4xx Pendapatan, 5xx Beban.<br>
+          Saldo normal Debit: Aset &amp; Beban. Kredit: Kewajiban, Modal &amp; Pendapatan.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+function isiForm(kode, nama, tipe, saldoNormal, isCash){
+  document.getElementById('fOldKode').value = kode;
+  document.getElementById('fKode').value = kode;
+  document.getElementById('fNama').value = nama;
+  document.getElementById('fTipe').value = tipe;
+  document.getElementById('fSaldoNormal').value = saldoNormal;
+  document.getElementById('fIsCash').checked = !!isCash;
+  document.getElementById('formTitle').textContent = 'Edit Akun ' + kode;
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+function resetForm(){
+  ['fOldKode','fKode','fNama'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('fIsCash').checked=false;
+  document.getElementById('formTitle').textContent='Tambah Akun Baru';
+}
+</script>
+{% endblock %}

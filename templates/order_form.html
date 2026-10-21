@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Edit Order' if mode=='edit' else 'Order Baru' }}{% endblock %}
+{% block page_title %}<i class="bi bi-bag-plus text-primary"></i> {{ 'Edit Order' if mode=='edit' else 'Tambah Order Baru' }}{% endblock %}
+{% block content %}
+<form method="post">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <div class="row g-3">
+    <div class="col-lg-8">
+      <div class="card shadow-sm mb-3">
+        <div class="card-header bg-white fw-bold"><i class="bi bi-person-lines-fill text-primary"></i> Data Client (Nama &amp; Nomor WA — agar tidak lupa)</div>
+        <div class="card-body">
+          <div class="row g-3">
+            <div class="col-md-6"><label class="form-label fw-bold">Nama Client *</label>
+              <input name="client_name" class="form-control" required value="{{ order.client_name or '' }}" placeholder="cth: Budi Santoso"></div>
+            <div class="col-md-6"><label class="form-label fw-bold">Nomor WhatsApp *</label>
+              <div class="input-group"><span class="input-group-text text-success"><i class="bi bi-whatsapp"></i></span>
+                <input name="wa_number" class="form-control" required value="{{ order.wa_number or '' }}" placeholder="08xxxxxxxxxx / 628xxxxxxxxxx"></div>
+              <div class="form-text">Otomatis diubah ke format internasional 62 untuk link wa.me</div></div>
+            <div class="col-md-8"><label class="form-label fw-bold">Judul Pesanan *</label>
+              <input name="judul" class="form-control" required value="{{ order.judul or '' }}" placeholder="cth: Video Explainer Produk Kopi 60 detik"></div>
+            <div class="col-md-4"><label class="form-label fw-bold">Jenis Animasi</label>
+              <select name="jenis_animasi" class="form-select">
+                {% for j in JENIS_ANIMASI %}<option {% if order.jenis_animasi==j %}selected{% endif %}>{{ j }}</option>{% endfor %}
+              </select></div>
+            <div class="col-md-3"><label class="form-label">Paket</label>
+              <input name="paket" class="form-control" value="{{ order.paket or '' }}" placeholder="Basic / Standard / Premium"></div>
+            <div class="col-md-3"><label class="form-label">Durasi</label>
+              <input name="durasi" class="form-control" value="{{ order.durasi or '' }}" placeholder="30 detik"></div>
+            <div class="col-md-3"><label class="form-label">Resolusi</label>
+              <input name="resolusi" class="form-control" value="{{ order.resolusi or '' }}" placeholder="1080p / 4K"></div>
+            <div class="col-md-3"><label class="form-label">Format Output</label>
+              <input name="format_output" class="form-control" value="{{ order.format_output or '' }}" placeholder="MP4 / MOV"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card shadow-sm mb-3">
+        <div class="card-header bg-white fw-bold"><i class="bi bi-card-text text-primary"></i> Data Pesanan Teks (Brief, Script &amp; Referensi — bahan kerja Anda)</div>
+        <div class="card-body">
+          <label class="form-label fw-bold">Brief / Deskripsi Pesanan</label>
+          <textarea name="brief" rows="3" class="form-control mb-3" placeholder="Tujuan video, target penonton, gaya, warna, suasana...">{{ order.brief or '' }}</textarea>
+          <label class="form-label fw-bold">Script / Teks yang Dianimasikan</label>
+          <textarea name="script_teks" rows="6" class="form-control mb-3" placeholder="Tulis per scene, contoh:&#10;Scene 1: ...&#10;Scene 2: ...">{{ order.script_teks or '' }}</textarea>
+          <label class="form-label fw-bold">Referensi (gaya, link, file dari client)</label>
+          <textarea name="referensi" rows="2" class="form-control mb-3">{{ order.referensi or '' }}</textarea>
+          <label class="form-label fw-bold text-danger">Catatan Revisi</label>
+          <textarea name="catatan_revisi" rows="2" class="form-control" placeholder="Revisi 1: ... / Revisi 2: ...">{{ order.catatan_revisi or '' }}</textarea>
+        </div>
+      </div>
+
+      <div class="card shadow-sm">
+        <div class="card-header bg-white fw-bold"><i class="bi bi-link-45deg text-primary"></i> Link Preview &amp; Hasil Jadi</div>
+        <div class="card-body row g-3">
+          <div class="col-md-6"><label class="form-label">Link Preview (Drive/Youtube)</label>
+            <input name="link_preview" class="form-control" value="{{ order.link_preview or '' }}" placeholder="https://..."></div>
+          <div class="col-md-6"><label class="form-label">Link Hasil Final</label>
+            <input name="link_hasil" class="form-control" value="{{ order.link_hasil or '' }}" placeholder="https://..."></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-4">
+      <div class="card shadow-sm mb-3">
+        <div class="card-header bg-white fw-bold"><i class="bi bi-list-ol text-primary"></i> Antrian, Status &amp; Jadwal</div>
+        <div class="card-body">
+          <div class="row g-3">
+            <div class="col-6"><label class="form-label fw-bold">No. Antrian</label>
+              <input name="queue_no" type="number" class="form-control" value="{{ order.queue_no or next_queue or '' }}" placeholder="Otomatis">
+              {% if mode=='new' %}<div class="form-text">Antrian berikutnya: #{{ next_queue }}</div>{% endif %}</div>
+            <div class="col-6"><label class="form-label fw-bold">Kode Order</label>
+              <input name="order_code" class="form-control" value="{{ order.order_code or '' }}" placeholder="FYY-000{{ next_queue or '' }}"></div>
+            <div class="col-12"><label class="form-label fw-bold">Status Order</label>
+              <select name="status" class="form-select">
+                {% for code,label,color in STATUS_ORDER %}<option value="{{ code }}" {% if order.status==code %}selected{% endif %}>{{ label }}</option>{% endfor %}
+              </select>
+              <div class="form-text">Order Masuk → Antrian → Proses → (Revisi) → Selesai / Sudah Jadi</div></div>
+            <div class="col-12"><label class="form-label fw-bold">Progress Pengerjaan: <span id="progLabel">{{ order.progress or 0 }}</span>%</label>
+              <input name="progress" type="range" min="0" max="100" step="5" class="form-range" value="{{ order.progress or 0 }}" oninput="document.getElementById('progLabel').textContent=this.value"></div>
+            <div class="col-6"><label class="form-label">Tanggal Masuk</label>
+              <input name="tanggal_masuk" type="date" class="form-control" value="{{ order.tanggal_masuk or '' }}"></div>
+            <div class="col-6"><label class="form-label">Deadline</label>
+              <input name="deadline" type="date" class="form-control" value="{{ order.deadline or '' }}"></div>
+            <div class="col-12"><label class="form-label">Prioritas</label>
+              <select name="prioritas" class="form-select">
+                {% for p in PRIORITAS %}<option {% if order.prioritas==p %}selected{% endif %}>{{ p }}</option>{% endfor %}
+              </select></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card shadow-sm mb-3">
+        <div class="card-header bg-white fw-bold"><i class="bi bi-cash-coin text-primary"></i> Harga &amp; Pembayaran</div>
+        <div class="card-body">
+          <div class="row g-3">
+            <div class="col-12"><label class="form-label fw-bold">Harga Total (Rp)</label>
+              <input id="harga" name="harga" type="number" min="0" class="form-control rupiah-input" value="{{ order.harga or '' }}" placeholder="1500000">
+              <div class="form-text rupiah-hint text-primary fw-bold"></div></div>
+            <div class="col-12"><label class="form-label fw-bold">DP / Sudah Dibayar (Rp)</label>
+              <input id="dp" name="dp" type="number" min="0" class="form-control rupiah-input" value="{{ order.dp or '' }}" placeholder="750000">
+              <div class="form-text rupiah-hint text-primary fw-bold"></div></div>
+            <div class="col-12"><label class="form-label">Sisa Bayar (otomatis)</label>
+              <input id="sisaBayar" type="number" class="form-control bg-light" readonly></div>
+            <div class="col-6"><label class="form-label">Status Bayar</label>
+              <select name="status_pembayaran" class="form-select">
+                {% for code,label,color in STATUS_PEMBAYARAN %}<option value="{{ code }}" {% if order.status_pembayaran==code %}selected{% endif %}>{{ label }}</option>{% endfor %}
+              </select></div>
+            <div class="col-6"><label class="form-label">Metode Bayar</label>
+              <select name="metode_bayar" class="form-select">
+                {% for mb in METODE_BAYAR %}<option {% if order.metode_bayar==mb %}selected{% endif %}>{{ mb }}</option>{% endfor %}
+              </select></div>
+            {% if mode=='new' %}
+            <div class="col-12"><div class="form-check border rounded p-2 ps-5 bg-light">
+              <input class="form-check-input" type="checkbox" name="catat_dp" value="1" id="catatDp" checked>
+              <label class="form-check-label small" for="catatDp"><b>Catat DP otomatis</b> ke Jurnal &amp; Kas (Debit: Kas, Kredit: DP Client) bila DP &gt; 0</label>
+            </div></div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <div class="d-grid gap-2">
+        <button class="btn btn-primary btn-lg fw-bold" type="submit"><i class="bi bi-save"></i> {{ 'Simpan Perubahan' if mode=='edit' else 'Simpan & Masuk Antrian' }}</button>
+        <a class="btn btn-outline-secondary" href="{{ url_for('orders_list') }}">Batal / Kembali</a>
+      </div>
+    </div>
+  </div>
+</form>
+{% endblock %}

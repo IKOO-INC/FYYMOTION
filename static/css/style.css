@@ -1,0 +1,53 @@
+:root{
+  --brand:#6d28d9; --brand2:#2563eb; --sidebar-w:268px;
+}
+body{background:#f4f6fb;font-family:"Segoe UI",system-ui,-apple-system,Arial,sans-serif;color:#1f2937}
+.layout{display:flex;min-height:100vh}
+
+/* ---------- Sidebar ---------- */
+.sidebar{width:var(--sidebar-w);flex:0 0 var(--sidebar-w);background:linear-gradient(180deg,#17112b 0%,#241453 55%,#312e81 100%);color:#fff;display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto;z-index:1040}
+.brand{display:flex;gap:.7rem;align-items:center;padding:1.1rem 1rem;text-decoration:none;color:#fff;border-bottom:1px solid rgba(255,255,255,.12)}
+.brand:hover{color:#fff}
+.brand-icon{width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,var(--brand),var(--brand2));display:flex;align-items:center;justify-content:center;font-size:1.35rem;flex:0 0 auto}
+.brand-name{display:block;font-weight:800;letter-spacing:.4px;line-height:1.1}
+.brand-sub{display:block;font-size:.7rem;color:rgba(255,255,255,.65)}
+.sidebar-heading{font-size:.68rem;text-transform:uppercase;letter-spacing:.12em;color:rgba(255,255,255,.55);padding:1rem 1rem .35rem}
+.sidebar-nav{padding:0 .6rem}
+.sidebar-nav .nav-link{display:flex;align-items:center;gap:.6rem;color:rgba(255,255,255,.82);border-radius:10px;padding:.55rem .7rem;margin-bottom:.15rem;font-size:.92rem}
+.sidebar-nav .nav-link i{width:20px;text-align:center}
+.sidebar-nav .nav-link:hover{background:rgba(255,255,255,.12);color:#fff}
+.sidebar-nav .nav-link.active{background:linear-gradient(90deg,var(--brand),var(--brand2));color:#fff;font-weight:600}
+.sidebar-footer{margin-top:auto;padding:1rem;border-top:1px solid rgba(255,255,255,.12)}
+.avatar{width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;font-size:1.1rem}
+.sidebar-backdrop{display:none}
+
+/* ---------- Main ---------- */
+.main{flex:1;min-width:0}
+.topbar{box-shadow:0 1px 8px rgba(15,23,42,.05);z-index:1030}
+.stat-icon{font-size:1.9rem;opacity:.28}
+.stat-card:hover{transform:translateY(-2px);transition:.15s}
+.card{border:0;border-radius:14px}
+.table th{font-size:.78rem;text-transform:uppercase;letter-spacing:.03em;color:#64748b;white-space:nowrap}
+.table td{vertical-align:middle}
+pre.teks-pesanan{background:#0f172a;color:#e2e8f0;border-radius:10px;padding:1rem;white-space:pre-wrap;font-size:.88rem;max-height:340px;overflow:auto}
+.queue-board .card{height:100%}
+.queue-now{background:linear-gradient(135deg,var(--brand),var(--brand2));color:#fff}
+.money{font-variant-numeric:tabular-nums;white-space:nowrap}
+.progress{height:.55rem;border-radius:99px}
+.deadline-late{color:#dc2626;font-weight:700}
+.journal-indent{padding-left:2.2rem!important;font-style:italic;color:#475569}
+
+/* ---------- Login ---------- */
+.login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;background:radial-gradient(900px 500px at 15% 0%,#7c3aed33,transparent),radial-gradient(900px 500px at 90% 100%,#2563eb33,transparent),linear-gradient(160deg,#17112b,#241453 60%,#312e81);padding:1rem}
+.login-card{width:100%;max-width:430px;border-radius:18px}
+
+@media (max-width:991.98px){
+  .sidebar{position:fixed;left:0;top:0;transform:translateX(-100%);transition:transform .25s ease}
+  .sidebar.show{transform:translateX(0)}
+  .sidebar-backdrop.show{display:block;position:fixed;inset:0;background:rgba(2,6,23,.5);z-index:1035}
+}
+@media print{
+  .sidebar,.topbar,.no-print,.btn{display:none!important}
+  .main{width:100%}
+  body{background:#fff}
+}

@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% import "_macros.html" as m with context %}
+{% block title %}Laporan Laba Rugi{% endblock %}
+{% block page_title %}<i class="bi bi-graph-up-arrow text-primary"></i> Laporan Laba Rugi &amp; Ringkasan Usaha{% endblock %}
+{% block content %}
+{{ m.period_filter(url_for('laporan'), preset, d_from, d_to) }}
+
+<div class="row g-3 mb-4">
+  {{ m.stat_card("Arus Kas Masuk", masuk|rupiah, "bi-arrow-down-circle", "success") }}
+  {{ m.stat_card("Arus Kas Keluar", keluar|rupiah, "bi-arrow-up-circle", "danger") }}
+  {{ m.stat_card("Order Masuk (periode)", ringkasan_order.jumlah_order ~ " order", "bi-bag", "info", ringkasan_order.selesai ~ " di antaranya selesai") }}
+  {{ m.stat_card("Nilai Order (periode)", ringkasan_order.nilai_order|rupiah, "bi-cash-stack", "primary", "DP tercatat di order: " ~ ringkasan_order.dp_masuk|rupiah ~ " &middot; Piutang: " ~ ringkasan_order.sisa_piutang|rupiah) }}
+</div>
+
+<div class="card shadow-sm">
+  <div class="card-header bg-white text-center">
+    <div class="fw-bold fs-5">{{ settings.nama_usaha or 'FYY MOTION' }}</div>
+    <div class="fw-bold">LAPORAN LABA RUGI</div>
+    <div class="small text-muted">Periode {{ d_from|tanggal if d_from else 'semua' }} s/d {{ d_to|tanggal if d_to else 'semua' }}</div>
+  </div>
+  <div class="table-responsive"><table class="table table-bordered mb-0">
+    <tbody>
+      <tr class="table-light fw-bold"><td colspan="2"><i class="bi bi-plus-circle text-success"></i> PENDAPATAN</td></tr>
+      {% for r in is_data.pendapatan %}
+        <tr><td class="ps-4">{{ r.kode }} — {{ r.nama }}</td><td class="text-end money" style="width:220px">{{ (r.saldo_kredit - r.saldo_debit)|rupiah }}</td></tr>
+      {% endfor %}
+      <tr class="fw-bold"><td class="text-end">Total Pendapatan</td><td class="text-end money">{{ is_data.total_pendapatan|rupiah }}</td></tr>
+
+      <tr class="table-light fw-bold"><td colspan="2"><i class="bi bi-dash-circle text-danger"></i> BEBAN-BEBAN</td></tr>
+      {% for r in is_data.beban %}
+        <tr><td class="ps-4">{{ r.kode }} — {{ r.nama }}</td><td class="text-end money">{{ (r.saldo_debit - r.saldo_kredit)|rupiah }}</td></tr>
+      {% endfor %}
+      <tr class="fw-bold"><td class="text-end">Total Beban</td><td class="text-end money">({{ is_data.total_beban|rupiah }})</td></tr>
+
+      <tr class="{% if is_data.laba_bersih >= 0 %}table-success{% else %}table-danger{% endif %} fw-bold fs-5">
+        <td>{{ 'LABA BERSIH' if is_data.laba_bersih >= 0 else 'RUGI BERSIH' }}</td>
+        <td class="text-end money">{{ is_data.laba_bersih|rupiah }}</td>
+      </tr>
+    </tbody>
+  </table></div>
+</div>
+<p class="small text-muted mt-3"><i class="bi bi-info-circle"></i> Laba Rugi dihitung dari akun tipe <b>Pendapatan</b> dikurangi tipe <b>Beban</b> di Jurnal (akrual sederhana). DP client yang masih di akun 202 belum dihitung sebagai pendapatan sampai Anda mencatatnya sebagai pembayaran lunas (401). Untuk melihat uang riil, gunakan Arus Kas / Buku Besar akun Kas.</p>
+{% endblock %}

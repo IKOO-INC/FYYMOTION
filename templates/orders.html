@@ -1,0 +1,150 @@
+{% extends "base.html" %}
+{% import "_macros.html" as m with context %}
+{% block title %}Daftar Orderan{% endblock %}
+{% block page_title %}<i class="bi bi-bag text-primary"></i> Daftar Orderan &amp; Nomor Antrian{% endblock %}
+{% block content %}
+
+<div class="d-flex flex-wrap gap-2 mb-3 no-print">
+  <a class="btn btn-primary" href="{{ url_for('order_new') }}"><i class="bi bi-plus-lg"></i> Tambah Order Baru</a>
+  <a class="btn btn-outline-dark" href="{{ url_for('antrian') }}"><i class="bi bi-kanban"></i> Papan Antrian</a>
+  <a class="btn btn-outline-success" href="{{ url_for('export_orders') }}"><i class="bi bi-filetype-csv"></i> Export CSV</a>
+  <!-- Filter cepat status -->
+  <div class="btn-group ms-md-auto" role="group" aria-label="Filter cepat status">
+    <a class="btn btn-sm {% if not status %}btn-dark{% else %}btn-outline-dark{% endif %}" href="{{ url_for('orders_list') }}">Semua</a>
+    {% for code,label,color in STATUS_ORDER %}
+      <a class="btn btn-sm {% if status==code %}btn-{{ color }}{% else %}btn-outline-{{ color }}{% endif %}"
+         href="{{ url_for('orders_list', status=code) }}">{{ label }}</a>
+    {% endfor %}
+  </div>
+</div>
+
+<form class="card shadow-sm mb-3 no-print" method="get">
+  <div class="card-body py-3">
+    <div class="row g-2 align-items-end">
+      <div class="col-md-3">
+        <label class="form-label small fw-bold mb-1">Cari (nama / WA / judul / kode)</label>
+        <input name="q" value="{{ q }}" class="form-control form-control-sm" placeholder="cth: budi, 0812, FYY-0001...">
+      </div>
+      <div class="col-md-2">
+        <label class="form-label small fw-bold mb-1">Status Order</label>
+        <select name="status" class="form-select form-select-sm">
+          <option value="">— Semua Status —</option>
+          {% for code,label,color in STATUS_ORDER %}<option value="{{ code }}" {% if status==code %}selected{% endif %}>{{ label }}</option>{% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label small fw-bold mb-1">Pembayaran</label>
+        <select name="bayar" class="form-select form-select-sm">
+          <option value="">— Semua —</option>
+          {% for code,label,color in STATUS_PEMBAYARAN %}<option value="{{ code }}" {% if bayar==code %}selected{% endif %}>{{ label }}</option>{% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label small fw-bold mb-1">Prioritas</label>
+        <select name="prioritas" class="form-select form-select-sm">
+          <option value="">— Semua —</option>
+          {% for p in PRIORITAS %}<option {% if prioritas==p %}selected{% endif %}>{{ p }}</option>{% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label small fw-bold mb-1">Periode Masuk</label>
+        <select name="periode" class="form-select form-select-sm">
+          <option value="semua" {% if preset=='semua' %}selected{% endif %}>Semua Waktu</option>
+          <option value="hari_ini" {% if preset=='hari_ini' %}selected{% endif %}>Hari Ini</option>
+          <option value="bulan_ini" {% if preset=='bulan_ini' %}selected{% endif %}>Bulan Ini</option>
+          <option value="bulan_lalu" {% if preset=='bulan_lalu' %}selected{% endif %}>Bulan Lalu</option>
+          <option value="tahun_ini" {% if preset=='tahun_ini' %}selected{% endif %}>Tahun Ini</option>
+          <option value="custom" {% if preset=='custom' %}selected{% endif %}>Custom</option>
+        </select>
+      </div>
+      <div class="col-md-1">
+        <label class="form-label small mb-1">Urutkan</label>
+        <select name="sort" class="form-select form-select-sm">
+          <option value="antrian" {% if sort=='antrian' %}selected{% endif %}>Antrian</option>
+          <option value="terbaru" {% if sort=='terbaru' %}selected{% endif %}>Terbaru</option>
+          <option value="deadline" {% if sort=='deadline' %}selected{% endif %}>Deadline</option>
+          <option value="harga" {% if sort=='harga' %}selected{% endif %}>Harga</option>
+        </select>
+      </div>
+      <div class="col-md-2"><label class="form-label small mb-1">Dari</label><input type="date" name="from" value="{{ d_from }}" class="form-control form-control-sm"></div>
+      <div class="col-md-2"><label class="form-label small mb-1">Sampai</label><input type="date" name="to" value="{{ d_to }}" class="form-control form-control-sm"></div>
+      <div class="col-auto">
+        <button class="btn btn-primary btn-sm" type="submit"><i class="bi bi-funnel"></i> Filter</button>
+        <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('orders_list') }}">Reset</a>
+      </div>
+    </div>
+  </div>
+</form>
+
+<div class="row g-3 mb-3">
+  {{ m.stat_card("Total Nilai Order (hasil filter)", summary.total_nilai|rupiah, "bi-cash-stack", "primary", pg.total ~ " order ditampilkan") }}
+  {{ m.stat_card("Total DP Diterima", summary.total_dp|rupiah, "bi-wallet", "success") }}
+  {{ m.stat_card("Total Sisa / Piutang", summary.total_sisa|rupiah, "bi-hourglass", "danger") }}
+  {{ m.stat_card("Info Antrian", "Kolom # = No. Antrian", "bi-list-ol", "info", "Posisi aktif = urutan kerja saat ini") }}
+</div>
+
+<div class="card shadow-sm">
+  <div class="table-responsive">
+    <table class="table table-hover table-striped mb-0 align-middle">
+      <thead class="table-light">
+        <tr><th># Antri</th><th>Client &amp; WhatsApp</th><th>Pesanan</th><th>Harga / DP / Sisa</th><th>Bayar</th><th>Status &amp; Progress</th><th>Deadline</th><th class="text-end no-print">Aksi</th></tr>
+      </thead>
+      <tbody>
+      {% for o in orders %}
+        <tr>
+          <td>
+            <span class="badge rounded-pill text-bg-dark fs-6">#{{ o.queue_no }}</span>
+            {% if posisi.get(o.id) %}<div class="small text-primary fw-bold mt-1">Posisi aktif: {{ posisi[o.id] }}</div>{% endif %}
+          </td>
+          <td>
+            <a class="fw-bold text-decoration-none" href="{{ url_for('order_detail', order_id=o.id) }}">{{ o.client_name }}</a>
+            <div class="small">
+              <a class="text-success text-decoration-none fw-semibold" target="_blank" href="{{ wa_link(o) }}">
+                <i class="bi bi-whatsapp"></i> {{ o.wa_number }}</a>
+              <button type="button" class="btn btn-link btn-sm p-0 btn-copy" data-copy-text="{{ o.wa_number }}" title="Salin nomor WA"><i class="bi bi-clipboard"></i></button>
+            </div>
+            <span class="badge text-bg-light border">{{ o.order_code }}</span>
+          </td>
+          <td>
+            <div class="fw-semibold">{{ o.judul }}</div>
+            <div class="small text-muted">{{ o.jenis_animasi }}{% if o.paket %} &middot; {{ o.paket }}{% endif %}{% if o.durasi %} &middot; {{ o.durasi }}{% endif %}</div>
+            <div class="small text-muted">Masuk: {{ o.tanggal_masuk|tanggal }} &middot; {{ o.prioritas }}</div>
+          </td>
+          <td class="money small">
+            <div>Harga: <b>{{ o.harga|rupiah }}</b></div>
+            <div class="text-success">DP: {{ o.dp|rupiah }}</div>
+            <div class="{% if sisa_bayar(o) > 0 %}text-danger fw-bold{% endif %}">Sisa: {{ sisa_bayar(o)|rupiah }}</div>
+          </td>
+          <td>{{ m.pay_badge(o.status_pembayaran) }}<div class="small text-muted mt-1">{{ o.metode_bayar }}</div></td>
+          <td>
+            {{ m.status_badge(o.status) }}
+            <div class="progress mt-2" style="min-width:110px"><div class="progress-bar bg-{{ STATUS_BADGE.get(o.status,'secondary') }}" style="width:{{ o.progress }}%"></div></div>
+            <span class="small text-muted">{{ o.progress }}%</span>
+            <form class="d-flex gap-1 mt-1 no-print" method="post" action="{{ url_for('order_status', order_id=o.id) }}">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <select name="status" class="form-select form-select-sm">
+                {% for code,label,color in STATUS_ORDER %}<option value="{{ code }}" {% if o.status==code %}selected{% endif %}>{{ label }}</option>{% endfor %}
+              </select>
+              <button class="btn btn-sm btn-outline-primary" title="Ubah status cepat"><i class="bi bi-check"></i></button>
+            </form>
+          </td>
+          <td class="small">{{ o.deadline|tanggal }}</td>
+          <td class="text-end no-print text-nowrap">
+            <a class="btn btn-sm btn-info text-white" href="{{ url_for('order_detail', order_id=o.id) }}" title="Detail & teks pesanan"><i class="bi bi-eye"></i></a>
+            <a class="btn btn-sm btn-warning" href="{{ url_for('order_edit', order_id=o.id) }}" title="Edit"><i class="bi bi-pencil"></i></a>
+            <a class="btn btn-sm btn-success" target="_blank" href="{{ wa_link(o) }}" title="Chat WhatsApp"><i class="bi bi-whatsapp"></i></a>
+            <form class="d-inline" method="post" action="{{ url_for('order_delete', order_id=o.id) }}" onsubmit="return confirm('Hapus order {{ o.order_code }} — {{ o.client_name }}?')">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button class="btn btn-sm btn-danger" title="Hapus"><i class="bi bi-trash"></i></button>
+            </form>
+          </td>
+        </tr>
+      {% else %}
+        <tr><td colspan="8" class="text-center text-muted py-5"><i class="bi bi-inbox fs-2 d-block mb-2"></i>Tidak ada order yang cocok dengan filter.</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+<div class="mt-3">{{ m.pagination(pg) }}</div>
+{% endblock %}

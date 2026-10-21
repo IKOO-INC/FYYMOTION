@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Edit Transaksi' if mode=='edit' else 'Transaksi Baru' }}{% endblock %}
+{% block page_title %}<i class="bi bi-receipt text-primary"></i> {{ 'Edit Transaksi' if mode=='edit' else 'Catat Transaksi Baru' }}{% endblock %}
+{% block content %}
+<div class="row justify-content-center"><div class="col-lg-9">
+<form method="post">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <div class="card shadow-sm mb-3">
+    <div class="card-header bg-white fw-bold"><i class="bi bi-journal-plus text-primary"></i> Form Jurnal Transaksi (Double-Entry)</div>
+    <div class="card-body">
+      <div class="alert alert-info small">
+        <b>Cara mudah:</b> cukup pilih <b>Jenis Transaksi</b> — akun Debit/Kredit terisi otomatis sesuai standar akuntansi.
+        Pilih "<i>Jurnal Manual</i>" bila ingin menentukan akun sendiri. Contoh: Pembayaran order &rarr; Debit <b>Kas</b>, Kredit <b>Pendapatan Jasa</b>.
+      </div>
+      <div class="row g-3">
+        <div class="col-md-4"><label class="form-label fw-bold">Tanggal *</label>
+          <input name="tanggal" type="date" class="form-control" required value="{{ trx.tanggal or '' }}"></div>
+        <div class="col-md-8"><label class="form-label fw-bold">Jenis Transaksi (preset Jurnal)</label>
+          <select id="jenisTransaksi" name="jenis" class="form-select">
+            {% for code,label,d,k in JENIS_TRANSAKSI %}<option value="{{ code }}" {% if trx.jenis==code %}selected{% endif %}>{{ label }}</option>{% endfor %}
+          </select></div>
+        <div class="col-12"><label class="form-label fw-bold">Keterangan *</label>
+          <input name="keterangan" class="form-control" required value="{{ trx.keterangan or '' }}" placeholder="cth: Pelunasan order FYY-0001 — Budi Santoso"></div>
+        <div class="col-md-6"><label class="form-label fw-bold text-success">Akun DEBIT *</label>
+          <select id="akunDebit" name="akun_debit" class="form-select border-success" required>
+            <option value="">— Pilih Akun Debit —</option>
+            {% for a in accounts %}<option value="{{ a.kode }}" {% if trx.akun_debit|string==a.kode|string %}selected{% endif %}>{{ a.kode }} — {{ a.nama }} ({{ a.tipe }})</option>{% endfor %}
+          </select></div>
+        <div class="col-md-6"><label class="form-label fw-bold text-danger">Akun KREDIT *</label>
+          <select id="akunKredit" name="akun_kredit" class="form-select border-danger" required>
+            <option value="">— Pilih Akun Kredit —</option>
+            {% for a in accounts %}<option value="{{ a.kode }}" {% if trx.akun_kredit|string==a.kode|string %}selected{% endif %}>{{ a.kode }} — {{ a.nama }} ({{ a.tipe }})</option>{% endfor %}
+          </select></div>
+        <div class="col-md-4"><label class="form-label fw-bold">Jumlah (Rp) *</label>
+          <input name="jumlah" type="number" min="1" class="form-control rupiah-input fw-bold" required value="{{ trx.jumlah or '' }}" placeholder="500000">
+          <div class="form-text rupiah-hint text-primary fw-bold"></div></div>
+        <div class="col-md-4"><label class="form-label">Metode Pembayaran</label>
+          <select name="metode_bayar" class="form-select">
+            {% for mb in METODE_BAYAR %}<option {% if trx.metode_bayar==mb %}selected{% endif %}>{{ mb }}</option>{% endfor %}
+          </select></div>
+        <div class="col-md-4"><label class="form-label">Bukti / No. Ref (opsional)</label>
+          <input name="bukti" class="form-control" value="{{ trx.bukti or '' }}" placeholder="cth: TRX-123, screenshot WA"></div>
+        <div class="col-12"><label class="form-label">Kaitkan dengan Order (opsional, agar pembayaran client terpantau)</label>
+          <select name="order_id" class="form-select">
+            <option value="">— Tidak terkait order —</option>
+            {% for o in orders %}
+              <option value="{{ o.id }}" {% if trx.order_id==o.id %}selected{% endif %}>
+                Antrian #{{ o.queue_no }} | {{ o.order_code }} — {{ o.client_name }} — {{ o.judul }} (WA {{ o.wa_number }})</option>
+            {% endfor %}
+          </select></div>
+      </div>
+    </div>
+  </div>
+  <div class="d-grid gap-2 d-md-flex">
+    <button class="btn btn-primary btn-lg fw-bold flex-grow-1" type="submit"><i class="bi bi-save"></i> Simpan ke Jurnal</button>
+    <a class="btn btn-outline-secondary btn-lg" href="{{ url_for('transactions_list', periode='semua') }}">Batal</a>
+  </div>
+</form>
+</div></div>
+{% endblock %}
+{% block scripts %}<script>window.JENIS_PRESET = {{ JENIS_PRESET | tojson }};</script>{% endblock %}

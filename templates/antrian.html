@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% import "_macros.html" as m with context %}
+{% block title %}Antrian Kerja{% endblock %}
+{% block page_title %}<i class="bi bi-list-ol text-primary"></i> Antrian Kerja — Urutan Pengerjaan{% endblock %}
+{% block content %}
+
+<div class="card queue-now shadow mb-4">
+  <div class="card-body text-center py-4">
+    <div class="text-uppercase small fw-bold opacity-75">Nomor Antrian yang Sedang Dikerjakan / Terdepan</div>
+    {% if current %}
+      <div class="display-4 fw-bold">#{{ current.queue_no }}</div>
+      <h5 class="fw-bold mb-1">{{ current.client_name }} — {{ current.judul }}</h5>
+      <div class="mb-3">{{ current.order_code }} &middot; {{ m.status_badge(current.status) }} &middot; Deadline {{ current.deadline|tanggal }}</div>
+      <a class="btn btn-light fw-bold" href="{{ url_for('order_detail', order_id=current.id) }}"><i class="bi bi-briefcase"></i> Buka Brief Kerja</a>
+      <a class="btn btn-success fw-bold" target="_blank" href="{{ wa_link(current) }}"><i class="bi bi-whatsapp"></i> {{ current.wa_number }}</a>
+    {% else %}
+      <div class="display-6 fw-bold mt-2">Antrian kosong 🎉</div>
+      <p class="mb-0 opacity-75">Semua order selesai. Tambah order baru untuk memulai antrian.</p>
+    {% endif %}
+  </div>
+</div>
+
+<div class="card shadow-sm mb-4">
+  <div class="card-header bg-white fw-bold"><i class="bi bi-sort-numeric-down text-primary"></i> Daftar Urutan Antrian Aktif (dari nomor terkecil = dikerjakan duluan)</div>
+  <div class="table-responsive">
+    <table class="table table-hover mb-0">
+      <thead><tr><th>Posisi Aktif</th><th>No. Antrian</th><th>Client &amp; WA</th><th>Pesanan</th><th>Status</th><th>Progress</th><th>Sisa Bayar</th><th class="text-end">Aksi</th></tr></thead>
+      <tbody>
+      {% for o in aktif %}
+        <tr {% if current and o.id==current.id %}class="table-primary"{% endif %}>
+          <td class="fw-bold">{{ loop.index }}</td>
+          <td><span class="badge rounded-pill text-bg-dark">#{{ o.queue_no }}</span></td>
+          <td><b>{{ o.client_name }}</b><div class="small"><a class="text-success text-decoration-none" target="_blank" href="{{ wa_link(o) }}"><i class="bi bi-whatsapp"></i> {{ o.wa_number }}</a></div></td>
+          <td>{{ o.order_code }} — {{ o.judul }}<div class="small text-muted">Deadline {{ o.deadline|tanggal }} &middot; {{ o.prioritas }}</div></td>
+          <td>{{ m.status_badge(o.status) }}</td>
+          <td style="min-width:110px"><div class="progress"><div class="progress-bar" style="width:{{ o.progress }}%"></div></div><span class="small">{{ o.progress }}%</span></td>
+          <td class="money {% if sisa_bayar(o)>0 %}text-danger fw-bold{% endif %}">{{ sisa_bayar(o)|rupiah }}</td>
+          <td class="text-end"><a class="btn btn-sm btn-info text-white" href="{{ url_for('order_detail', order_id=o.id) }}"><i class="bi bi-eye"></i></a></td>
+        </tr>
+      {% else %}<tr><td colspan="8" class="text-center text-muted py-4">Tidak ada antrian aktif.</td></tr>{% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<h5 class="fw-bold"><i class="bi bi-kanban text-primary"></i> Papan Status Order</h5>
+<div class="row g-3 queue-board">
+  {% for code,label,color in STATUS_ORDER %}
+  <div class="col-xl-2 col-md-4 col-sm-6">
+    <div class="card shadow-sm border-top border-4 border-{{ color }}">
+      <div class="card-header bg-white fw-bold small">{{ label }} <span class="badge text-bg-{{ color }} float-end">{{ board[code]|length }}</span></div>
+      <div class="card-body p-2">
+        {% for o in board[code] %}
+          <a class="d-block border rounded p-2 mb-2 text-decoration-none text-dark bg-white shadow-sm" href="{{ url_for('order_detail', order_id=o.id) }}">
+            <span class="badge text-bg-dark">#{{ o.queue_no }}</span> <b class="small">{{ o.client_name }}</b>
+            <div class="small text-muted">{{ o.judul }}</div>
+            <div class="small"><i class="bi bi-whatsapp text-success"></i> {{ o.wa_number }}</div>
+            <div class="progress mt-1"><div class="progress-bar bg-{{ color }}" style="width:{{ o.progress }}%"></div></div>
+          </a>
+        {% else %}<p class="small text-muted text-center py-3 mb-0">Kosong</p>{% endfor %}
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

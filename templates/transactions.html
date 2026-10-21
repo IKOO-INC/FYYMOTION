@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% import "_macros.html" as m with context %}
+{% block title %}Transaksi{% endblock %}
+{% block page_title %}<i class="bi bi-arrow-down-up text-primary"></i> Transaksi — Semua Input &amp; Output{% endblock %}
+{% block content %}
+
+<div class="d-flex flex-wrap gap-2 mb-3 no-print">
+  <a class="btn btn-primary" href="{{ url_for('transaction_new') }}"><i class="bi bi-plus-lg"></i> Catat Transaksi Baru</a>
+  <a class="btn btn-success" href="{{ url_for('transactions_list', arah='masuk') }}"><i class="bi bi-arrow-down-circle"></i> Hanya Pemasukan</a>
+  <a class="btn btn-danger" href="{{ url_for('transactions_list', arah='keluar') }}"><i class="bi bi-arrow-up-circle"></i> Hanya Pengeluaran</a>
+  <a class="btn btn-outline-success" href="{{ url_for('export_transactions') }}"><i class="bi bi-filetype-csv"></i> Export CSV</a>
+  <a class="btn btn-outline-dark" href="{{ url_for('jurnal') }}"><i class="bi bi-journal-text"></i> Lihat Jurnal Umum</a>
+</div>
+
+<div class="row g-3 mb-3">
+  {{ m.stat_card("Pemasukan (Kas Masuk)", masuk|rupiah, "bi-arrow-down-circle", "success", "Periode: " ~ (d_from|tanggal) ~ " — " ~ (d_to|tanggal)) }}
+  {{ m.stat_card("Pengeluaran (Kas Keluar)", keluar|rupiah, "bi-arrow-up-circle", "danger") }}
+  {{ m.stat_card("Selisih Kas Periode", (masuk-keluar)|rupiah, "bi-wallet2", "primary") }}
+  {{ m.stat_card("Sumber Data", pg.total ~ " transaksi", "bi-database", "info", "Setiap transaksi = 1 pasang Jurnal Debit/Kredit") }}
+</div>
+
+<form class="card shadow-sm mb-3 no-print" method="get">
+  <div class="card-body py-3"><div class="row g-2 align-items-end">
+    <div class="col-md-3"><label class="form-label small fw-bold mb-1">Cari keterangan / akun</label>
+      <input name="q" value="{{ q }}" class="form-control form-control-sm" placeholder="cth: DP, Adobe, internet..."></div>
+    <div class="col-md-2"><label class="form-label small fw-bold mb-1">Arah Uang</label>
+      <select name="arah" class="form-select form-select-sm">
+        <option value="">Semua</option>
+        <option value="masuk" {% if arah=='masuk' %}selected{% endif %}>Pemasukan (Kas masuk)</option>
+        <option value="keluar" {% if arah=='keluar' %}selected{% endif %}>Pengeluaran (Kas keluar)</option>
+      </select></div>
+    <div class="col-md-2"><label class="form-label small fw-bold mb-1">Akun Terkait</label>
+      <select name="akun" class="form-select form-select-sm"><option value="">— Semua Akun —</option>
+        {% for a in accounts %}<option value="{{ a.kode }}" {% if akun==a.kode %}selected{% endif %}>{{ a.kode }} — {{ a.nama }}</option>{% endfor %}</select></div>
+    <div class="col-md-2"><label class="form-label small fw-bold mb-1">Jenis</label>
+      <select name="jenis" class="form-select form-select-sm"><option value="">— Semua Jenis —</option>
+        {% for code,label,d,k in JENIS_TRANSAKSI %}<option value="{{ code }}" {% if jenis==code %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></div>
+    <div class="col-md-2"><label class="form-label small fw-bold mb-1">Periode</label>
+      <select name="periode" class="form-select form-select-sm">
+        <option value="hari_ini" {% if preset=='hari_ini' %}selected{% endif %}>Hari Ini</option>
+        <option value="bulan_ini" {% if preset=='bulan_ini' %}selected{% endif %}>Bulan Ini</option>
+        <option value="bulan_lalu" {% if preset=='bulan_lalu' %}selected{% endif %}>Bulan Lalu</option>
+        <option value="tahun_ini" {% if preset=='tahun_ini' %}selected{% endif %}>Tahun Ini</option>
+        <option value="semua" {% if preset=='semua' %}selected{% endif %}>Semua Waktu</option>
+        <option value="custom" {% if preset=='custom' %}selected{% endif %}>Custom</option>
+      </select></div>
+    <div class="col-md-2"><label class="form-label small mb-1">Dari</label><input type="date" name="from" value="{{ d_from }}" class="form-control form-control-sm"></div>
+    <div class="col-md-2"><label class="form-label small mb-1">Sampai</label><input type="date" name="to" value="{{ d_to }}" class="form-control form-control-sm"></div>
+    <div class="col-auto"><button class="btn btn-primary btn-sm" type="submit"><i class="bi bi-funnel"></i> Filter</button>
+      <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('transactions_list', periode='semua') }}">Reset</a></div>
+  </div></div>
+</form>
+
+<div class="card shadow-sm">
+  <div class="table-responsive">
+    <table class="table table-hover table-striped mb-0">
+      <thead class="table-light"><tr><th>Tanggal</th><th>Keterangan &amp; Order Terkait</th><th>Jenis</th><th>Debit → Kredit</th><th>Metode</th><th class="text-end">Jumlah</th><th>Arah</th><th class="text-end no-print">Aksi</th></tr></thead>
+      <tbody>
+      {% for t in trx %}
+        {% set is_in = t.akun_debit|string in cash_codes %}
+        {% set is_out = t.akun_kredit|string in cash_codes %}
+        <tr>
+          <td class="text-nowrap">{{ t.tanggal|tanggal }}</td>
+          <td><div class="fw-semibold">{{ t.keterangan }}</div>
+            {% if t.order_id and orders_map.get(t.order_id) %}
+              <a class="small text-decoration-none" href="{{ url_for('order_detail', order_id=t.order_id) }}">
+                <i class="bi bi-bag"></i> {{ orders_map[t.order_id].order_code }} — {{ orders_map[t.order_id].client_name }} (WA {{ orders_map[t.order_id].wa_number }})</a>
+            {% endif %}
+            {% if t.bukti %}<div class="small text-muted"><i class="bi bi-paperclip"></i> {{ t.bukti }}</div>{% endif %}
+          </td>
+          <td><span class="badge text-bg-light border text-wrap text-start">{{ JENIS_LABEL.get(t.jenis, t.jenis or '-') }}</span></td>
+          <td class="small"><span class="text-success fw-semibold">(D) {{ account_label(t.akun_debit) }}</span><br>
+            <span class="text-danger">(K) {{ account_label(t.akun_kredit) }}</span></td>
+          <td>{{ t.metode_bayar }}</td>
+          <td class="text-end money fw-bold">{{ t.jumlah|rupiah }}</td>
+          <td>{% if is_in %}<span class="badge text-bg-success">MASUK</span>{% elif is_out %}<span class="badge text-bg-danger">KELUAR</span>{% else %}<span class="badge text-bg-secondary">NON-KAS</span>{% endif %}</td>
+          <td class="text-end no-print text-nowrap">
+            <a class="btn btn-sm btn-warning" href="{{ url_for('transaction_edit', trx_id=t.id) }}"><i class="bi bi-pencil"></i></a>
+            <form class="d-inline" method="post" action="{{ url_for('transaction_delete', trx_id=t.id) }}" onsubmit="return confirm('Hapus transaksi ini dari Jurnal?')">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="btn btn-sm btn-danger"><i class="bi bi-trash"></i></button></form>
+          </td>
+        </tr>
+      {% else %}<tr><td colspan="8" class="text-center text-muted py-5">Tidak ada transaksi yang cocok.</td></tr>{% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+<div class="mt-3">{{ m.pagination(pg) }}</div>
+<p class="small text-muted"><i class="bi bi-info-circle"></i> Transparan: <b>Pemasukan</b> = akun Kas/Bank&E-Wallet berada di sisi <b>DEBIT</b>, <b>Pengeluaran</b> = Kas/Bank di sisi <b>KREDIT</b>. Semua angka di Dashboard, Buku Besar &amp; Neraca Saldo dihitung otomatis dari daftar ini.</p>
+{% endblock %}
