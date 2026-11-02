@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% import "_macros.html" as m with context %}
 {% block title %}Jurnal Umum{% endblock %}
-{% block page_title %}<i class="bi bi-journal-text text-primary"></i> Jurnal Umum{% endblock %}
+{% block page_title %}<i class="fa-solid fa-book-open text-primary"></i> Jurnal Umum{% endblock %}
 {% block content %}
 <p class="text-muted">Semua transaksi dicatat dengan sistem <b>double-entry</b>: setiap transaksi punya sisi <b>Debit</b> dan <b>Kredit</b> sama besar, sehingga transparan &amp; bisa ditelusur ke Buku Besar dan Neraca Saldo.</p>
 
@@ -18,9 +18,9 @@
     <div class="col-md-2"><input type="date" name="from" value="{{ d_from }}" class="form-control form-control-sm"></div>
     <div class="col-md-2"><input type="date" name="to" value="{{ d_to }}" class="form-control form-control-sm"></div>
     <div class="col-md-3"><input name="q" value="{{ q }}" class="form-control form-control-sm" placeholder="Cari keterangan..."></div>
-    <div class="col-auto"><button class="btn btn-primary btn-sm"><i class="bi bi-funnel"></i> Filter</button>
-      <a class="btn btn-outline-success btn-sm" href="{{ url_for('export_jurnal') }}"><i class="bi bi-filetype-csv"></i> CSV</a>
-      <button type="button" class="btn btn-outline-secondary btn-sm" onclick="window.print()"><i class="bi bi-printer"></i></button></div>
+    <div class="col-auto"><button class="btn btn-primary btn-sm"><i class="fa-solid fa-filter"></i> Filter</button>
+      <a class="btn btn-outline-success btn-sm" href="{{ url_for('export_jurnal') }}"><i class="fa-solid fa-file-csv"></i> CSV</a>
+      <button type="button" class="btn btn-outline-secondary btn-sm" onclick="window.print()"><i class="fa-solid fa-print"></i></button></div>
   </div></div>
 </form>
 
@@ -57,8 +57,8 @@
   </div>
 </div>
 {% if total_d == total_k %}
-  <div class="alert alert-success mt-3"><i class="bi bi-check-circle-fill"></i> <b>SEIMBANG (BALANCE)</b> — Total Debit = Total Kredit = {{ total_d|rupiah }}. Pencatatan Jurnal benar.</div>
+  <div class="alert alert-success mt-3"><i class="fa-solid fa-circle-check"></i> <b>SEIMBANG (BALANCE)</b> — Total Debit = Total Kredit = {{ total_d|rupiah }}. Pencatatan Jurnal benar.</div>
 {% else %}
-  <div class="alert alert-danger mt-3"><i class="bi bi-exclamation-triangle-fill"></i> <b>TIDAK SEIMBANG!</b> Selisih {{ (total_d-total_k)|abs|rupiah }} — periksa kembali input transaksi.</div>
+  <div class="alert alert-danger mt-3"><i class="fa-solid fa-triangle-exclamation"></i> <b>TIDAK SEIMBANG!</b> Selisih {{ (total_d-total_k)|abs|rupiah }} — periksa kembali input transaksi.</div>
 {% endif %}
 {% endblock %}

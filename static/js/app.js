@@ -19,7 +19,7 @@ document.addEventListener('DOMContentLoaded', function () {
       var text = b.getAttribute('data-copy-text') || (target ? (target.value || target.innerText) : '');
       navigator.clipboard.writeText(text).then(function () {
         var old = b.innerHTML;
-        b.innerHTML = '<i class="bi bi-check-lg"></i> Tersalin!';
+        b.innerHTML = '<i class="fa-solid fa-check"></i> Tersalin!';
         setTimeout(function () { b.innerHTML = old; }, 1600);
       }).catch(function () {
         if (target && target.select) { target.focus(); target.select(); document.execCommand('copy'); }

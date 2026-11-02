@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% import "_macros.html" as m with context %}
 {% block title %}Neraca Saldo{% endblock %}
-{% block page_title %}<i class="bi bi-scale text-primary"></i> Neraca Saldo (Trial Balance){% endblock %}
+{% block page_title %}<i class="fa-solid fa-scale-balanced text-primary"></i> Neraca Saldo (Trial Balance){% endblock %}
 {% block content %}
 <p class="text-muted">Ringkasan saldo akhir semua akun dari <a href="{{ url_for('buku_besar') }}">Buku Besar</a>. Total kolom <b>Saldo Debit</b> wajib sama dengan <b>Saldo Kredit</b>.</p>
 
@@ -17,9 +17,9 @@
       </select></div>
     <div class="col-md-2"><input type="date" name="from" value="{{ d_from }}" class="form-control form-control-sm"></div>
     <div class="col-md-2"><input type="date" name="to" value="{{ d_to }}" class="form-control form-control-sm"></div>
-    <div class="col-auto"><button class="btn btn-primary btn-sm"><i class="bi bi-funnel"></i> Filter</button>
-      <a class="btn btn-outline-success btn-sm" href="{{ url_for('export_neraca') }}"><i class="bi bi-filetype-csv"></i> CSV</a>
-      <button type="button" class="btn btn-outline-secondary btn-sm" onclick="window.print()"><i class="bi bi-printer"></i></button></div>
+    <div class="col-auto"><button class="btn btn-primary btn-sm"><i class="fa-solid fa-filter"></i> Filter</button>
+      <a class="btn btn-outline-success btn-sm" href="{{ url_for('export_neraca') }}"><i class="fa-solid fa-file-csv"></i> CSV</a>
+      <button type="button" class="btn btn-outline-secondary btn-sm" onclick="window.print()"><i class="fa-solid fa-print"></i></button></div>
   </div></div>
 </form>
 
@@ -51,9 +51,9 @@
   </div>
 </div>
 {% if seimbang %}
-  <div class="alert alert-success mt-3"><i class="bi bi-check-circle-fill"></i> <b>SEIMBANG (BALANCE)</b> — Total Saldo Debit = Total Saldo Kredit = {{ td|rupiah }}.</div>
+  <div class="alert alert-success mt-3"><i class="fa-solid fa-circle-check"></i> <b>SEIMBANG (BALANCE)</b> — Total Saldo Debit = Total Saldo Kredit = {{ td|rupiah }}.</div>
 {% else %}
-  <div class="alert alert-danger mt-3"><i class="bi bi-exclamation-triangle-fill"></i> <b>TIDAK SEIMBANG</b> — selisih {{ (td-tk)|abs|rupiah }}. Periksa Jurnal &amp; input transaksi.</div>
+  <div class="alert alert-danger mt-3"><i class="fa-solid fa-triangle-exclamation"></i> <b>TIDAK SEIMBANG</b> — selisih {{ (td-tk)|abs|rupiah }}. Periksa Jurnal &amp; input transaksi.</div>
 {% endif %}
 <p class="small text-muted">Klik kode/nama akun untuk membuka Buku Besar akun tersebut.</p>
 {% endblock %}

@@ -1,12 +1,12 @@
 {% extends "base.html" %}
 {% block title %}{{ 'Edit Transaksi' if mode=='edit' else 'Transaksi Baru' }}{% endblock %}
-{% block page_title %}<i class="bi bi-receipt text-primary"></i> {{ 'Edit Transaksi' if mode=='edit' else 'Catat Transaksi Baru' }}{% endblock %}
+{% block page_title %}<i class="fa-solid fa-receipt text-primary"></i> {{ 'Edit Transaksi' if mode=='edit' else 'Catat Transaksi Baru' }}{% endblock %}
 {% block content %}
 <div class="row justify-content-center"><div class="col-lg-9">
 <form method="post">
   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
   <div class="card shadow-sm mb-3">
-    <div class="card-header bg-white fw-bold"><i class="bi bi-journal-plus text-primary"></i> Form Jurnal Transaksi (Double-Entry)</div>
+    <div class="card-header bg-white fw-bold"><i class="fa-solid fa-book-open text-primary"></i> Form Jurnal Transaksi (Double-Entry)</div>
     <div class="card-body">
       <div class="alert alert-info small">
         <b>Cara mudah:</b> cukup pilih <b>Jenis Transaksi</b> — akun Debit/Kredit terisi otomatis sesuai standar akuntansi.
@@ -52,7 +52,7 @@
     </div>
   </div>
   <div class="d-grid gap-2 d-md-flex">
-    <button class="btn btn-primary btn-lg fw-bold flex-grow-1" type="submit"><i class="bi bi-save"></i> Simpan ke Jurnal</button>
+    <button class="btn btn-primary btn-lg fw-bold flex-grow-1" type="submit"><i class="fa-solid fa-floppy-disk"></i> Simpan ke Jurnal</button>
     <a class="btn btn-outline-secondary btn-lg" href="{{ url_for('transactions_list', periode='semua') }}">Batal</a>
   </div>
 </form>

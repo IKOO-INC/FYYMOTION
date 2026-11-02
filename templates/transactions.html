@@ -1,22 +1,22 @@
 {% extends "base.html" %}
 {% import "_macros.html" as m with context %}
 {% block title %}Transaksi{% endblock %}
-{% block page_title %}<i class="bi bi-arrow-down-up text-primary"></i> Transaksi — Semua Input &amp; Output{% endblock %}
+{% block page_title %}<i class="fa-solid fa-arrow-right-arrow-left text-primary"></i> Transaksi — Semua Input &amp; Output{% endblock %}
 {% block content %}
 
 <div class="d-flex flex-wrap gap-2 mb-3 no-print">
-  <a class="btn btn-primary" href="{{ url_for('transaction_new') }}"><i class="bi bi-plus-lg"></i> Catat Transaksi Baru</a>
-  <a class="btn btn-success" href="{{ url_for('transactions_list', arah='masuk') }}"><i class="bi bi-arrow-down-circle"></i> Hanya Pemasukan</a>
-  <a class="btn btn-danger" href="{{ url_for('transactions_list', arah='keluar') }}"><i class="bi bi-arrow-up-circle"></i> Hanya Pengeluaran</a>
-  <a class="btn btn-outline-success" href="{{ url_for('export_transactions') }}"><i class="bi bi-filetype-csv"></i> Export CSV</a>
-  <a class="btn btn-outline-dark" href="{{ url_for('jurnal') }}"><i class="bi bi-journal-text"></i> Lihat Jurnal Umum</a>
+  <a class="btn btn-primary" href="{{ url_for('transaction_new') }}"><i class="fa-solid fa-plus"></i> Catat Transaksi Baru</a>
+  <a class="btn btn-success" href="{{ url_for('transactions_list', arah='masuk') }}"><i class="fa-solid fa-circle-arrow-down"></i> Hanya Pemasukan</a>
+  <a class="btn btn-danger" href="{{ url_for('transactions_list', arah='keluar') }}"><i class="fa-solid fa-circle-arrow-up"></i> Hanya Pengeluaran</a>
+  <a class="btn btn-outline-success" href="{{ url_for('export_transactions') }}"><i class="fa-solid fa-file-csv"></i> Export CSV</a>
+  <a class="btn btn-outline-dark" href="{{ url_for('jurnal') }}"><i class="fa-solid fa-book-open"></i> Lihat Jurnal Umum</a>
 </div>
 
 <div class="row g-3 mb-3">
-  {{ m.stat_card("Pemasukan (Kas Masuk)", masuk|rupiah, "bi-arrow-down-circle", "success", "Periode: " ~ (d_from|tanggal) ~ " — " ~ (d_to|tanggal)) }}
-  {{ m.stat_card("Pengeluaran (Kas Keluar)", keluar|rupiah, "bi-arrow-up-circle", "danger") }}
-  {{ m.stat_card("Selisih Kas Periode", (masuk-keluar)|rupiah, "bi-wallet2", "primary") }}
-  {{ m.stat_card("Sumber Data", pg.total ~ " transaksi", "bi-database", "info", "Setiap transaksi = 1 pasang Jurnal Debit/Kredit") }}
+  {{ m.stat_card("Pemasukan (Kas Masuk)", masuk|rupiah, "fa-solid fa-circle-arrow-down", "success", "Periode: " ~ (d_from|tanggal) ~ " — " ~ (d_to|tanggal)) }}
+  {{ m.stat_card("Pengeluaran (Kas Keluar)", keluar|rupiah, "fa-solid fa-circle-arrow-up", "danger") }}
+  {{ m.stat_card("Selisih Kas Periode", (masuk-keluar)|rupiah, "fa-solid fa-wallet", "primary") }}
+  {{ m.stat_card("Sumber Data", pg.total ~ " transaksi", "fa-solid fa-database", "info", "Setiap transaksi = 1 pasang Jurnal Debit/Kredit") }}
 </div>
 
 <form class="card shadow-sm mb-3 no-print" method="get">
@@ -46,7 +46,7 @@
       </select></div>
     <div class="col-md-2"><label class="form-label small mb-1">Dari</label><input type="date" name="from" value="{{ d_from }}" class="form-control form-control-sm"></div>
     <div class="col-md-2"><label class="form-label small mb-1">Sampai</label><input type="date" name="to" value="{{ d_to }}" class="form-control form-control-sm"></div>
-    <div class="col-auto"><button class="btn btn-primary btn-sm" type="submit"><i class="bi bi-funnel"></i> Filter</button>
+    <div class="col-auto"><button class="btn btn-primary btn-sm" type="submit"><i class="fa-solid fa-filter"></i> Filter</button>
       <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('transactions_list', periode='semua') }}">Reset</a></div>
   </div></div>
 </form>
@@ -64,9 +64,9 @@
           <td><div class="fw-semibold">{{ t.keterangan }}</div>
             {% if t.order_id and orders_map.get(t.order_id) %}
               <a class="small text-decoration-none" href="{{ url_for('order_detail', order_id=t.order_id) }}">
-                <i class="bi bi-bag"></i> {{ orders_map[t.order_id].order_code }} — {{ orders_map[t.order_id].client_name }} (WA {{ orders_map[t.order_id].wa_number }})</a>
+                <i class="fa-solid fa-bag-shopping"></i> {{ orders_map[t.order_id].order_code }} — {{ orders_map[t.order_id].client_name }} (WA {{ orders_map[t.order_id].wa_number }})</a>
             {% endif %}
-            {% if t.bukti %}<div class="small text-muted"><i class="bi bi-paperclip"></i> {{ t.bukti }}</div>{% endif %}
+            {% if t.bukti %}<div class="small text-muted"><i class="fa-solid fa-paperclip"></i> {{ t.bukti }}</div>{% endif %}
           </td>
           <td><span class="badge text-bg-light border text-wrap text-start">{{ JENIS_LABEL.get(t.jenis, t.jenis or '-') }}</span></td>
           <td class="small"><span class="text-success fw-semibold">(D) {{ account_label(t.akun_debit) }}</span><br>
@@ -75,9 +75,9 @@
           <td class="text-end money fw-bold">{{ t.jumlah|rupiah }}</td>
           <td>{% if is_in %}<span class="badge text-bg-success">MASUK</span>{% elif is_out %}<span class="badge text-bg-danger">KELUAR</span>{% else %}<span class="badge text-bg-secondary">NON-KAS</span>{% endif %}</td>
           <td class="text-end no-print text-nowrap">
-            <a class="btn btn-sm btn-warning" href="{{ url_for('transaction_edit', trx_id=t.id) }}"><i class="bi bi-pencil"></i></a>
+            <a class="btn btn-sm btn-warning" href="{{ url_for('transaction_edit', trx_id=t.id) }}"><i class="fa-solid fa-pen"></i></a>
             <form class="d-inline" method="post" action="{{ url_for('transaction_delete', trx_id=t.id) }}" onsubmit="return confirm('Hapus transaksi ini dari Jurnal?')">
-              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="btn btn-sm btn-danger"><i class="bi bi-trash"></i></button></form>
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="btn btn-sm btn-danger"><i class="fa-solid fa-trash"></i></button></form>
           </td>
         </tr>
       {% else %}<tr><td colspan="8" class="text-center text-muted py-5">Tidak ada transaksi yang cocok.</td></tr>{% endfor %}
@@ -86,5 +86,5 @@
   </div>
 </div>
 <div class="mt-3">{{ m.pagination(pg) }}</div>
-<p class="small text-muted"><i class="bi bi-info-circle"></i> Transparan: <b>Pemasukan</b> = akun Kas/Bank&E-Wallet berada di sisi <b>DEBIT</b>, <b>Pengeluaran</b> = Kas/Bank di sisi <b>KREDIT</b>. Semua angka di Dashboard, Buku Besar &amp; Neraca Saldo dihitung otomatis dari daftar ini.</p>
+<p class="small text-muted"><i class="fa-solid fa-circle-info"></i> Transparan: <b>Pemasukan</b> = akun Kas/Bank&E-Wallet berada di sisi <b>DEBIT</b>, <b>Pengeluaran</b> = Kas/Bank di sisi <b>KREDIT</b>. Semua angka di Dashboard, Buku Besar &amp; Neraca Saldo dihitung otomatis dari daftar ini.</p>
 {% endblock %}

@@ -1,19 +1,19 @@
 {% extends "base.html" %}
 {% block title %}{{ 'Edit Order' if mode=='edit' else 'Order Baru' }}{% endblock %}
-{% block page_title %}<i class="bi bi-bag-plus text-primary"></i> {{ 'Edit Order' if mode=='edit' else 'Tambah Order Baru' }}{% endblock %}
+{% block page_title %}<i class="fa-solid fa-cart-plus text-primary"></i> {{ 'Edit Order' if mode=='edit' else 'Tambah Order Baru' }}{% endblock %}
 {% block content %}
 <form method="post">
   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
   <div class="row g-3">
     <div class="col-lg-8">
       <div class="card shadow-sm mb-3">
-        <div class="card-header bg-white fw-bold"><i class="bi bi-person-lines-fill text-primary"></i> Data Client (Nama &amp; Nomor WA — agar tidak lupa)</div>
+        <div class="card-header bg-white fw-bold"><i class="fa-solid fa-address-card text-primary"></i> Data Client (Nama &amp; Nomor WA — agar tidak lupa)</div>
         <div class="card-body">
           <div class="row g-3">
             <div class="col-md-6"><label class="form-label fw-bold">Nama Client *</label>
               <input name="client_name" class="form-control" required value="{{ order.client_name or '' }}" placeholder="cth: Budi Santoso"></div>
             <div class="col-md-6"><label class="form-label fw-bold">Nomor WhatsApp *</label>
-              <div class="input-group"><span class="input-group-text text-success"><i class="bi bi-whatsapp"></i></span>
+              <div class="input-group"><span class="input-group-text text-success"><i class="fa-brands fa-whatsapp"></i></span>
                 <input name="wa_number" class="form-control" required value="{{ order.wa_number or '' }}" placeholder="08xxxxxxxxxx / 628xxxxxxxxxx"></div>
               <div class="form-text">Otomatis diubah ke format internasional 62 untuk link wa.me</div></div>
             <div class="col-md-8"><label class="form-label fw-bold">Judul Pesanan *</label>
@@ -35,7 +35,7 @@
       </div>
 
       <div class="card shadow-sm mb-3">
-        <div class="card-header bg-white fw-bold"><i class="bi bi-card-text text-primary"></i> Data Pesanan Teks (Brief, Script &amp; Referensi — bahan kerja Anda)</div>
+        <div class="card-header bg-white fw-bold"><i class="fa-solid fa-file-lines text-primary"></i> Data Pesanan Teks (Brief, Script &amp; Referensi — bahan kerja Anda)</div>
         <div class="card-body">
           <label class="form-label fw-bold">Brief / Deskripsi Pesanan</label>
           <textarea name="brief" rows="3" class="form-control mb-3" placeholder="Tujuan video, target penonton, gaya, warna, suasana...">{{ order.brief or '' }}</textarea>
@@ -48,20 +48,35 @@
         </div>
       </div>
 
-      <div class="card shadow-sm">
-        <div class="card-header bg-white fw-bold"><i class="bi bi-link-45deg text-primary"></i> Link Preview &amp; Hasil Jadi</div>
+      <div class="card drive-card shadow-sm">
+        <div class="card-header bg-white fw-bold"><i class="fa-brands fa-google-drive text-success"></i> Google Drive Assets, Preview &amp; Hasil Jadi</div>
         <div class="card-body row g-3">
+          <div class="col-12">
+            <label class="form-label fw-bold" for="driveAssetsUrl">Link Google Drive Assets Client</label>
+            <div class="input-group">
+              <span class="input-group-text text-success"><i class="fa-brands fa-google-drive"></i></span>
+              <input id="driveAssetsUrl" name="drive_assets_url" type="url" inputmode="url" class="form-control"
+                     value="{{ order.drive_assets_url or '' }}"
+                     placeholder="https://drive.google.com/drive/folders/...">
+              {% if order.drive_assets_url %}
+                <a class="btn btn-success" target="_blank" rel="noopener" href="{{ order.drive_assets_url }}">
+                  <i class="fa-solid fa-up-right-from-square"></i> Buka
+                </a>
+              {% endif %}
+            </div>
+            <div class="form-text">Tempel folder Drive berisi logo, foto produk, font, voice-over, musik, dan referensi dari client. Pastikan izin berbagi Drive tidak terkunci.</div>
+          </div>
           <div class="col-md-6"><label class="form-label">Link Preview (Drive/Youtube)</label>
-            <input name="link_preview" class="form-control" value="{{ order.link_preview or '' }}" placeholder="https://..."></div>
+            <input name="link_preview" type="url" inputmode="url" class="form-control" value="{{ order.link_preview or '' }}" placeholder="https://..."></div>
           <div class="col-md-6"><label class="form-label">Link Hasil Final</label>
-            <input name="link_hasil" class="form-control" value="{{ order.link_hasil or '' }}" placeholder="https://..."></div>
+            <input name="link_hasil" type="url" inputmode="url" class="form-control" value="{{ order.link_hasil or '' }}" placeholder="https://..."></div>
         </div>
       </div>
     </div>
 
     <div class="col-lg-4">
       <div class="card shadow-sm mb-3">
-        <div class="card-header bg-white fw-bold"><i class="bi bi-list-ol text-primary"></i> Antrian, Status &amp; Jadwal</div>
+        <div class="card-header bg-white fw-bold"><i class="fa-solid fa-list-ol text-primary"></i> Antrian, Status &amp; Jadwal</div>
         <div class="card-body">
           <div class="row g-3">
             <div class="col-6"><label class="form-label fw-bold">No. Antrian</label>
@@ -89,7 +104,7 @@
       </div>
 
       <div class="card shadow-sm mb-3">
-        <div class="card-header bg-white fw-bold"><i class="bi bi-cash-coin text-primary"></i> Harga &amp; Pembayaran</div>
+        <div class="card-header bg-white fw-bold"><i class="fa-solid fa-sack-dollar text-primary"></i> Harga &amp; Pembayaran</div>
         <div class="card-body">
           <div class="row g-3">
             <div class="col-12"><label class="form-label fw-bold">Harga Total (Rp)</label>
@@ -119,7 +134,7 @@
       </div>
 
       <div class="d-grid gap-2">
-        <button class="btn btn-primary btn-lg fw-bold" type="submit"><i class="bi bi-save"></i> {{ 'Simpan Perubahan' if mode=='edit' else 'Simpan & Masuk Antrian' }}</button>
+        <button class="btn btn-primary btn-lg fw-bold" type="submit"><i class="fa-solid fa-floppy-disk"></i> {{ 'Simpan Perubahan' if mode=='edit' else 'Simpan & Masuk Antrian' }}</button>
         <a class="btn btn-outline-secondary" href="{{ url_for('orders_list') }}">Batal / Kembali</a>
       </div>
     </div>

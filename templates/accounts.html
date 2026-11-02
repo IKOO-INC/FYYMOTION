@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% block title %}Daftar Akun{% endblock %}
-{% block page_title %}<i class="bi bi-diagram-3 text-primary"></i> Daftar Akun — Chart of Accounts (COA){% endblock %}
+{% block page_title %}<i class="fa-solid fa-diagram-project text-primary"></i> Daftar Akun — Chart of Accounts (COA){% endblock %}
 {% block content %}
 <p class="text-muted">Daftar akun dipakai di Jurnal/Buku Besar/Neraca Saldo. Akun yang dicentang <b>Kas/Bank</b> menentukan hitungan Pemasukan vs Pengeluaran. Klik nama akun untuk melihat Buku Besarnya.</p>
 
@@ -20,10 +20,10 @@
             <td class="text-end money fw-bold">{{ saldo_map.get(a.kode, 0)|rupiah }}</td>
             <td class="text-end no-print text-nowrap">
               <button type="button" class="btn btn-sm btn-warning" title="Edit"
-                onclick="isiForm('{{ a.kode }}','{{ a.nama|e }}','{{ a.tipe }}','{{ a.saldo_normal }}', {{ 'true' if a.is_cash else 'false' }})"><i class="bi bi-pencil"></i></button>
+                onclick="isiForm('{{ a.kode }}','{{ a.nama|e }}','{{ a.tipe }}','{{ a.saldo_normal }}', {{ 'true' if a.is_cash else 'false' }})"><i class="fa-solid fa-pen"></i></button>
               {% if a.kode not in used %}
               <form class="d-inline" method="post" action="{{ url_for('account_delete', kode=a.kode) }}" onsubmit="return confirm('Hapus akun {{ a.kode }} — {{ a.nama }}?')">
-                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="btn btn-sm btn-danger"><i class="bi bi-trash"></i></button></form>
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="btn btn-sm btn-danger"><i class="fa-solid fa-trash"></i></button></form>
               {% else %}<span class="badge text-bg-secondary" title="Sudah dipakai di Jurnal, tidak bisa dihapus">terpakai</span>{% endif %}
             </td>
           </tr>
@@ -35,7 +35,7 @@
 
   <div class="col-lg-4">
     <div class="card shadow-sm sticky-top" style="top:80px">
-      <div class="card-header bg-white fw-bold"><i class="bi bi-plus-circle text-primary"></i> <span id="formTitle">Tambah Akun Baru</span></div>
+      <div class="card-header bg-white fw-bold"><i class="fa-solid fa-circle-plus text-primary"></i> <span id="formTitle">Tambah Akun Baru</span></div>
       <div class="card-body">
         <form method="post" action="{{ url_for('account_save') }}">
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
@@ -56,7 +56,7 @@
             <input class="form-check-input" type="checkbox" name="is_cash" value="1" id="fIsCash">
             <label class="form-check-label" for="fIsCash">Ini akun Kas / Bank / E-Wallet (untuk hitung pemasukan-pengeluaran)</label>
           </div>
-          <button class="btn btn-primary w-100 fw-bold" type="submit"><i class="bi bi-save"></i> Simpan Akun</button>
+          <button class="btn btn-primary w-100 fw-bold" type="submit"><i class="fa-solid fa-floppy-disk"></i> Simpan Akun</button>
           <button class="btn btn-outline-secondary w-100 mt-2" type="button" onclick="resetForm()">Bersihkan (mode tambah baru)</button>
         </form>
         <hr>

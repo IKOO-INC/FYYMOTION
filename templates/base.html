@@ -5,7 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}Dashboard{% endblock %} — {{ settings.nama_usaha or 'FYY MOTION' }}</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
   {% block head %}{% endblock %}
 </head>
@@ -14,7 +17,7 @@
   <!-- ============ SIDEBAR ============ -->
   <aside class="sidebar" id="sidebar">
     <a class="brand" href="{{ url_for('dashboard') }}">
-      <span class="brand-icon"><i class="bi bi-collection-play-fill"></i></span>
+      <span class="brand-icon"><i class="fa-solid fa-clapperboard"></i></span>
       <span>
         <span class="brand-name">{{ settings.nama_usaha or 'FYY MOTION' }}</span>
         <span class="brand-sub">{{ settings.tagline or 'Portal Motion Graphic' }}</span>
@@ -24,47 +27,47 @@
     <div class="sidebar-heading">Menu Utama</div>
     <nav class="nav flex-column sidebar-nav">
       <a class="nav-link {% if request.endpoint=='dashboard' %}active{% endif %}" href="{{ url_for('dashboard') }}">
-        <i class="bi bi-speedometer2"></i> Dashboard</a>
+        <i class="fa-solid fa-gauge-high"></i> Dashboard</a>
       <a class="nav-link {% if request.endpoint in ['orders_list','order_new','order_detail','order_edit'] %}active{% endif %}" href="{{ url_for('orders_list') }}">
-        <i class="bi bi-bag"></i> Daftar Orderan
+        <i class="fa-solid fa-bag-shopping"></i> Daftar Orderan
         {% if count_masuk %}<span class="badge text-bg-primary ms-auto">{{ count_masuk }} masuk</span>{% endif %}</a>
       <a class="nav-link {% if request.endpoint=='antrian' %}active{% endif %}" href="{{ url_for('antrian') }}">
-        <i class="bi bi-list-ol"></i> Antrian Kerja
+        <i class="fa-solid fa-list-ol"></i> Antrian Kerja
         {% if count_antrian %}<span class="badge text-bg-warning ms-auto">{{ count_antrian }}</span>{% endif %}</a>
       <a class="nav-link" href="{{ url_for('orders_list', status='revisi') }}">
-        <i class="bi bi-arrow-counterclockwise"></i> Minta Revisi
+        <i class="fa-solid fa-rotate-left"></i> Minta Revisi
         {% if count_revisi %}<span class="badge text-bg-danger ms-auto">{{ count_revisi }}</span>{% endif %}</a>
       <a class="nav-link" href="{{ url_for('orders_list', status='selesai') }}">
-        <i class="bi bi-patch-check"></i> Orderan Sudah Jadi</a>
+        <i class="fa-solid fa-circle-check"></i> Orderan Sudah Jadi</a>
     </nav>
 
     <div class="sidebar-heading">Keuangan & Akuntansi</div>
     <nav class="nav flex-column sidebar-nav">
       <a class="nav-link {% if request.endpoint in ['transactions_list','transaction_new','transaction_edit'] %}active{% endif %}" href="{{ url_for('transactions_list') }}">
-        <i class="bi bi-arrow-down-up"></i> Transaksi (In / Out)</a>
+        <i class="fa-solid fa-arrow-right-arrow-left"></i> Transaksi (In / Out)</a>
       <a class="nav-link {% if request.endpoint=='jurnal' %}active{% endif %}" href="{{ url_for('jurnal') }}">
-        <i class="bi bi-journal-text"></i> Jurnal Umum</a>
+        <i class="fa-solid fa-book-open"></i> Jurnal Umum</a>
       <a class="nav-link {% if request.endpoint=='buku_besar' %}active{% endif %}" href="{{ url_for('buku_besar') }}">
-        <i class="bi bi-book"></i> Buku Besar</a>
+        <i class="fa-solid fa-book"></i> Buku Besar</a>
       <a class="nav-link {% if request.endpoint=='neraca_saldo_page' %}active{% endif %}" href="{{ url_for('neraca_saldo_page') }}">
-        <i class="bi bi-scale"></i> Neraca Saldo</a>
+        <i class="fa-solid fa-scale-balanced"></i> Neraca Saldo</a>
       <a class="nav-link {% if request.endpoint=='laporan' %}active{% endif %}" href="{{ url_for('laporan') }}">
-        <i class="bi bi-graph-up-arrow"></i> Laporan Laba Rugi</a>
+        <i class="fa-solid fa-arrow-trend-up"></i> Laporan Laba Rugi</a>
       <a class="nav-link {% if request.endpoint=='accounts_list' %}active{% endif %}" href="{{ url_for('accounts_list') }}">
-        <i class="bi bi-diagram-3"></i> Daftar Akun (COA)</a>
+        <i class="fa-solid fa-diagram-project"></i> Daftar Akun (COA)</a>
     </nav>
 
     <div class="sidebar-heading">Sistem Data</div>
     <nav class="nav flex-column sidebar-nav">
       <a class="nav-link {% if request.endpoint in ['backup_page'] %}active{% endif %}" href="{{ url_for('backup_page') }}">
-        <i class="bi bi-cloud-arrow-down-up"></i> Backup & Restore JSON</a>
+        <i class="fa-solid fa-database"></i> Backup & Database</a>
       <a class="nav-link" href="{{ url_for('backup_download') }}">
-        <i class="bi bi-download"></i> Download database.json</a>
+        <i class="fa-solid fa-download"></i> Download database.json</a>
     </nav>
 
     <div class="sidebar-footer">
       <div class="d-flex align-items-center gap-2 mb-2">
-        <span class="avatar"><i class="bi bi-person-fill"></i></span>
+        <span class="avatar"><i class="fa-solid fa-user"></i></span>
         <div class="small">
           <div class="fw-bold text-white">{{ session.get('username','Admin') }}</div>
           <div class="text-white-50">Administrator</div>
@@ -72,7 +75,7 @@
       </div>
       <form method="post" action="{{ url_for('logout') }}">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-        <button class="btn btn-outline-light btn-sm w-100" type="submit"><i class="bi bi-box-arrow-right"></i> Keluar / Logout</button>
+        <button class="btn btn-outline-light btn-sm w-100" type="submit"><i class="fa-solid fa-right-from-bracket"></i> Keluar / Logout</button>
       </form>
     </div>
   </aside>
@@ -82,11 +85,14 @@
   <div class="main">
     <nav class="navbar navbar-expand bg-white border-bottom sticky-top topbar">
       <div class="container-fluid">
-        <button class="btn btn-light d-lg-none me-2" id="btnSidebar" type="button"><i class="bi bi-list fs-5"></i></button>
+        <button class="btn btn-light d-lg-none me-2" id="btnSidebar" type="button"><i class="fa-solid fa-bars fs-5"></i></button>
         <span class="navbar-brand mb-0 h5 fw-bold text-dark">{% block page_title %}Dashboard{% endblock %}</span>
+        <span class="storage-badge d-none d-xl-inline-flex ms-3" title="{{ storage.location }}">
+          <i class="fa-solid fa-database"></i> {{ storage.label }}
+        </span>
         <div class="ms-auto d-flex gap-2">
-          <a class="btn btn-outline-primary btn-sm d-none d-md-inline-block" href="{{ url_for('transaction_new') }}"><i class="bi bi-plus-lg"></i> Transaksi</a>
-          <a class="btn btn-primary btn-sm" href="{{ url_for('order_new') }}"><i class="bi bi-plus-lg"></i> Order Baru</a>
+          <a class="btn btn-outline-primary btn-sm d-none d-md-inline-block" href="{{ url_for('transaction_new') }}"><i class="fa-solid fa-plus"></i> Transaksi</a>
+          <a class="btn btn-primary btn-sm" href="{{ url_for('order_new') }}"><i class="fa-solid fa-plus"></i> Order Baru</a>
         </div>
       </div>
     </nav>
@@ -101,8 +107,8 @@
       {% endwith %}
       {% block content %}{% endblock %}
       <footer class="text-center text-muted small py-4">
-        {{ settings.nama_usaha or 'FYY MOTION' }} Portal &copy; {{ now_year }} — Database JSON Array
-        (<code>database.json</code>) &middot; Jangan lupa <a href="{{ url_for('backup_page') }}">backup berkala</a>, terutama di Vercel.
+        {{ settings.nama_usaha or 'FYY MOTION' }} Portal &copy; {{ now_year }} — Penyimpanan aktif:
+        <b>{{ storage.label }}</b> &middot; Tetap lakukan <a href="{{ url_for('backup_page') }}">backup berkala</a>.
       </footer>
     </main>
   </div>
