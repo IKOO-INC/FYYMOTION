@@ -805,7 +805,7 @@ app.jinja_env.filters["wa"] = normalize_wa
 @app.before_request
 def guard():
     endpoint = request.endpoint or ""
-    if endpoint in ("static", "login", "health", "maintenance_clear_database_once"):
+    if endpoint in ("static", "login", "health"):
         pass
     elif not session.get("logged_in"):
         return redirect(url_for("login", next=request.path))
@@ -827,66 +827,6 @@ def health():
         "database_connected": info.get("connected"),
         "db": info["db_path"],
         "vercel": bool(os.environ.get("VERCEL")),
-    }
-
-
-_CLEAR_DB_TOKEN_HASH = "ddf60e6f3c070ce40d10a6989c8fee1eae67c422cee9904f4b5e65adff190934"
-_CLEAR_DB_MARKER = "start-zero-2026-11-02-orders-transactions"
-
-
-@app.route("/maintenance/clear-database/<token>")
-def maintenance_clear_database_once(token):
-    """Maintenance satu kali: kosongkan order & transaksi production.
-
-    Endpoint ini hanya aktif pada deployment maintenance sementara, dilindungi
-    hash token acak, dan berhenti bekerja setelah marker tersimpan di meta.
-    Daftar Akun serta settings dipertahankan agar aplikasi bisa mulai dari nol.
-    """
-    token_hash = hashlib.sha256(token.encode("utf-8")).hexdigest()
-    if not secrets.compare_digest(token_hash, _CLEAR_DB_TOKEN_HASH):
-        abort(404)
-
-    info = storage_info(ping=True)
-    if info["backend"] != "mongodb" or info.get("connected") is not True:
-        return {
-            "status": "error",
-            "message": "MongoDB Atlas tidak terhubung; pengosongan dibatalkan.",
-            "storage": info["backend"],
-            "database": info["database"],
-        }, 503
-
-    db = load_db()
-    if db.get("_storage_fallback"):
-        return {
-            "status": "error",
-            "message": "Aplikasi sedang memakai JSON fallback; pengosongan MongoDB dibatalkan.",
-            "storage": info["backend"],
-            "database": info["database"],
-        }, 503
-
-    before = {name: len(db.get(name, [])) for name in ("accounts", "orders", "transactions")}
-    if db.get("meta", {}).get("maintenance_clear_id") == _CLEAR_DB_MARKER:
-        return {
-            "status": "already_done",
-            "storage": info["backend"],
-            "database": info["database"],
-            "counts": before,
-        }
-
-    db["orders"], db["transactions"] = [], []
-    db.setdefault("meta", {})["maintenance_clear_id"] = _CLEAR_DB_MARKER
-    db["meta"]["maintenance_cleared_at"] = now_iso()
-    save_db(db)
-
-    after_db = load_db()
-    after = {name: len(after_db.get(name, [])) for name in ("accounts", "orders", "transactions")}
-    return {
-        "status": "cleared",
-        "storage": info["backend"],
-        "database": info["database"],
-        "before": before,
-        "after": after,
-        "accounts_preserved": after["accounts"],
     }
 
 
