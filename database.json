@@ -1,0 +1,331 @@
+{
+  "meta": {
+    "app": "FYY MOTION Portal",
+    "version": 1,
+    "created_at": "2026-10-21T10:19:21",
+    "updated_at": "2026-10-21T10:19:21"
+  },
+  "settings": {
+    "nama_usaha": "FYY MOTION",
+    "tagline": "Jasa Pembuatan Animasi Motion Graphic",
+    "pemilik": "",
+    "wa_admin": "",
+    "mata_uang": "IDR"
+  },
+  "accounts": [
+    {
+      "kode": "101",
+      "nama": "Kas",
+      "tipe": "Aset",
+      "saldo_normal": "Debit",
+      "is_cash": true
+    },
+    {
+      "kode": "102",
+      "nama": "Bank / E-Wallet",
+      "tipe": "Aset",
+      "saldo_normal": "Debit",
+      "is_cash": true
+    },
+    {
+      "kode": "103",
+      "nama": "Piutang Usaha",
+      "tipe": "Aset",
+      "saldo_normal": "Debit",
+      "is_cash": false
+    },
+    {
+      "kode": "104",
+      "nama": "Peralatan (Laptop/PC, dll)",
+      "tipe": "Aset",
+      "saldo_normal": "Debit",
+      "is_cash": false
+    },
+    {
+      "kode": "105",
+      "nama": "Perlengkapan & Aset Digital",
+      "tipe": "Aset",
+      "saldo_normal": "Debit",
+      "is_cash": false
+    },
+    {
+      "kode": "201",
+      "nama": "Utang Usaha",
+      "tipe": "Kewajiban",
+      "saldo_normal": "Kredit",
+      "is_cash": false
+    },
+    {
+      "kode": "202",
+      "nama": "Pendapatan Diterima di Muka (DP Client)",
+      "tipe": "Kewajiban",
+      "saldo_normal": "Kredit",
+      "is_cash": false
+    },
+    {
+      "kode": "301",
+      "nama": "Modal Pemilik",
+      "tipe": "Modal",
+      "saldo_normal": "Kredit",
+      "is_cash": false
+    },
+    {
+      "kode": "302",
+      "nama": "Prive Pemilik",
+      "tipe": "Modal",
+      "saldo_normal": "Debit",
+      "is_cash": false
+    },
+    {
+      "kode": "401",
+      "nama": "Pendapatan Jasa Animasi",
+      "tipe": "Pendapatan",
+      "saldo_normal": "Kredit",
+      "is_cash": false
+    },
+    {
+      "kode": "402",
+      "nama": "Pendapatan Lainnya",
+      "tipe": "Pendapatan",
+      "saldo_normal": "Kredit",
+      "is_cash": false
+    },
+    {
+      "kode": "501",
+      "nama": "Beban Software & Langganan",
+      "tipe": "Beban",
+      "saldo_normal": "Debit",
+      "is_cash": false
+    },
+    {
+      "kode": "502",
+      "nama": "Beban Internet & Listrik",
+      "tipe": "Beban",
+      "saldo_normal": "Debit",
+      "is_cash": false
+    },
+    {
+      "kode": "503",
+      "nama": "Beban Freelancer / Outsourcing",
+      "tipe": "Beban",
+      "saldo_normal": "Debit",
+      "is_cash": false
+    },
+    {
+      "kode": "504",
+      "nama": "Beban Iklan & Promosi",
+      "tipe": "Beban",
+      "saldo_normal": "Debit",
+      "is_cash": false
+    },
+    {
+      "kode": "505",
+      "nama": "Beban Lainnya",
+      "tipe": "Beban",
+      "saldo_normal": "Debit",
+      "is_cash": false
+    }
+  ],
+  "orders": [
+    {
+      "id": "ord-contoh-1",
+      "order_code": "FYY-0001",
+      "queue_no": 1,
+      "client_name": "Budi Santoso",
+      "wa_number": "6281234567890",
+      "judul": "Video Explainer Produk Kopi",
+      "jenis_animasi": "Explainer Video",
+      "paket": "Premium 60 detik",
+      "durasi": "60 detik",
+      "resolusi": "1080p",
+      "format_output": "MP4",
+      "prioritas": "Normal",
+      "tanggal_masuk": "2026-10-09",
+      "deadline": "2026-10-16",
+      "harga": 1500000,
+      "dp": 1500000,
+      "status_pembayaran": "lunas",
+      "metode_bayar": "Transfer Bank",
+      "status": "selesai",
+      "progress": 100,
+      "brief": "Explainer untuk launching produk kopi kemasan. Nuansa hangat, warna cokelat & oranye.",
+      "script_teks": "Scene 1: Logo muncul.\nScene 2: \"Ngopi enak nggak harus mahal!\"\nScene 3: Tampilan produk + harga.\nScene 4: CTA ke WhatsApp.",
+      "referensi": "Style flat illustration, referensi dikirim via WA.",
+      "catatan_revisi": "",
+      "link_preview": "",
+      "link_hasil": "",
+      "created_at": "2026-10-21T10:19:21",
+      "updated_at": "2026-10-21T10:19:21"
+    },
+    {
+      "id": "ord-contoh-2",
+      "order_code": "FYY-0002",
+      "queue_no": 2,
+      "client_name": "Sari Dewi",
+      "wa_number": "6289876543210",
+      "judul": "Motion Graphic Iklan Skincare",
+      "jenis_animasi": "Iklan / Ads",
+      "paket": "Standard 30 detik",
+      "durasi": "30 detik",
+      "resolusi": "1080x1350",
+      "format_output": "MP4",
+      "prioritas": "Prioritas",
+      "tanggal_masuk": "2026-10-17",
+      "deadline": "2026-10-23",
+      "harga": 850000,
+      "dp": 425000,
+      "status_pembayaran": "dp",
+      "metode_bayar": "DANA",
+      "status": "revisi",
+      "progress": 80,
+      "brief": "Iklan Instagram skincare, target wanita 20-35 tahun, warna pink pastel.",
+      "script_teks": "Teks utama: \"Kulit cerah dalam 7 hari!\"\nSub-teks: promo diskon 30 persen hanya minggu ini.",
+      "referensi": "Contoh gaya: iklan skincare Korea.",
+      "catatan_revisi": "Revisi 1: Ganti font judul jadi lebih bold, logo diperbesar di akhir video.",
+      "link_preview": "",
+      "link_hasil": "",
+      "created_at": "2026-10-21T10:19:21",
+      "updated_at": "2026-10-21T10:19:21"
+    },
+    {
+      "id": "ord-contoh-3",
+      "order_code": "FYY-0003",
+      "queue_no": 3,
+      "client_name": "Contoh Indo",
+      "wa_number": "6285712345678",
+      "judul": "Logo Animation PT Teknologi Nusantara",
+      "jenis_animasi": "Logo Animation",
+      "paket": "Basic",
+      "durasi": "5 detik",
+      "resolusi": "4K",
+      "format_output": "MOV + MP4",
+      "prioritas": "Normal",
+      "tanggal_masuk": "2026-10-19",
+      "deadline": "2026-10-24",
+      "harga": 500000,
+      "dp": 250000,
+      "status_pembayaran": "dp",
+      "metode_bayar": "QRIS",
+      "status": "proses",
+      "progress": 45,
+      "brief": "Animasi logo perusahaan teknologi, kesan modern & profesional.",
+      "script_teks": "Logo reveal dengan garis cahaya, diakhiri tagline \"Inovasi Tanpa Batas\".",
+      "referensi": "File logo AI/SVG dikirim client via email.",
+      "catatan_revisi": "",
+      "link_preview": "",
+      "link_hasil": "",
+      "created_at": "2026-10-21T10:19:21",
+      "updated_at": "2026-10-21T10:19:21"
+    },
+    {
+      "id": "ord-contoh-4",
+      "order_code": "FYY-0004",
+      "queue_no": 4,
+      "client_name": "Andi Wijaya",
+      "wa_number": "6282298765432",
+      "judul": "Intro Youtube Channel Gaming",
+      "jenis_animasi": "Intro / Outro Youtube",
+      "paket": "Standard",
+      "durasi": "10 detik",
+      "resolusi": "1080p",
+      "format_output": "MP4",
+      "prioritas": "Normal",
+      "tanggal_masuk": "2026-10-21",
+      "deadline": "2026-10-27",
+      "harga": 350000,
+      "dp": 0,
+      "status_pembayaran": "belum",
+      "metode_bayar": "OVO",
+      "status": "masuk",
+      "progress": 0,
+      "brief": "Intro energik tema gaming, musik EDM.",
+      "script_teks": "Nama channel: ANDI PLAY — efek glitch + neon ungu.",
+      "referensi": "Link referensi menyusul dari client.",
+      "catatan_revisi": "",
+      "link_preview": "",
+      "link_hasil": "",
+      "created_at": "2026-10-21T10:19:21",
+      "updated_at": "2026-10-21T10:19:21"
+    }
+  ],
+  "transactions": [
+    {
+      "id": "trx-contoh-1",
+      "tanggal": "2026-09-21",
+      "keterangan": "Setoran modal awal usaha",
+      "jenis": "modal_masuk",
+      "akun_debit": "101",
+      "akun_kredit": "301",
+      "jumlah": 5000000,
+      "order_id": "",
+      "metode_bayar": "Transfer Bank",
+      "bukti": "",
+      "created_at": "2026-10-21T10:19:21"
+    },
+    {
+      "id": "trx-contoh-2",
+      "tanggal": "2026-09-23",
+      "keterangan": "Langganan Adobe Creative Cloud 1 bulan",
+      "jenis": "beban_software",
+      "akun_debit": "501",
+      "akun_kredit": "101",
+      "jumlah": 450000,
+      "order_id": "",
+      "metode_bayar": "QRIS",
+      "bukti": "",
+      "created_at": "2026-10-21T10:19:21"
+    },
+    {
+      "id": "trx-contoh-3",
+      "tanggal": "2026-10-09",
+      "keterangan": "Pelunasan order FYY-0001 — Budi Santoso",
+      "jenis": "pemasukan_order",
+      "akun_debit": "101",
+      "akun_kredit": "401",
+      "jumlah": 1500000,
+      "order_id": "ord-contoh-1",
+      "metode_bayar": "Transfer Bank",
+      "bukti": "",
+      "created_at": "2026-10-21T10:19:21"
+    },
+    {
+      "id": "trx-contoh-4",
+      "tanggal": "2026-10-17",
+      "keterangan": "DP order FYY-0002 — Sari Dewi",
+      "jenis": "dp_order",
+      "akun_debit": "101",
+      "akun_kredit": "202",
+      "jumlah": 425000,
+      "order_id": "ord-contoh-2",
+      "metode_bayar": "DANA",
+      "bukti": "",
+      "created_at": "2026-10-21T10:19:21"
+    },
+    {
+      "id": "trx-contoh-5",
+      "tanggal": "2026-10-18",
+      "keterangan": "Bayar internet IndiHome bulan ini",
+      "jenis": "beban_internet",
+      "akun_debit": "502",
+      "akun_kredit": "101",
+      "jumlah": 350000,
+      "order_id": "",
+      "metode_bayar": "DANA",
+      "bukti": "",
+      "created_at": "2026-10-21T10:19:21"
+    },
+    {
+      "id": "trx-contoh-6",
+      "tanggal": "2026-10-19",
+      "keterangan": "DP order FYY-0003 — Andi Wijaya",
+      "jenis": "dp_order",
+      "akun_debit": "101",
+      "akun_kredit": "202",
+      "jumlah": 250000,
+      "order_id": "ord-contoh-3",
+      "metode_bayar": "QRIS",
+      "bukti": "",
+      "created_at": "2026-10-21T10:19:21"
+    }
+  ]
+}

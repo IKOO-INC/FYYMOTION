@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+{% import "_macros.html" as m with context %}
+{% block title %}Detail {{ o.order_code }}{% endblock %}
+{% block page_title %}<i class="bi bi-file-earmark-play text-primary"></i> {{ o.order_code }} — {{ o.judul }}{% endblock %}
+{% block content %}
+
+<div class="d-flex flex-wrap gap-2 mb-3 no-print">
+  <a class="btn btn-outline-secondary" href="{{ url_for('orders_list') }}"><i class="bi bi-arrow-left"></i> Daftar Order</a>
+  <a class="btn btn-success fw-bold" target="_blank" href="{{ wa_link }}"><i class="bi bi-whatsapp"></i> Chat WA {{ o.client_name }} ({{ o.wa_number }})</a>
+  <a class="btn btn-warning" href="{{ url_for('order_edit', order_id=o.id) }}"><i class="bi bi-pencil"></i> Edit</a>
+  <a class="btn btn-primary" href="{{ url_for('transaction_new', order_id=o.id) }}"><i class="bi bi-cash-coin"></i> Catat Pembayaran / Pelunasan</a>
+  <button class="btn btn-outline-dark" onclick="window.print()"><i class="bi bi-printer"></i> Print Brief Kerja</button>
+</div>
+
+<div class="row g-3">
+  <div class="col-lg-8">
+    <div class="card shadow-sm mb-3">
+      <div class="card-header bg-white d-flex justify-content-between align-items-center">
+        <span class="fw-bold"><i class="bi bi-person-badge text-primary"></i> Client &amp; Pesanan</span>
+        {{ m.status_badge(o.status) }}
+      </div>
+      <div class="card-body">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <div class="text-muted small">Nama Client</div><div class="fw-bold fs-5">{{ o.client_name }}</div>
+            <div class="text-muted small mt-2">Nomor WhatsApp</div>
+            <div class="fw-bold"><a class="text-success text-decoration-none" target="_blank" href="{{ wa_link }}"><i class="bi bi-whatsapp"></i> {{ o.wa_number }}</a>
+              <button type="button" class="btn btn-sm btn-outline-secondary btn-copy ms-1" data-copy-text="{{ o.wa_number }}"><i class="bi bi-clipboard"></i> Salin</button></div>
+          </div>
+          <div class="col-md-6">
+            <div class="text-muted small">Nomor Antrian</div>
+            <div class="fw-bold fs-4">#{{ o.queue_no }}
+              {% if posisi %}<span class="badge text-bg-primary align-middle">Posisi aktif {{ posisi }} dari {{ total_antrian }}</span>{% endif %}</div>
+            <div class="row small mt-2">
+              <div class="col-6">Kode: <b>{{ o.order_code }}</b></div><div class="col-6">Jenis: <b>{{ o.jenis_animasi }}</b></div>
+              <div class="col-6">Paket: {{ o.paket or '-' }}</div><div class="col-6">Durasi: {{ o.durasi or '-' }}</div>
+              <div class="col-6">Resolusi: {{ o.resolusi or '-' }}</div><div class="col-6">Output: {{ o.format_output or '-' }}</div>
+              <div class="col-6">Masuk: {{ o.tanggal_masuk|tanggal }}</div><div class="col-6">Deadline: <b>{{ o.deadline|tanggal }}</b></div>
+            </div>
+          </div>
+        </div>
+        <hr>
+        <div class="d-flex align-items-center gap-2">
+          <span class="small fw-bold">Progress {{ o.progress }}%</span>
+          <div class="progress flex-grow-1"><div class="progress-bar bg-{{ STATUS_BADGE.get(o.status,'secondary') }}" style="width:{{ o.progress }}%"></div></div>
+          <span class="badge text-bg-light border">{{ o.prioritas }}</span>
+        </div>
+        <form class="d-flex gap-2 mt-3 no-print" method="post" action="{{ url_for('order_status', order_id=o.id) }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <select name="status" class="form-select" style="max-width:280px">
+            {% for code,label,color in STATUS_ORDER %}<option value="{{ code }}" {% if o.status==code %}selected{% endif %}>{{ label }}</option>{% endfor %}
+          </select>
+          <button class="btn btn-primary" type="submit"><i class="bi bi-arrow-repeat"></i> Ubah Status Cepat</button>
+        </form>
+      </div>
+    </div>
+
+    <div class="card shadow-sm mb-3">
+      <div class="card-header bg-white d-flex justify-content-between">
+        <span class="fw-bold"><i class="bi bi-card-text text-primary"></i> Brief / Deskripsi Pesanan</span>
+        <button type="button" class="btn btn-sm btn-outline-primary btn-copy" data-copy-target="#briefTxt"><i class="bi bi-clipboard"></i> Salin Brief</button>
+      </div>
+      <div class="card-body"><pre class="teks-pesanan mb-0" id="briefTxt">{{ o.brief or '-' }}</pre></div>
+    </div>
+
+    <div class="card shadow-sm mb-3">
+      <div class="card-header bg-white d-flex justify-content-between">
+        <span class="fw-bold"><i class="bi bi-fonts text-primary"></i> Script / Data Pesanan Teks (teks yang dianimasikan)</span>
+        <button type="button" class="btn btn-sm btn-outline-primary btn-copy" data-copy-target="#scriptTxt"><i class="bi bi-clipboard"></i> Salin Script</button>
+      </div>
+      <div class="card-body"><pre class="teks-pesanan mb-0" id="scriptTxt">{{ o.script_teks or '-' }}</pre></div>
+    </div>
+
+    <div class="row g-3 mb-3">
+      <div class="col-md-6"><div class="card shadow-sm h-100">
+        <div class="card-header bg-white fw-bold"><i class="bi bi-lightbulb text-warning"></i> Referensi</div>
+        <div class="card-body"><pre class="teks-pesanan mb-0">{{ o.referensi or '-' }}</pre></div></div></div>
+      <div class="col-md-6"><div class="card shadow-sm h-100 border border-danger-subtle">
+        <div class="card-header bg-white fw-bold text-danger"><i class="bi bi-arrow-counterclockwise"></i> Catatan Revisi</div>
+        <div class="card-body"><pre class="teks-pesanan mb-0">{{ o.catatan_revisi or 'Belum ada revisi.' }}</pre></div></div></div>
+    </div>
+
+    {% if o.link_preview or o.link_hasil %}
+    <div class="card shadow-sm mb-3"><div class="card-body d-flex flex-wrap gap-2">
+      {% if o.link_preview %}<a class="btn btn-outline-info" target="_blank" href="{{ o.link_preview }}"><i class="bi bi-play-circle"></i> Link Preview</a>{% endif %}
+      {% if o.link_hasil %}<a class="btn btn-outline-success" target="_blank" href="{{ o.link_hasil }}"><i class="bi bi-check2-circle"></i> Link Hasil Final</a>{% endif %}
+    </div></div>
+    {% endif %}
+  </div>
+
+  <div class="col-lg-4">
+    <div class="card shadow-sm mb-3">
+      <div class="card-header bg-white fw-bold"><i class="bi bi-cash-coin text-primary"></i> Pembayaran</div>
+      <div class="card-body">
+        <table class="table table-sm mb-2">
+          <tr><td>Harga Total</td><td class="text-end money fw-bold">{{ o.harga|rupiah }}</td></tr>
+          <tr><td>DP / Dibayar (di order)</td><td class="text-end money text-success">{{ o.dp|rupiah }}</td></tr>
+          <tr><td>Sisa Bayar</td><td class="text-end money fw-bold {% if sisa>0 %}text-danger{% endif %}">{{ sisa|rupiah }}</td></tr>
+          <tr><td>Status Bayar</td><td class="text-end">{{ m.pay_badge(o.status_pembayaran) }}</td></tr>
+          <tr><td>Metode</td><td class="text-end">{{ o.metode_bayar }}</td></tr>
+          <tr class="table-light"><td>Tercatat masuk di Jurnal/Kas</td><td class="text-end money fw-bold">{{ total_trx_in|rupiah }}</td></tr>
+        </table>
+        <div class="small text-muted">Angka "tercatat di Jurnal" adalah uang yang benar-benar sudah Anda input di Transaksi untuk order ini — transparan &amp; bisa diaudit di Buku Besar Kas.</div>
+      </div>
+    </div>
+
+    <div class="card shadow-sm">
+      <div class="card-header bg-white fw-bold"><i class="bi bi-receipt text-primary"></i> Transaksi Terkait Order Ini</div>
+      <div class="list-group list-group-flush">
+        {% for t in trx %}
+          <a class="list-group-item" href="{{ url_for('transaction_edit', trx_id=t.id) }}">
+            <div class="d-flex justify-content-between"><b class="small">{{ t.keterangan }}</b><span class="money small fw-bold">{{ t.jumlah|rupiah }}</span></div>
+            <div class="small text-muted">{{ t.tanggal|tanggal }} &middot; {{ account_label(t.akun_debit) }} / {{ account_label(t.akun_kredit) }}</div>
+          </a>
+        {% else %}<div class="list-group-item text-muted small">Belum ada transaksi tercatat untuk order ini. Klik "Catat Pembayaran" di atas.</div>{% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

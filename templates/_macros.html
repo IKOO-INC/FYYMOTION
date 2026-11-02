@@ -1,0 +1,66 @@
+{% macro period_filter(action, preset, d_from, d_to, extra='') %}
+<form class="card shadow-sm mb-3 no-print" method="get" action="{{ action }}">
+  <div class="card-body py-2">
+    <div class="row g-2 align-items-end">
+      <div class="col-md-3">
+        <label class="form-label small fw-bold mb-1"><i class="bi bi-funnel"></i> Filter Periode</label>
+        <select name="periode" class="form-select form-select-sm">
+          <option value="hari_ini" {% if preset=='hari_ini' %}selected{% endif %}>Hari Ini</option>
+          <option value="bulan_ini" {% if preset=='bulan_ini' %}selected{% endif %}>Bulan Ini</option>
+          <option value="bulan_lalu" {% if preset=='bulan_lalu' %}selected{% endif %}>Bulan Lalu</option>
+          <option value="tahun_ini" {% if preset=='tahun_ini' %}selected{% endif %}>Tahun Ini</option>
+          <option value="semua" {% if preset=='semua' %}selected{% endif %}>Semua Waktu</option>
+          <option value="custom" {% if preset=='custom' %}selected{% endif %}>Custom (dari — sampai)</option>
+        </select>
+      </div>
+      <div class="col-md-2"><label class="form-label small mb-1">Dari Tanggal</label>
+        <input type="date" name="from" value="{{ d_from }}" class="form-control form-control-sm"></div>
+      <div class="col-md-2"><label class="form-label small mb-1">Sampai Tanggal</label>
+        <input type="date" name="to" value="{{ d_to }}" class="form-control form-control-sm"></div>
+      {{ extra | safe }}
+      <div class="col-auto">
+        <button class="btn btn-primary btn-sm" type="submit"><i class="bi bi-search"></i> Terapkan</button>
+        <button class="btn btn-outline-secondary btn-sm" type="button" onclick="window.print()"><i class="bi bi-printer"></i> Print</button>
+      </div>
+    </div>
+  </div>
+</form>
+{% endmacro %}
+
+{% macro pagination(pg) %}
+{% if pg.pages > 1 %}
+<nav class="no-print"><ul class="pagination pagination-sm justify-content-center">
+  {% for p in range(1, pg.pages + 1) %}
+    <li class="page-item {% if p == pg.page %}active{% endif %}">
+      <a class="page-link" href="{{ page_url(p) }}">{{ p }}</a>
+    </li>
+  {% endfor %}
+</ul></nav>
+<p class="text-center text-muted small">Menampilkan halaman {{ pg.page }} dari {{ pg.pages }} — total {{ pg.total }} data</p>
+{% endif %}
+{% endmacro %}
+
+{% macro status_badge(code) %}
+<span class="badge text-bg-{{ STATUS_BADGE.get(code, 'secondary') }}">{{ STATUS_LABEL.get(code, code) }}</span>
+{% endmacro %}
+
+{% macro pay_badge(code) %}
+<span class="badge text-bg-{{ PAY_BADGE.get(code, 'secondary') }}">{{ PAY_LABEL.get(code, code) }}</span>
+{% endmacro %}
+
+{% macro stat_card(title, value, icon, color, sub='') %}
+<div class="col-xl-3 col-md-6">
+  <div class="card stat-card border-start border-4 border-{{ color }} shadow-sm h-100">
+    <div class="card-body">
+      <div class="d-flex justify-content-between align-items-start">
+        <div>
+          <div class="text-{{ color }} text-uppercase small fw-bold">{{ title }}</div>
+          <div class="h5 fw-bold mb-0">{{ value }}</div>
+          {% if sub %}<div class="small text-muted mt-1">{{ sub }}</div>{% endif %}
+        </div>
+        <span class="stat-icon text-{{ color }}"><i class="bi {{ icon }}"></i></span>
+      </div>
+    </div>
+  </div>
+</div>
+{% endmacro %}
