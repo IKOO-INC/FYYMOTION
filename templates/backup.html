@@ -1,35 +1,56 @@
 {% extends "base.html" %}
 {% block title %}Backup & Restore{% endblock %}
-{% block page_title %}<i class="bi bi-cloud-arrow-down-up text-primary"></i> Backup &amp; Restore — Database JSON{% endblock %}
+{% block page_title %}<i class="fa-solid fa-database text-primary"></i> Backup, Restore &amp; Database{% endblock %}
 {% block content %}
 
-{% if info.di_vercel %}
+{% if info.warning %}
+<div class="alert alert-danger shadow-sm"><i class="fa-solid fa-triangle-exclamation"></i> {{ info.warning }}</div>
+{% endif %}
+
+{% if info.backend == 'mongodb' and info.connected %}
+<div class="alert alert-success shadow-sm">
+  <h5 class="fw-bold mb-1"><i class="fa-solid fa-database"></i> MongoDB Atlas AKTIF — data permanen di cloud</h5>
+  Database <b>{{ info.database }}</b> di <b>{{ info.host }}</b> terhubung. Data tidak hilang saat Vercel redeploy atau function cold-start.
+  Download backup JSON tetap dianjurkan sebagai arsip offline dan untuk restore bila ada kesalahan input.
+</div>
+{% elif info.backend == 'mongodb' %}
+<div class="alert alert-danger shadow-sm">
+  <h5 class="fw-bold mb-1"><i class="fa-solid fa-triangle-exclamation"></i> MongoDB Atlas dikonfigurasi, tetapi belum terhubung</h5>
+  Periksa ENV <code>MONGODB_URI</code>, Database User Atlas, dan Network Access <code>0.0.0.0/0</code>. Selama belum pulih, aplikasi memakai JSON sementara agar tetap bisa dibuka.
+  {% if info.error %}<div class="small mt-2"><code>{{ info.error }}</code></div>{% endif %}
+</div>
+{% elif info.di_vercel %}
 <div class="alert alert-warning shadow-sm">
-  <h5 class="fw-bold"><i class="bi bi-exclamation-triangle-fill"></i> Anda sedang berjalan di VERCEL — WAJIB rutin backup!</h5>
-  Penyimpanan Vercel bersifat sementara (<code>/tmp</code>) dan dapat ter-reset saat redeploy / function dimulai ulang.
-  Alur aman: <b>setiap selesai bekerja → klik Download Backup</b> dan simpan file <code>.json</code> di HP/laptop/Google Drive.
-  Bila suatu saat data kembali kosong/contoh → <b>Upload (Restore)</b> file backup terakhir Anda di halaman ini.
-  Untuk data permanen tanpa upload ulang, jalankan juga aplikasi ini di laptop (lokal) sebagai master, atau gunakan database cloud di pengembangan berikutnya.
+  <h5 class="fw-bold"><i class="fa-solid fa-triangle-exclamation"></i> Mode JSON di Vercel — pasang MongoDB Atlas agar permanen</h5>
+  <code>MONGODB_URI</code> belum terpasang, jadi aplikasi memakai <code>/tmp</code> yang dapat ter-reset. Rajin download backup JSON, atau pasang MongoDB Atlas di Environment Variables Vercel lalu redeploy.
 </div>
 {% else %}
-<div class="alert alert-info shadow-sm"><i class="bi bi-info-circle-fill"></i> Anda berjalan <b>LOKAL</b> — data tersimpan permanen di file database. Tetap download backup secara berkala untuk keamanan.</div>
+<div class="alert alert-info shadow-sm"><i class="fa-solid fa-circle-info"></i> Mode <b>JSON lokal</b> aktif di <code>{{ info.db_path }}</code>. Isi <code>MONGODB_URI</code> bila ingin mencoba MongoDB Atlas dari lokal.</div>
 {% endif %}
 
 <div class="row g-3 mb-3">
   <div class="col-md-3"><div class="card shadow-sm h-100"><div class="card-body">
-    <div class="text-muted small fw-bold text-uppercase">Isi Database Saat Ini</div>
-    <div class="small mt-2">
+    <div class="text-muted small fw-bold text-uppercase"><i class="fa-solid fa-database"></i> Database Aktif</div>
+    <div class="mt-2">
+      <span class="badge {% if info.backend=='mongodb' %}text-bg-success{% else %}text-bg-warning{% endif %}">{{ info.label }}</span>
+      <span class="badge {% if info.connected is sameas false %}text-bg-danger{% else %}text-bg-primary{% endif %}">
+        {% if info.connected is sameas false %}Tidak terhubung{% elif info.backend=='mongodb' %}Terhubung{% else %}Fallback lokal{% endif %}
+      </span>
+    </div>
+    <div class="small mt-3">
+      Database: <b>{{ info.database }}</b><br>
+      Host: <b>{{ info.host }}</b><br>
       Orders: <b>{{ info.jml_order }}</b><br>Transaksi/Jurnal: <b>{{ info.jml_transaksi }}</b><br>Akun (COA): <b>{{ info.jml_akun }}</b><br>
-      Ukuran: <b>{{ info.ukuran_kb }} KB</b><br>Update terakhir: <b>{{ info.updated_at }}</b><br>
+      Snapshot JSON: <b>{{ info.ukuran_kb }} KB</b><br>Update terakhir: <b>{{ info.updated_at }}</b><br>
       Checksum: <code>{{ info.sha }}</code>
     </div>
-    <div class="small text-muted mt-2">Lokasi file aktif:<br><code class="text-break">{{ info.db_path }}</code></div>
+    <div class="small text-muted mt-2">Lokasi aktif:<br><code class="text-break">{{ info.location }}</code></div>
   </div></div></div>
 
   <div class="col-md-5"><div class="card shadow-sm border border-success h-100"><div class="card-body">
-    <h5 class="fw-bold text-success"><i class="bi bi-download"></i> 1) DOWNLOAD BACKUP</h5>
+    <h5 class="fw-bold text-success"><i class="fa-solid fa-download"></i> 1) DOWNLOAD BACKUP</h5>
     <p class="small">Unduh seluruh database (orders, transactions, accounts, settings) sebagai satu file JSON. Simpan baik-baik — inilah cadangan usaha Anda.</p>
-    <a class="btn btn-success btn-lg fw-bold w-100 mb-2" href="{{ url_for('backup_download') }}"><i class="bi bi-file-earmark-arrow-down"></i> Download database.json (Backup)</a>
+    <a class="btn btn-success btn-lg fw-bold w-100 mb-2" href="{{ url_for('backup_download') }}"><i class="fa-solid fa-file-arrow-down"></i> Download Backup JSON</a>
     <div class="d-flex flex-wrap gap-1">
       <a class="btn btn-outline-success btn-sm" href="{{ url_for('export_orders') }}">Orders CSV</a>
       <a class="btn btn-outline-success btn-sm" href="{{ url_for('export_transactions') }}">Transaksi CSV</a>
@@ -39,20 +60,20 @@
   </div></div></div>
 
   <div class="col-md-4"><div class="card shadow-sm h-100"><div class="card-body">
-    <h6 class="fw-bold"><i class="bi bi-building"></i> Pengaturan Usaha</h6>
+    <h6 class="fw-bold"><i class="fa-solid fa-building"></i> Pengaturan Usaha</h6>
     <form method="post" action="{{ url_for('settings_save') }}">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <input name="nama_usaha" class="form-control form-control-sm mb-2" value="{{ settings.nama_usaha or '' }}" placeholder="Nama Usaha (FYY MOTION)">
       <input name="tagline" class="form-control form-control-sm mb-2" value="{{ settings.tagline or '' }}" placeholder="Tagline">
       <input name="pemilik" class="form-control form-control-sm mb-2" value="{{ settings.pemilik or '' }}" placeholder="Nama Pemilik">
       <input name="wa_admin" class="form-control form-control-sm mb-2" value="{{ settings.wa_admin or '' }}" placeholder="WA Admin">
-      <button class="btn btn-primary btn-sm w-100" type="submit"><i class="bi bi-save"></i> Simpan ke database.json</button>
+      <button class="btn btn-primary btn-sm w-100" type="submit"><i class="fa-solid fa-floppy-disk"></i> Simpan Pengaturan</button>
     </form>
   </div></div></div>
 </div>
 
 <div class="card shadow-sm border border-primary mb-3">
-  <div class="card-header bg-primary text-white fw-bold"><i class="bi bi-upload"></i> 2) UPLOAD / RESTORE BACKUP (menimpa data sekarang)</div>
+  <div class="card-header bg-primary text-white fw-bold"><i class="fa-solid fa-upload"></i> 2) UPLOAD / RESTORE BACKUP (menimpa data sekarang)</div>
   <div class="card-body">
     <div class="alert alert-danger small"><b>PERINGATAN:</b> Restore akan <b>MENGGANTI SELURUH</b> data saat ini dengan isi file backup. Download backup kondisi sekarang dulu bila masih diperlukan!</div>
     <form method="post" action="{{ url_for('backup_upload') }}" enctype="multipart/form-data"
@@ -69,41 +90,52 @@
           <textarea name="json_text" rows="6" class="form-control font-monospace small" placeholder='{"accounts": [...], "orders": [...], "transactions": [...]}'></textarea>
         </div>
       </div>
-      <button class="btn btn-primary btn-lg fw-bold mt-3" type="submit"><i class="bi bi-cloud-upload"></i> Upload &amp; Restore Database</button>
+      <button class="btn btn-primary btn-lg fw-bold mt-3" type="submit"><i class="fa-solid fa-cloud-arrow-up"></i> Upload &amp; Restore Database</button>
     </form>
   </div>
 </div>
 
 <div class="row g-3 mb-3">
   <div class="col-lg-6"><div class="card shadow-sm h-100">
-    <div class="card-header bg-white fw-bold"><i class="bi bi-database text-primary"></i> Struktur Database JSON Array</div>
+    <div class="card-header bg-white fw-bold"><i class="fa-solid fa-database text-primary"></i> Struktur Penyimpanan</div>
     <div class="card-body small">
-      <pre class="bg-light border rounded p-3 mb-2">{
+      {% if info.backend == 'mongodb' %}
+      <div class="fw-bold mb-2">Koleksi MongoDB Atlas: <code>{{ info.database }}</code></div>
+      <ul class="mb-3">
+        <li><code>orders</code> — antrian, client, WA, brief, script, Drive Assets, status &amp; pembayaran</li>
+        <li><code>transactions</code> — semua Jurnal double-entry</li>
+        <li><code>accounts</code> — Chart of Accounts / COA</li>
+        <li><code>app_state</code> — meta &amp; pengaturan usaha</li>
+      </ul>
+      {% else %}
+      <div class="fw-bold mb-2">File JSON fallback</div>
+      <p>Array <code>accounts</code>, <code>orders</code>, dan <code>transactions</code> tersimpan di <code>{{ info.db_path }}</code>.</p>
+      {% endif %}
+      <pre class="bg-light border rounded p-3 mb-2">Backup JSON:
+{
   "settings": { ... },
-  "accounts":     [ {kode, nama, tipe, saldo_normal, is_cash}, ... ],
-  "orders":       [ {queue_no, client_name, wa_number, judul,
-                     script_teks, harga, dp, status, ...}, ... ],
-  "transactions": [ {tanggal, keterangan, akun_debit,
-                     akun_kredit, jumlah, order_id}, ... ]
+  "accounts":     [ ... ],
+  "orders":       [ { ..., "drive_assets_url": "https://drive..." } ],
+  "transactions": [ ... ]
 }</pre>
-      Jurnal Umum, Buku Besar, Neraca Saldo &amp; Laba Rugi <b>dihitung otomatis</b> dari array <code>transactions</code> — tidak perlu disimpan terpisah agar selalu konsisten &amp; transparan.
+      Jurnal Umum, Buku Besar, Neraca Saldo &amp; Laba Rugi <b>dihitung otomatis</b> dari transaksi — tidak perlu disimpan terpisah agar selalu konsisten &amp; transparan.
     </div>
   </div></div>
 
   <div class="col-lg-6"><div class="card shadow-sm border border-danger h-100">
-    <div class="card-header bg-white fw-bold text-danger"><i class="bi bi-exclamation-octagon"></i> Zona Berbahaya — Reset Data</div>
+    <div class="card-header bg-white fw-bold text-danger"><i class="fa-solid fa-triangle-exclamation"></i> Zona Berbahaya — Reset Data</div>
     <div class="card-body">
       <form method="post" action="{{ url_for('backup_reset_sample') }}" class="mb-3"
             onsubmit="return confirm('Reset ke DATA CONTOH? Semua data Anda sekarang hilang!')">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-        <button class="btn btn-warning w-100" type="submit"><i class="bi bi-arrow-counterclockwise"></i> Reset ke Data Contoh (Demo)</button>
+        <button class="btn btn-warning w-100" type="submit"><i class="fa-solid fa-rotate-left"></i> Reset ke Data Contoh (Demo)</button>
       </form>
       <form method="post" action="{{ url_for('backup_clear') }}"
             onsubmit="return confirm('KOSONGKAN semua order & transaksi? Tindakan ini tidak bisa dibatalkan!')">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <label class="form-label small">Mulai dari nol: ketik <code>kosongkan</code> lalu klik tombol di bawah (Daftar Akun tetap dipertahankan)</label>
         <div class="input-group"><input name="confirm" class="form-control" placeholder="kosongkan">
-          <button class="btn btn-danger" type="submit"><i class="bi bi-trash3"></i> Kosongkan Order &amp; Transaksi</button></div>
+          <button class="btn btn-danger" type="submit"><i class="fa-solid fa-trash"></i> Kosongkan Order &amp; Transaksi</button></div>
       </form>
     </div>
   </div></div>
@@ -111,9 +143,9 @@
 
 <div class="card shadow-sm">
   <div class="card-header bg-white d-flex justify-content-between align-items-center">
-    <span class="fw-bold"><i class="bi bi-code-square text-primary"></i> Lihat Isi database.json Saat Ini (mentah)</span>
-    <button type="button" class="btn btn-sm btn-outline-primary btn-copy" data-copy-target="#rawJson"><i class="bi bi-clipboard"></i> Salin Semua JSON</button>
+    <span class="fw-bold"><i class="fa-solid fa-code text-primary"></i> Snapshot JSON dari Database Aktif</span>
+    <button type="button" class="btn btn-sm btn-outline-primary btn-copy" data-copy-target="#rawJson"><i class="fa-solid fa-clipboard"></i> Salin Semua JSON</button>
   </div>
-  <div class="card-body"><pre id="rawJson" class="bg-dark text-light rounded p-3 small" style="max-height:420px;overflow:auto">{{ raw_json }}</pre></div>
+  <div class="card-body"><pre id="rawJson" class="code-block p-3 small" style="max-height:420px;overflow:auto">{{ raw_json }}</pre></div>
 </div>
 {% endblock %}

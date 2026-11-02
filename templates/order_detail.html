@@ -1,22 +1,23 @@
 {% extends "base.html" %}
 {% import "_macros.html" as m with context %}
 {% block title %}Detail {{ o.order_code }}{% endblock %}
-{% block page_title %}<i class="bi bi-file-earmark-play text-primary"></i> {{ o.order_code }} — {{ o.judul }}{% endblock %}
+{% block page_title %}<i class="fa-solid fa-file-video text-primary"></i> {{ o.order_code }} — {{ o.judul }}{% endblock %}
 {% block content %}
 
 <div class="d-flex flex-wrap gap-2 mb-3 no-print">
-  <a class="btn btn-outline-secondary" href="{{ url_for('orders_list') }}"><i class="bi bi-arrow-left"></i> Daftar Order</a>
-  <a class="btn btn-success fw-bold" target="_blank" href="{{ wa_link }}"><i class="bi bi-whatsapp"></i> Chat WA {{ o.client_name }} ({{ o.wa_number }})</a>
-  <a class="btn btn-warning" href="{{ url_for('order_edit', order_id=o.id) }}"><i class="bi bi-pencil"></i> Edit</a>
-  <a class="btn btn-primary" href="{{ url_for('transaction_new', order_id=o.id) }}"><i class="bi bi-cash-coin"></i> Catat Pembayaran / Pelunasan</a>
-  <button class="btn btn-outline-dark" onclick="window.print()"><i class="bi bi-printer"></i> Print Brief Kerja</button>
+  <a class="btn btn-outline-secondary" href="{{ url_for('orders_list') }}"><i class="fa-solid fa-arrow-left"></i> Daftar Order</a>
+  <a class="btn btn-success fw-bold" target="_blank" rel="noopener" href="{{ wa_link }}"><i class="fa-brands fa-whatsapp"></i> Chat WA {{ o.client_name }} ({{ o.wa_number }})</a>
+  {% if o.drive_assets_url %}<a class="btn btn-outline-success fw-bold" target="_blank" rel="noopener" href="{{ o.drive_assets_url }}"><i class="fa-brands fa-google-drive"></i> Drive Assets</a>{% endif %}
+  <a class="btn btn-warning" href="{{ url_for('order_edit', order_id=o.id) }}"><i class="fa-solid fa-pen"></i> Edit</a>
+  <a class="btn btn-primary" href="{{ url_for('transaction_new', order_id=o.id) }}"><i class="fa-solid fa-sack-dollar"></i> Catat Pembayaran / Pelunasan</a>
+  <button class="btn btn-outline-dark" onclick="window.print()"><i class="fa-solid fa-print"></i> Print Brief Kerja</button>
 </div>
 
 <div class="row g-3">
   <div class="col-lg-8">
     <div class="card shadow-sm mb-3">
       <div class="card-header bg-white d-flex justify-content-between align-items-center">
-        <span class="fw-bold"><i class="bi bi-person-badge text-primary"></i> Client &amp; Pesanan</span>
+        <span class="fw-bold"><i class="fa-solid fa-id-badge text-primary"></i> Client &amp; Pesanan</span>
         {{ m.status_badge(o.status) }}
       </div>
       <div class="card-body">
@@ -24,8 +25,8 @@
           <div class="col-md-6">
             <div class="text-muted small">Nama Client</div><div class="fw-bold fs-5">{{ o.client_name }}</div>
             <div class="text-muted small mt-2">Nomor WhatsApp</div>
-            <div class="fw-bold"><a class="text-success text-decoration-none" target="_blank" href="{{ wa_link }}"><i class="bi bi-whatsapp"></i> {{ o.wa_number }}</a>
-              <button type="button" class="btn btn-sm btn-outline-secondary btn-copy ms-1" data-copy-text="{{ o.wa_number }}"><i class="bi bi-clipboard"></i> Salin</button></div>
+            <div class="fw-bold"><a class="text-success text-decoration-none" target="_blank" href="{{ wa_link }}"><i class="fa-brands fa-whatsapp"></i> {{ o.wa_number }}</a>
+              <button type="button" class="btn btn-sm btn-outline-secondary btn-copy ms-1" data-copy-text="{{ o.wa_number }}"><i class="fa-solid fa-clipboard"></i> Salin</button></div>
           </div>
           <div class="col-md-6">
             <div class="text-muted small">Nomor Antrian</div>
@@ -50,47 +51,70 @@
           <select name="status" class="form-select" style="max-width:280px">
             {% for code,label,color in STATUS_ORDER %}<option value="{{ code }}" {% if o.status==code %}selected{% endif %}>{{ label }}</option>{% endfor %}
           </select>
-          <button class="btn btn-primary" type="submit"><i class="bi bi-arrow-repeat"></i> Ubah Status Cepat</button>
+          <button class="btn btn-primary" type="submit"><i class="fa-solid fa-rotate"></i> Ubah Status Cepat</button>
         </form>
       </div>
     </div>
 
     <div class="card shadow-sm mb-3">
       <div class="card-header bg-white d-flex justify-content-between">
-        <span class="fw-bold"><i class="bi bi-card-text text-primary"></i> Brief / Deskripsi Pesanan</span>
-        <button type="button" class="btn btn-sm btn-outline-primary btn-copy" data-copy-target="#briefTxt"><i class="bi bi-clipboard"></i> Salin Brief</button>
+        <span class="fw-bold"><i class="fa-solid fa-file-lines text-primary"></i> Brief / Deskripsi Pesanan</span>
+        <button type="button" class="btn btn-sm btn-outline-primary btn-copy" data-copy-target="#briefTxt"><i class="fa-solid fa-clipboard"></i> Salin Brief</button>
       </div>
       <div class="card-body"><pre class="teks-pesanan mb-0" id="briefTxt">{{ o.brief or '-' }}</pre></div>
     </div>
 
     <div class="card shadow-sm mb-3">
       <div class="card-header bg-white d-flex justify-content-between">
-        <span class="fw-bold"><i class="bi bi-fonts text-primary"></i> Script / Data Pesanan Teks (teks yang dianimasikan)</span>
-        <button type="button" class="btn btn-sm btn-outline-primary btn-copy" data-copy-target="#scriptTxt"><i class="bi bi-clipboard"></i> Salin Script</button>
+        <span class="fw-bold"><i class="fa-solid fa-font text-primary"></i> Script / Data Pesanan Teks (teks yang dianimasikan)</span>
+        <button type="button" class="btn btn-sm btn-outline-primary btn-copy" data-copy-target="#scriptTxt"><i class="fa-solid fa-clipboard"></i> Salin Script</button>
       </div>
       <div class="card-body"><pre class="teks-pesanan mb-0" id="scriptTxt">{{ o.script_teks or '-' }}</pre></div>
     </div>
 
     <div class="row g-3 mb-3">
       <div class="col-md-6"><div class="card shadow-sm h-100">
-        <div class="card-header bg-white fw-bold"><i class="bi bi-lightbulb text-warning"></i> Referensi</div>
+        <div class="card-header bg-white fw-bold"><i class="fa-solid fa-lightbulb text-warning"></i> Referensi</div>
         <div class="card-body"><pre class="teks-pesanan mb-0">{{ o.referensi or '-' }}</pre></div></div></div>
       <div class="col-md-6"><div class="card shadow-sm h-100 border border-danger-subtle">
-        <div class="card-header bg-white fw-bold text-danger"><i class="bi bi-arrow-counterclockwise"></i> Catatan Revisi</div>
+        <div class="card-header bg-white fw-bold text-danger"><i class="fa-solid fa-rotate-left"></i> Catatan Revisi</div>
         <div class="card-body"><pre class="teks-pesanan mb-0">{{ o.catatan_revisi or 'Belum ada revisi.' }}</pre></div></div></div>
     </div>
 
-    {% if o.link_preview or o.link_hasil %}
+    {% if o.drive_assets_url or o.link_preview or o.link_hasil %}
     <div class="card shadow-sm mb-3"><div class="card-body d-flex flex-wrap gap-2">
-      {% if o.link_preview %}<a class="btn btn-outline-info" target="_blank" href="{{ o.link_preview }}"><i class="bi bi-play-circle"></i> Link Preview</a>{% endif %}
-      {% if o.link_hasil %}<a class="btn btn-outline-success" target="_blank" href="{{ o.link_hasil }}"><i class="bi bi-check2-circle"></i> Link Hasil Final</a>{% endif %}
+      {% if o.drive_assets_url %}<a class="btn btn-outline-success" target="_blank" rel="noopener" href="{{ o.drive_assets_url }}"><i class="fa-brands fa-google-drive"></i> Assets Client</a>{% endif %}
+      {% if o.link_preview %}<a class="btn btn-outline-info" target="_blank" rel="noopener" href="{{ o.link_preview }}"><i class="fa-solid fa-circle-play"></i> Link Preview</a>{% endif %}
+      {% if o.link_hasil %}<a class="btn btn-outline-success" target="_blank" rel="noopener" href="{{ o.link_hasil }}"><i class="fa-solid fa-circle-check"></i> Link Hasil Final</a>{% endif %}
     </div></div>
     {% endif %}
   </div>
 
   <div class="col-lg-4">
+    <div class="card drive-card shadow-sm mb-3">
+      <div class="card-body">
+        <div class="d-flex gap-3 align-items-start">
+          <span class="drive-icon"><i class="fa-brands fa-google-drive"></i></span>
+          <div class="min-w-0 flex-grow-1">
+            <div class="fw-bold">Google Drive Assets</div>
+            {% if o.drive_assets_url %}
+              <a class="small text-truncate-link" target="_blank" rel="noopener" title="{{ o.drive_assets_url }}" href="{{ o.drive_assets_url }}">{{ o.drive_assets_url }}</a>
+              <div class="small text-muted mt-1">Logo, foto, font, VO, musik &amp; bahan kerja client.</div>
+              <div class="d-flex flex-wrap gap-2 mt-3 no-print">
+                <a class="btn btn-sm btn-success fw-bold" target="_blank" rel="noopener" href="{{ o.drive_assets_url }}"><i class="fa-solid fa-up-right-from-square"></i> Buka Drive</a>
+                <button type="button" class="btn btn-sm btn-outline-success btn-copy" data-copy-text="{{ o.drive_assets_url }}"><i class="fa-solid fa-clipboard"></i> Salin Link</button>
+              </div>
+            {% else %}
+              <div class="small text-muted mt-1">Belum ada link folder assets untuk order ini.</div>
+              <a class="btn btn-sm btn-outline-success mt-3 no-print" href="{{ url_for('order_edit', order_id=o.id) }}"><i class="fa-solid fa-plus"></i> Tambah Link Drive</a>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+
     <div class="card shadow-sm mb-3">
-      <div class="card-header bg-white fw-bold"><i class="bi bi-cash-coin text-primary"></i> Pembayaran</div>
+      <div class="card-header bg-white fw-bold"><i class="fa-solid fa-sack-dollar text-primary"></i> Pembayaran</div>
       <div class="card-body">
         <table class="table table-sm mb-2">
           <tr><td>Harga Total</td><td class="text-end money fw-bold">{{ o.harga|rupiah }}</td></tr>
@@ -105,7 +129,7 @@
     </div>
 
     <div class="card shadow-sm">
-      <div class="card-header bg-white fw-bold"><i class="bi bi-receipt text-primary"></i> Transaksi Terkait Order Ini</div>
+      <div class="card-header bg-white fw-bold"><i class="fa-solid fa-receipt text-primary"></i> Transaksi Terkait Order Ini</div>
       <div class="list-group list-group-flush">
         {% for t in trx %}
           <a class="list-group-item" href="{{ url_for('transaction_edit', trx_id=t.id) }}">

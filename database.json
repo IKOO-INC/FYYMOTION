@@ -1,7 +1,7 @@
 {
   "meta": {
     "app": "FYY MOTION Portal",
-    "version": 1,
+    "version": 2,
     "created_at": "2026-10-21T10:19:21",
     "updated_at": "2026-10-21T10:19:21"
   },
@@ -155,7 +155,8 @@
       "link_preview": "",
       "link_hasil": "",
       "created_at": "2026-10-21T10:19:21",
-      "updated_at": "2026-10-21T10:19:21"
+      "updated_at": "2026-10-21T10:19:21",
+      "drive_assets_url": ""
     },
     {
       "id": "ord-contoh-2",
@@ -185,7 +186,8 @@
       "link_preview": "",
       "link_hasil": "",
       "created_at": "2026-10-21T10:19:21",
-      "updated_at": "2026-10-21T10:19:21"
+      "updated_at": "2026-10-21T10:19:21",
+      "drive_assets_url": ""
     },
     {
       "id": "ord-contoh-3",
@@ -215,7 +217,8 @@
       "link_preview": "",
       "link_hasil": "",
       "created_at": "2026-10-21T10:19:21",
-      "updated_at": "2026-10-21T10:19:21"
+      "updated_at": "2026-10-21T10:19:21",
+      "drive_assets_url": ""
     },
     {
       "id": "ord-contoh-4",
@@ -245,7 +248,8 @@
       "link_preview": "",
       "link_hasil": "",
       "created_at": "2026-10-21T10:19:21",
-      "updated_at": "2026-10-21T10:19:21"
+      "updated_at": "2026-10-21T10:19:21",
+      "drive_assets_url": ""
     }
   ],
   "transactions": [

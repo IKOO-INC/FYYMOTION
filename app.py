@@ -2,17 +2,17 @@
 FYY MOTION — Portal Manajemen Order & Keuangan Jasa Animasi Motion Graphic
 ===========================================================================
 - Backend  : Python Flask (single file, siap deploy Vercel)
-- Database : JSON (array: orders, transactions, accounts) -> database.json
-- Backup   : Download / Upload file database.json (Backup & Restore)
+- Database : MongoDB Atlas (utama, via MONGODB_URI) + JSON fallback/seed
+- Backup   : Download / Upload file JSON (Backup & Restore)
 - Akuntansi: Jurnal Umum (double-entry) -> Buku Besar -> Neraca Saldo -> Laba Rugi
 
-CATATAN VERCEL:
-Filesystem Vercel bersifat read-only & sementara (ephemeral) kecuali /tmp.
-Saat berjalan di Vercel, aplikasi otomatis memakai /tmp/fyymotion_database.json
-(disalin dari database.json bawaan saat pertama jalan). Karena /tmp bisa ter-reset
-saat function cold-start/redeploy, RAJINLAH download backup dari menu
-"Backup & Restore" dan upload kembali (restore) bila data kembali ke awal.
-Untuk pemakaian lokal (laptop), data tersimpan permanen di database.json.
+CATATAN PENYIMPANAN:
+Bila MONGODB_URI terpasang, data disimpan permanen di MongoDB Atlas pada
+koleksi accounts, orders, transactions, dan app_state. Bila URI belum ada
+atau koneksi MongoDB sedang gagal, aplikasi memakai JSON fallback agar tetap
+bisa dibuka: file lokal database.json, atau /tmp/fyymotion_database.json di
+Vercel. File /tmp bersifat sementara, jadi pasang MONGODB_URI untuk produksi
+dan tetap download backup JSON sebagai arsip offline secara berkala.
 """
 
 from __future__ import annotations
@@ -31,6 +31,7 @@ from copy import deepcopy
 from datetime import date, datetime, timedelta
 from functools import wraps
 from pathlib import Path
+from urllib.parse import urlparse
 
 from flask import (
     Flask, Response, abort, flash, g, redirect, render_template,
@@ -53,6 +54,11 @@ else:
 ADMIN_USERNAME = os.environ.get("ADMIN_USERNAME", "admin")
 ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "fyymotion123")
 
+# MongoDB Atlas adalah penyimpanan utama bila URI tersedia. Jangan pernah
+# menaruh connection string asli di repo; pasang melalui Environment Variables.
+MONGODB_URI = os.environ.get("MONGODB_URI", "").strip()
+MONGODB_DB_NAME = os.environ.get("MONGODB_DB_NAME", "").strip()
+
 app = Flask(__name__, template_folder="templates", static_folder="static")
 app.config.update(
     SECRET_KEY=os.environ.get("SECRET_KEY", "fyymotion-secret-key-ganti-di-production"),
@@ -63,6 +69,10 @@ app.config.update(
 )
 
 _DB_LOCK = threading.Lock()
+_MONGO_CLIENT = None
+_MONGO_DB = None
+_MONGO_READY = False
+_MONGO_INIT_LOCK = threading.Lock()
 
 # --------------------------------------------------------------------------- #
 # Konstanta domain
@@ -178,7 +188,7 @@ def sample_db() -> dict:
          "brief": "Explainer untuk launching produk kopi kemasan. Nuansa hangat, warna cokelat & oranye.",
          "script_teks": "Scene 1: Logo muncul.\nScene 2: \"Ngopi enak nggak harus mahal!\"\nScene 3: Tampilan produk + harga.\nScene 4: CTA ke WhatsApp.",
          "referensi": "Style flat illustration, referensi dikirim via WA.",
-         "catatan_revisi": "", "link_preview": "", "link_hasil": "",
+         "catatan_revisi": "", "drive_assets_url": "", "link_preview": "", "link_hasil": "",
          "created_at": now_iso(), "updated_at": now_iso()},
         {"id": "ord-contoh-2", "order_code": "FYY-0002", "queue_no": 2,
          "client_name": "Sari Dewi", "wa_number": "6289876543210",
@@ -192,7 +202,7 @@ def sample_db() -> dict:
          "script_teks": "Teks utama: \"Kulit cerah dalam 7 hari!\"\nSub-teks: promo diskon 30 persen hanya minggu ini.",
          "referensi": "Contoh gaya: iklan skincare Korea.",
          "catatan_revisi": "Revisi 1: Ganti font judul jadi lebih bold, logo diperbesar di akhir video.",
-         "link_preview": "", "link_hasil": "",
+         "drive_assets_url": "", "link_preview": "", "link_hasil": "",
          "created_at": now_iso(), "updated_at": now_iso()},
         {"id": "ord-contoh-3", "order_code": "FYY-0003", "queue_no": 3,
          "client_name": "Contoh Indo", "wa_number": "6285712345678",
@@ -205,7 +215,7 @@ def sample_db() -> dict:
          "brief": "Animasi logo perusahaan teknologi, kesan modern & profesional.",
          "script_teks": "Logo reveal dengan garis cahaya, diakhiri tagline \"Inovasi Tanpa Batas\".",
          "referensi": "File logo AI/SVG dikirim client via email.",
-         "catatan_revisi": "", "link_preview": "", "link_hasil": "",
+         "catatan_revisi": "", "drive_assets_url": "", "link_preview": "", "link_hasil": "",
          "created_at": now_iso(), "updated_at": now_iso()},
         {"id": "ord-contoh-4", "order_code": "FYY-0004", "queue_no": 4,
          "client_name": "Andi Wijaya", "wa_number": "6282298765432",
@@ -218,7 +228,7 @@ def sample_db() -> dict:
          "brief": "Intro energik tema gaming, musik EDM.",
          "script_teks": "Nama channel: ANDI PLAY — efek glitch + neon ungu.",
          "referensi": "Link referensi menyusul dari client.",
-         "catatan_revisi": "", "link_preview": "", "link_hasil": "",
+         "catatan_revisi": "", "drive_assets_url": "", "link_preview": "", "link_hasil": "",
          "created_at": now_iso(), "updated_at": now_iso()},
     ]
     db["transactions"] = [
@@ -276,43 +286,222 @@ def normalize_db(data) -> dict:
         o.setdefault("status", "masuk")
         o.setdefault("status_pembayaran", "belum")
         o.setdefault("harga", 0); o.setdefault("dp", 0); o.setdefault("progress", 0)
+        o.setdefault("drive_assets_url", ""); o.setdefault("link_preview", ""); o.setdefault("link_hasil", "")
     for t in base["transactions"]:
         t.setdefault("id", uuid.uuid4().hex)
         t.setdefault("jumlah", 0)
     return base
 
 
-def ensure_db():
+# --------------------------------------------------------------------------- #
+# Lapisan penyimpanan: MongoDB Atlas (utama) + JSON (fallback)
+# API publik tetap load_db()/save_db() agar seluruh halaman & akuntansi sama.
+# --------------------------------------------------------------------------- #
+def storage_backend() -> str:
+    return "mongodb" if MONGODB_URI else "json"
+
+
+def mongo_database_name() -> str:
+    if MONGODB_DB_NAME:
+        return MONGODB_DB_NAME
+    if MONGODB_URI:
+        db_name = urlparse(MONGODB_URI).path.strip("/").split("/")[0]
+        if db_name and db_name not in ("admin", "local"):
+            return db_name
+    return "fyymotion"
+
+
+def mongo_host() -> str:
+    return urlparse(MONGODB_URI).hostname or "-" if MONGODB_URI else "-"
+
+
+def storage_info(ping: bool = False) -> dict:
+    if MONGODB_URI:
+        info = {
+            "backend": "mongodb",
+            "label": "MongoDB Atlas",
+            "configured": True,
+            "connected": None,
+            "location": f"MongoDB Atlas @ {mongo_host()} / database: {mongo_database_name()}",
+            "database": mongo_database_name(),
+            "host": mongo_host(),
+            "db_path": f"mongodb://{mongo_host()}/{mongo_database_name()}",
+        }
+        if ping:
+            try:
+                get_mongo_db().command("ping")
+                info["connected"] = True
+            except Exception as exc:
+                info["connected"] = False
+                info["error"] = f"{type(exc).__name__}: {exc}"[:240]
+        return info
+    return {
+        "backend": "json",
+        "label": "JSON fallback",
+        "configured": False,
+        "connected": True,
+        "location": str(DB_PATH),
+        "database": "database.json",
+        "host": "local",
+        "db_path": str(DB_PATH),
+    }
+
+
+def get_mongo_db():
+    global _MONGO_CLIENT, _MONGO_DB, _MONGO_READY
+    if _MONGO_DB is not None:
+        return _MONGO_DB
+    if not MONGODB_URI:
+        raise RuntimeError("MONGODB_URI belum terpasang")
+    with _MONGO_INIT_LOCK:
+        if _MONGO_DB is not None:
+            return _MONGO_DB
+        from pymongo import MongoClient
+
+        client = MongoClient(
+            MONGODB_URI,
+            serverSelectionTimeoutMS=10000,
+            connectTimeoutMS=10000,
+            socketTimeoutMS=30000,
+            retryWrites=True,
+            appname="FYYMOTIONPortal",
+        )
+        client.admin.command("ping")
+        db = client[mongo_database_name()]
+        if not _MONGO_READY:
+            db["orders"].create_index([("queue_no", 1), ("status", 1)])
+            db["orders"].create_index([("tanggal_masuk", -1)])
+            db["transactions"].create_index([("tanggal", -1), ("order_id", 1)])
+            db["accounts"].create_index([("kode", 1)], unique=True)
+            _MONGO_READY = True
+        _MONGO_CLIENT = client
+        _MONGO_DB = db
+        return db
+
+
+def _load_seed_db() -> dict:
+    """Seed pertama: utamakan file JSON aktif, lalu file bawaan repo, lalu contoh."""
+    for path in (DB_PATH, SEED_PATH):
+        try:
+            if path.exists():
+                return normalize_db(json.loads(path.read_text(encoding="utf-8")))
+        except Exception:
+            continue
+    return sample_db()
+
+
+def _mongo_doc(collection: str, item: dict) -> dict:
+    doc = {k: deepcopy(v) for k, v in item.items() if k != "_id" and not k.startswith("_")}
+    if collection == "accounts":
+        doc["_id"] = str(doc.get("kode") or uuid.uuid4().hex)
+    else:
+        doc.setdefault("id", uuid.uuid4().hex)
+        doc["_id"] = str(doc["id"])
+    return doc
+
+
+def _sync_collection(db_mongo, collection: str, items: list[dict]):
+    from pymongo import DeleteMany, ReplaceOne
+
+    coll = db_mongo[collection]
+    docs = [_mongo_doc(collection, item) for item in items]
+    desired_ids = {doc["_id"] for doc in docs}
+    ops = []
+    existing_ids = {doc["_id"] for doc in coll.find({}, {"_id": 1})}
+    stale_ids = list(existing_ids - desired_ids)
+    if stale_ids:
+        ops.append(DeleteMany({"_id": {"$in": stale_ids}}))
+    ops.extend(ReplaceOne({"_id": doc["_id"]}, doc, upsert=True) for doc in docs)
+    if ops:
+        coll.bulk_write(ops, ordered=False)
+
+
+def _save_db_mongo(db: dict):
+    db_mongo = get_mongo_db()
+    for collection in ("accounts", "orders", "transactions"):
+        _sync_collection(db_mongo, collection, db.get(collection, []))
+    db_mongo["app_state"].replace_one(
+        {"_id": "state"},
+        {"_id": "state", "meta": db.get("meta", {}), "settings": db.get("settings", {})},
+        upsert=True,
+    )
+
+
+def _load_db_mongo() -> dict:
+    db_mongo = get_mongo_db()
+    state = db_mongo["app_state"].find_one({"_id": "state"}, {"_id": 0})
+    counts = {name: db_mongo[name].estimated_document_count()
+              for name in ("accounts", "orders", "transactions")}
+    if state is None and sum(counts.values()) == 0:
+        seed = _load_seed_db()
+        _save_db_mongo(seed)
+        return normalize_db(seed)
+
+    data = {
+        "meta": (state or {}).get("meta", {}),
+        "settings": (state or {}).get("settings", {}),
+        "accounts": list(db_mongo["accounts"].find({}, {"_id": 0}).sort("kode", 1)),
+        "orders": list(db_mongo["orders"].find({}, {"_id": 0})),
+        "transactions": list(db_mongo["transactions"].find({}, {"_id": 0})),
+    }
+    return normalize_db(data)
+
+
+def _ensure_db_json():
     if DB_PATH.exists():
         return
     DB_PATH.parent.mkdir(parents=True, exist_ok=True)
     if SEED_PATH.exists() and SEED_PATH.resolve() != DB_PATH.resolve():
         shutil.copyfile(SEED_PATH, DB_PATH)
     else:
-        save_db(empty_db())
+        _save_db_json(empty_db())
+
+
+def _load_db_json() -> dict:
+    _ensure_db_json()
+    try:
+        raw = json.loads(DB_PATH.read_text(encoding="utf-8"))
+        return normalize_db(raw)
+    except (ValueError, json.JSONDecodeError):
+        db = empty_db()
+        db["_warning"] = "database.json rusak/tidak valid — upload backup yang benar di menu Backup."
+        return db
+
+
+def _save_db_json(db: dict):
+    DB_PATH.parent.mkdir(parents=True, exist_ok=True)
+    tmp = DB_PATH.with_suffix(".tmp.json")
+    tmp.write_text(json.dumps(db, ensure_ascii=False, indent=2), encoding="utf-8")
+    tmp.replace(DB_PATH)
 
 
 def load_db() -> dict:
     with _DB_LOCK:
-        ensure_db()
-        try:
-            raw = json.loads(DB_PATH.read_text(encoding="utf-8"))
-            return normalize_db(raw)
-        except (ValueError, json.JSONDecodeError):
-            # file rusak -> jangan crash total, kembalikan kosong (file asli tidak ditimpa di sini)
-            db = empty_db()
-            db["_warning"] = "database.json rusak/tidak valid — upload backup yang benar di menu Backup."
-            return db
+        if MONGODB_URI:
+            try:
+                return _load_db_mongo()
+            except Exception as exc:
+                app.logger.exception("MongoDB load gagal; fallback JSON sementara")
+                db = _load_db_json()
+                db["_warning"] = f"MongoDB Atlas belum terhubung ({type(exc).__name__}); aplikasi memakai JSON sementara."
+                db["_storage_fallback"] = True
+                return db
+        return _load_db_json()
 
 
 def save_db(db: dict):
-    db = {k: v for k, v in db.items() if not k.startswith("_")}
+    use_json_fallback = bool(db.get("_storage_fallback"))
+    db = {k: deepcopy(v) for k, v in db.items() if not k.startswith("_")}
     db.setdefault("meta", {})["updated_at"] = now_iso()
+    db["meta"]["version"] = max(int(db["meta"].get("version") or 1), 2)
     with _DB_LOCK:
-        DB_PATH.parent.mkdir(parents=True, exist_ok=True)
-        tmp = DB_PATH.with_suffix(".tmp.json")
-        tmp.write_text(json.dumps(db, ensure_ascii=False, indent=2), encoding="utf-8")
-        tmp.replace(DB_PATH)
+        if MONGODB_URI and not use_json_fallback:
+            try:
+                _save_db_mongo(db)
+                return
+            except Exception:
+                app.logger.exception("MongoDB save gagal; data disimpan ke JSON fallback")
+        _save_db_json(db)
 
 
 # --------------------------------------------------------------------------- #
@@ -357,6 +546,21 @@ def normalize_wa(raw: str) -> str:
     elif digits.startswith("8"):
         digits = "62" + digits
     return digits
+
+
+def is_valid_url(value) -> bool:
+    """URL opsional: kosong valid; bila diisi wajib URL HTTP(S) lengkap."""
+    url = str(value or "").strip()
+    if not url:
+        return True
+    if any(ch.isspace() for ch in url):
+        return False
+    try:
+        parsed = urlparse(url)
+        host = parsed.hostname or ""
+    except ValueError:
+        return False
+    return parsed.scheme in {"http", "https"} and bool(parsed.netloc) and ("." in host or host == "localhost")
 
 
 def wa_link(o: dict) -> str:
@@ -583,6 +787,7 @@ def inject_globals():
         "csrf_token": csrf_token,
         "now_year": date.today().year,
         "page_url": _page_url,
+        "storage": storage_info(),
     }
 
 
@@ -612,8 +817,17 @@ def guard():
 
 @app.route("/health")
 def health():
-    return {"status": "ok", "app": "FYY MOTION Portal", "db": str(DB_PATH),
-            "vercel": bool(os.environ.get("VERCEL"))}
+    info = storage_info(ping=True)
+    return {
+        "status": "ok" if info.get("connected") is not False else "degraded",
+        "app": "FYY MOTION Portal",
+        "storage": info["backend"],
+        "storage_label": info["label"],
+        "database": info["database"],
+        "database_connected": info.get("connected"),
+        "db": info["db_path"],
+        "vercel": bool(os.environ.get("VERCEL")),
+    }
 
 
 @app.route("/login", methods=["GET", "POST"])
@@ -710,6 +924,7 @@ def order_from_form(db, existing=None):
         "script_teks": f.get("script_teks", "").strip(),
         "referensi": f.get("referensi", "").strip(),
         "catatan_revisi": f.get("catatan_revisi", "").strip(),
+        "drive_assets_url": f.get("drive_assets_url", "").strip(),
         "link_preview": f.get("link_preview", "").strip(),
         "link_hasil": f.get("link_hasil", "").strip(),
         "updated_at": now_iso(),
@@ -725,6 +940,10 @@ def order_from_form(db, existing=None):
         errors.append("Judul pesanan wajib diisi.")
     if dp > harga:
         errors.append("DP tidak boleh lebih besar dari harga total.")
+    for field, label in (("drive_assets_url", "Link Google Drive Assets"),
+                         ("link_preview", "Link Preview"), ("link_hasil", "Link Hasil Final")):
+        if not is_valid_url(data.get(field, "")):
+            errors.append(f"{label} harus berupa URL lengkap diawali http:// atau https://")
     if errors:
         return None, errors
     if existing:
@@ -1144,14 +1363,17 @@ def account_delete(kode):
 @app.route("/backup")
 def backup_page():
     db = load_db()
-    raw = json.dumps(db, ensure_ascii=False, indent=2)
-    info = {
-        "db_path": str(DB_PATH), "di_vercel": bool(os.environ.get("VERCEL")),
+    export_db = {k: v for k, v in db.items() if not k.startswith("_")}
+    raw = json.dumps(export_db, ensure_ascii=False, indent=2)
+    info = storage_info(ping=True)
+    info.update({
+        "di_vercel": bool(os.environ.get("VERCEL")),
         "jml_order": len(db["orders"]), "jml_transaksi": len(db["transactions"]),
         "jml_akun": len(db["accounts"]), "ukuran_kb": round(len(raw.encode()) / 1024, 1),
         "updated_at": db.get("meta", {}).get("updated_at", "-"),
         "sha": hashlib.sha256(raw.encode()).hexdigest()[:16],
-    }
+        "warning": db.get("_warning", ""),
+    })
     return render_template("backup.html", info=info, raw_json=raw)
 
 
@@ -1217,7 +1439,7 @@ def settings_save():
     for key in ("nama_usaha", "tagline", "pemilik", "wa_admin"):
         db["settings"][key] = request.form.get(key, "").strip()
     save_db(db)
-    flash("Pengaturan usaha disimpan (tersimpan di database.json).", "success")
+    flash(f"Pengaturan usaha disimpan di {storage_info()['label']}.", "success")
     return redirect(url_for("backup_page"))
 
 
@@ -1237,10 +1459,12 @@ def export_orders():
              o.get("judul"), o.get("jenis_animasi"), o.get("tanggal_masuk"), o.get("deadline"),
              parse_int(o.get("harga")), parse_int(o.get("dp")), sisa_bayar(o),
              PAY_LABEL.get(o.get("status_pembayaran"), ""), STATUS_LABEL.get(o.get("status"), ""),
-             o.get("progress", 0)] for o in sorted_orders_by_queue(db)]
+             o.get("progress", 0), o.get("drive_assets_url", ""), o.get("link_preview", ""),
+             o.get("link_hasil", "")] for o in sorted_orders_by_queue(db)]
     return csv_response("fyymotion-orders.csv",
                         ["No Antrian", "Kode", "Client", "WA", "Judul", "Jenis", "Tgl Masuk", "Deadline",
-                         "Harga", "DP", "Sisa", "Status Bayar", "Status Order", "Progress%"], rows)
+                         "Harga", "DP", "Sisa", "Status Bayar", "Status Order", "Progress%",
+                         "Google Drive Assets", "Link Preview", "Link Hasil Final"], rows)
 
 
 @app.route("/export/transactions.csv")

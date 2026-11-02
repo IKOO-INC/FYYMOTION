@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% import "_macros.html" as m with context %}
 {% block title %}Buku Besar{% endblock %}
-{% block page_title %}<i class="bi bi-book text-primary"></i> Buku Besar (General Ledger){% endblock %}
+{% block page_title %}<i class="fa-solid fa-book text-primary"></i> Buku Besar (General Ledger){% endblock %}
 {% block content %}
 <p class="text-muted">Posting otomatis dari <a href="{{ url_for('jurnal') }}">Jurnal Umum</a>, dikelompokkan per akun dengan saldo berjalan (running balance). Pilih satu akun untuk fokus, atau tampilkan semua.</p>
 
@@ -20,8 +20,8 @@
       </select></div>
     <div class="col-md-2"><input type="date" name="from" value="{{ d_from }}" class="form-control form-control-sm"></div>
     <div class="col-md-2"><input type="date" name="to" value="{{ d_to }}" class="form-control form-control-sm"></div>
-    <div class="col-auto"><button class="btn btn-primary btn-sm"><i class="bi bi-funnel"></i> Tampilkan</button>
-      <button type="button" class="btn btn-outline-secondary btn-sm" onclick="window.print()"><i class="bi bi-printer"></i></button></div>
+    <div class="col-auto"><button class="btn btn-primary btn-sm"><i class="fa-solid fa-filter"></i> Tampilkan</button>
+      <button type="button" class="btn btn-outline-secondary btn-sm" onclick="window.print()"><i class="fa-solid fa-print"></i></button></div>
   </div></div>
 </form>
 
