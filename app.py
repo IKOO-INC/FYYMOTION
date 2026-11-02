@@ -874,6 +874,8 @@ def dashboard():
                                if in_range(o.get("tanggal_masuk"), d_from, d_to) and o.get("status") != "batal")
     labels, m_masuk, m_keluar = monthly_series(db, 6)
     status_counts = {k: len([o for o in db["orders"] if o.get("status") == k]) for k, _, _ in STATUS_ORDER}
+    pay_counts = {k: len([o for o in db["orders"] if o.get("status_pembayaran") == k]) for k, _, _ in STATUS_PEMBAYARAN}
+    priority_counts = {p: len([o for o in aktif if o.get("prioritas") == p]) for p in PRIORITAS}
 
     stats = {
         "pemasukan": masuk, "pengeluaran": keluar, "laba_bersih": is_data["laba_bersih"],
@@ -893,7 +895,11 @@ def dashboard():
                            account_label=lambda k: account_label(db, k),
                            chart={"labels": labels, "masuk": m_masuk, "keluar": m_keluar,
                                   "status_labels": [STATUS_LABEL[k] for k in status_counts],
-                                  "status_data": list(status_counts.values())},
+                                  "status_data": list(status_counts.values()),
+                                  "pay_labels": [PAY_LABEL[k] for k in pay_counts],
+                                  "pay_data": list(pay_counts.values()),
+                                  "priority_labels": list(priority_counts),
+                                  "priority_data": list(priority_counts.values())},
                            wa_link=wa_link, sisa_bayar=sisa_bayar)
 
 

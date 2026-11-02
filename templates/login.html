@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="id">
+<html lang="id" data-bs-theme="dark">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -11,9 +11,31 @@
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
 </head>
-<body>
+<body class="login-body">
 <div class="login-wrap">
-  <div class="card login-card shadow-lg">
+  <div class="login-shell">
+    <section class="login-showcase" aria-hidden="true">
+      <div class="login-brand-row">
+        <span class="brand-icon"><i class="fa-solid fa-clapperboard"></i></span>
+        <span><strong>{{ settings.nama_usaha or 'FYY MOTION' }}</strong><small>Creative Operations Suite</small></span>
+      </div>
+
+      <div class="login-copy">
+        <span class="login-eyebrow"><i class="fa-solid fa-sparkles"></i> Motion Graphic Command Center</span>
+        <h1>Order, antrian, assets, dan keuangan dalam satu ruang kerja elegan.</h1>
+        <p>Pantau client, buka Google Drive Assets, kendalikan progress produksi, dan lihat Jurnal akuntansi secara transparan tanpa berpindah aplikasi.</p>
+      </div>
+
+      <div class="login-metrics">
+        <div class="login-metric"><i class="fa-solid fa-list-ol"></i><span><strong>Antrian Presisi</strong><small>Prioritas kerja selalu jelas</small></span></div>
+        <div class="login-metric"><i class="fa-brands fa-google-drive"></i><span><strong>Drive Assets</strong><small>Bahan client satu klik</small></span></div>
+        <div class="login-metric"><i class="fa-solid fa-scale-balanced"></i><span><strong>Jurnal Seimbang</strong><small>Debit &amp; kredit transparan</small></span></div>
+      </div>
+
+      <div class="login-storage"><span class="storage-dot"></span> Database aktif: <strong>{{ storage.label }}</strong></div>
+    </section>
+
+    <div class="card login-card shadow-lg">
     <div class="card-body p-4 p-md-5">
       <div class="text-center mb-4">
         <span class="brand-icon mx-auto mb-3" style="width:64px;height:64px;font-size:2rem;display:flex"><i class="fa-solid fa-clapperboard m-auto text-white"></i></span>
@@ -35,12 +57,12 @@
         <div class="mb-3">
           <label class="form-label fw-bold small">Username</label>
           <div class="input-group"><span class="input-group-text"><i class="fa-solid fa-user"></i></span>
-            <input name="username" class="form-control" required autofocus placeholder="admin"></div>
+            <input name="username" class="form-control" required autofocus autocomplete="username" placeholder="admin"></div>
         </div>
         <div class="mb-3">
           <label class="form-label fw-bold small">Password</label>
           <div class="input-group"><span class="input-group-text"><i class="fa-solid fa-lock"></i></span>
-            <input name="password" type="password" class="form-control" required placeholder="••••••••"></div>
+            <input name="password" type="password" class="form-control" required autocomplete="current-password" placeholder="••••••••"></div>
         </div>
         <button class="btn btn-primary w-100 fw-bold" type="submit"><i class="fa-solid fa-right-to-bracket"></i> Masuk ke Portal</button>
       </form>
@@ -50,6 +72,7 @@
         Ganti lewat Environment Variables (<code>ADMIN_USERNAME</code>, <code>ADMIN_PASSWORD</code>, <code>SECRET_KEY</code>) di lokal / Vercel sebelum dipakai publik.
       </div>
       {% endif %}
+    </div>
     </div>
   </div>
 </div>

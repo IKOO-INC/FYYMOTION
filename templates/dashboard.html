@@ -1,113 +1,242 @@
 {% extends "base.html" %}
 {% import "_macros.html" as m with context %}
 {% block title %}Dashboard{% endblock %}
-{% block page_title %}<i class="fa-solid fa-gauge-high text-primary"></i> Dashboard{% endblock %}
+{% block page_title %}<i class="fa-solid fa-gauge-high"></i> Dashboard Overview{% endblock %}
 {% block content %}
+
+{% macro donut_card(title, subtitle, canvas_id, center_id, center_label_id, legend_id, icon) %}
+<div class="col-xl-3 col-lg-6">
+  <article class="card analytics-card donut-card h-100">
+    <div class="analytics-head">
+      <div>
+        <span class="analytics-kicker"><i class="{{ icon }}"></i> Analytics</span>
+        <h3>{{ title }}</h3>
+        <p>{{ subtitle }}</p>
+      </div>
+      <span class="live-chip"><span></span> Live</span>
+    </div>
+    <div class="donut-stage">
+      <canvas id="{{ canvas_id }}" aria-label="{{ title }}"></canvas>
+      <div class="donut-center">
+        <strong id="{{ center_id }}">0%</strong>
+        <span id="{{ center_label_id }}">Memuat data</span>
+      </div>
+    </div>
+    <div class="donut-legend" id="{{ legend_id }}"></div>
+  </article>
+</div>
+{% endmacro %}
 
 {{ m.period_filter(url_for('dashboard'), preset, d_from, d_to) }}
 
+{% set completion = ((stats.order_selesai * 100) // stats.total_order) if stats.total_order else 0 %}
+
+<!-- ===================== ANALYTICS BENTO ===================== -->
+<section class="row g-3 mb-3 dashboard-analytics" aria-label="Ringkasan analitik">
+  <div class="col-xl-3 col-lg-6">
+    <article class="card analytics-card summary-card h-100">
+      <div class="analytics-head">
+        <div>
+          <span class="analytics-kicker"><i class="fa-solid fa-wallet"></i> Financial Pulse</span>
+          <h3>Summary</h3>
+          <p>
+            {% if d_from and d_to %}{{ d_from|tanggal }} — {{ d_to|tanggal }}{% else %}Semua waktu{% endif %}
+          </p>
+        </div>
+        <span class="summary-spark"><i class="fa-solid fa-arrow-trend-up"></i></span>
+      </div>
+
+      <div class="summary-list">
+        <div class="summary-row"><span>Pemasukan</span><strong class="text-success">{{ stats.pemasukan|rupiah }}</strong></div>
+        <div class="summary-row"><span>Pengeluaran</span><strong class="text-danger">{{ stats.pengeluaran|rupiah }}</strong></div>
+        <div class="summary-row"><span>Laba Bersih</span><strong class="text-info">{{ stats.laba_bersih|rupiah }}</strong></div>
+        <div class="summary-row"><span>Saldo Kas</span><strong>{{ stats.saldo_kas|rupiah }}</strong></div>
+        <div class="summary-row"><span>Total Order</span><strong>{{ stats.total_order }}</strong></div>
+        <div class="summary-row"><span>Order Aktif</span><strong>{{ stats.order_aktif }}</strong></div>
+        <div class="summary-row"><span>Piutang</span><strong class="text-warning">{{ stats.total_piutang|rupiah }}</strong></div>
+        <div class="summary-row"><span>Nilai Order Periode</span><strong>{{ stats.nilai_order_periode|rupiah }}</strong></div>
+      </div>
+
+      <div class="completion-box">
+        <div class="d-flex justify-content-between align-items-center">
+          <span>Tingkat penyelesaian</span>
+          <strong>{{ completion }}%</strong>
+        </div>
+        <div class="progress mt-2" role="progressbar" aria-valuenow="{{ completion }}" aria-valuemin="0" aria-valuemax="100">
+          <div class="progress-bar" style="width:{{ completion }}%"></div>
+        </div>
+        <small>{{ stats.order_selesai }} dari {{ stats.total_order }} order sudah selesai</small>
+      </div>
+    </article>
+  </div>
+
+  {{ donut_card("Status Order", "Distribusi seluruh pesanan", "chartStatus", "statusCenter", "statusCenterLabel", "statusLegend", "fa-solid fa-chart-pie") }}
+  {{ donut_card("Pembayaran", "Belum bayar, DP, dan lunas", "chartPayment", "paymentCenter", "paymentCenterLabel", "paymentLegend", "fa-solid fa-credit-card") }}
+  {{ donut_card("Prioritas Antrian", "Komposisi order yang masih aktif", "chartPriority", "priorityCenter", "priorityCenterLabel", "priorityLegend", "fa-solid fa-layer-group") }}
+</section>
+
+<!-- ===================== KPI STRIP ===================== -->
 <div class="row g-3 mb-3">
-  {{ m.stat_card("Pemasukan (Kas Masuk)", stats.pemasukan|rupiah, "fa-solid fa-circle-arrow-down", "success", "Sesuai periode terpilih") }}
-  {{ m.stat_card("Pengeluaran (Kas Keluar)", stats.pengeluaran|rupiah, "fa-solid fa-circle-arrow-up", "danger", "Sesuai periode terpilih") }}
-  {{ m.stat_card("Laba Bersih", stats.laba_bersih|rupiah, "fa-solid fa-arrow-trend-up", "primary", "Pendapatan " ~ stats.total_pendapatan|rupiah ~ " − Beban " ~ stats.total_beban|rupiah) }}
-  {{ m.stat_card("Saldo Kas Saat Ini", stats.saldo_kas|rupiah, "fa-solid fa-wallet", "warning", "Seluruh waktu (Kas + Bank/E-Wallet)") }}
-</div>
-<div class="row g-3 mb-4">
   {{ m.stat_card("Order Aktif / Antrian", stats.order_aktif, "fa-solid fa-list-ol", "info", "Masuk + Antri + Proses + Revisi") }}
-  {{ m.stat_card("Minta Revisi", stats.order_revisi, "fa-solid fa-rotate-left", "danger", "Perlu dikerjakan ulang") }}
-  {{ m.stat_card("Order Selesai", stats.order_selesai ~ " / " ~ stats.total_order, "fa-solid fa-circle-check", "success", "Sudah jadi / total semua order") }}
-  {{ m.stat_card("Piutang (Belum Lunas)", stats.total_piutang|rupiah, "fa-solid fa-hourglass-half", "secondary", "Nilai order periode ini: " ~ stats.nilai_order_periode|rupiah) }}
+  {{ m.stat_card("Minta Revisi", stats.order_revisi, "fa-solid fa-rotate-left", "danger", "Segera tindaklanjuti feedback client") }}
+  {{ m.stat_card("Order Selesai", stats.order_selesai ~ " / " ~ stats.total_order, "fa-solid fa-circle-check", "success", "Sudah jadi dari total semua order") }}
+  {{ m.stat_card("Piutang Belum Lunas", stats.total_piutang|rupiah, "fa-solid fa-hourglass-half", "warning", "Pantau sisa pembayaran client") }}
 </div>
 
-<!-- Antrian sekarang -->
-<div class="card queue-now shadow mb-4">
-  <div class="card-body">
-    <div class="row align-items-center">
-      <div class="col-md-8">
-        <div class="text-uppercase small fw-bold opacity-75"><i class="fa-solid fa-tower-broadcast"></i> Sedang Dikerjakan / Antrian Terdepan</div>
+<!-- ===================== CASHFLOW + CURRENT QUEUE ===================== -->
+<div class="row g-3 mb-3 align-items-stretch">
+  <div class="col-xxl-8 col-xl-7">
+    <article class="card analytics-card cashflow-card h-100">
+      <div class="analytics-head cashflow-head">
+        <div>
+          <span class="analytics-kicker"><i class="fa-solid fa-chart-area"></i> Cashflow Intelligence</span>
+          <h3>Arus Kas 6 Bulan Terakhir</h3>
+          <p>Pergerakan pemasukan dan pengeluaran dari Jurnal double-entry.</p>
+        </div>
+        <div class="chart-chip-group">
+          <span class="chart-chip chip-income"><i class="fa-solid fa-arrow-trend-up"></i> {{ stats.pemasukan|rupiah }}</span>
+          <span class="chart-chip chip-expense"><i class="fa-solid fa-arrow-trend-down"></i> {{ stats.pengeluaran|rupiah }}</span>
+        </div>
+      </div>
+
+      <div class="cashflow-chart-wrap">
+        <canvas id="chartArus" aria-label="Grafik Arus Kas enam bulan terakhir"></canvas>
+      </div>
+
+      <div class="cashflow-insights">
+        <div><span>Net Arus Periode</span><strong>{{ (stats.pemasukan - stats.pengeluaran)|rupiah }}</strong></div>
+        <div><span>Laba Bersih</span><strong>{{ stats.laba_bersih|rupiah }}</strong></div>
+        <div><span>Saldo Kas Saat Ini</span><strong>{{ stats.saldo_kas|rupiah }}</strong></div>
+      </div>
+    </article>
+  </div>
+
+  <div class="col-xxl-4 col-xl-5">
+    <article class="card queue-now h-100">
+      <div class="card-body queue-now-body">
+        <div class="d-flex justify-content-between align-items-center gap-2">
+          <span class="queue-eyebrow"><i class="fa-solid fa-tower-broadcast"></i> Fokus Produksi</span>
+          <span class="live-chip live-chip-light"><span></span> Prioritas</span>
+        </div>
+
         {% if sedang_proses %}
-          <h3 class="fw-bold mb-1">Antrian #{{ sedang_proses.queue_no }} — {{ sedang_proses.client_name }}</h3>
-          <div>{{ sedang_proses.order_code }} &middot; {{ sedang_proses.judul }} &middot; {{ m.status_badge(sedang_proses.status) }}
-            &middot; Progress {{ sedang_proses.progress }}% &middot; Deadline {{ sedang_proses.deadline|tanggal }}</div>
+          <div class="queue-hero-main">
+            <span class="queue-number">#{{ sedang_proses.queue_no }}</span>
+            <div class="min-w-0">
+              <span class="queue-code">{{ sedang_proses.order_code }}</span>
+              <h3>{{ sedang_proses.client_name }}</h3>
+              <p>{{ sedang_proses.judul }}</p>
+            </div>
+          </div>
+
+          <div class="queue-meta-grid">
+            <div><span>Status</span><div>{{ m.status_badge(sedang_proses.status) }}</div></div>
+            <div><span>Deadline</span><strong>{{ sedang_proses.deadline|tanggal }}</strong></div>
+            <div><span>WhatsApp</span><strong>{{ sedang_proses.wa_number }}</strong></div>
+            <div><span>Sisa Bayar</span><strong>{{ sisa_bayar(sedang_proses)|rupiah }}</strong></div>
+          </div>
+
+          <div class="queue-progress-head">
+            <span>Progress pengerjaan</span><strong>{{ sedang_proses.progress }}%</strong>
+          </div>
+          <div class="progress queue-progress">
+            <div class="progress-bar" style="width:{{ sedang_proses.progress }}%"></div>
+          </div>
+
+          <div class="queue-actions">
+            <a class="btn btn-light fw-bold" href="{{ url_for('order_detail', order_id=sedang_proses.id) }}"><i class="fa-solid fa-eye"></i> Kerjakan / Detail</a>
+            <a class="btn btn-success fw-bold" target="_blank" rel="noopener" href="{{ wa_link(sedang_proses) }}"><i class="fa-brands fa-whatsapp"></i> WA Client</a>
+            {% if sedang_proses.drive_assets_url %}
+              <a class="btn btn-outline-light fw-bold" target="_blank" rel="noopener" href="{{ sedang_proses.drive_assets_url }}"><i class="fa-brands fa-google-drive"></i> Drive Assets</a>
+            {% endif %}
+            <a class="btn btn-ghost-light" href="{{ url_for('antrian') }}"><i class="fa-solid fa-list-ol"></i> Semua Antrian</a>
+          </div>
         {% else %}
-          <h3 class="fw-bold mb-1">Antrian kosong 🎉</h3><div>Tidak ada order aktif saat ini.</div>
+          <div class="queue-empty">
+            <span><i class="fa-solid fa-circle-check"></i></span>
+            <h3>Antrian kosong</h3>
+            <p>Tidak ada order aktif saat ini. Ruang produksi siap menerima pesanan berikutnya.</p>
+            <a class="btn btn-light fw-bold" href="{{ url_for('order_new') }}"><i class="fa-solid fa-plus"></i> Buat Order Baru</a>
+          </div>
         {% endif %}
       </div>
-      <div class="col-md-4 text-md-end mt-3 mt-md-0">
-        {% if sedang_proses %}
-          <a class="btn btn-light fw-bold me-1" href="{{ url_for('order_detail', order_id=sedang_proses.id) }}"><i class="fa-solid fa-eye"></i> Kerjakan / Detail</a>
-          {% if sedang_proses.drive_assets_url %}<a class="btn btn-outline-light fw-bold me-1" target="_blank" rel="noopener" href="{{ sedang_proses.drive_assets_url }}"><i class="fa-brands fa-google-drive"></i> Assets</a>{% endif %}
-          <a class="btn btn-success fw-bold" target="_blank" rel="noopener" href="{{ wa_link(sedang_proses) }}"><i class="fa-brands fa-whatsapp"></i> WA Client</a>
-        {% endif %}
-        <a class="btn btn-outline-light ms-1" href="{{ url_for('antrian') }}">Semua Antrian</a>
-      </div>
-    </div>
+    </article>
   </div>
 </div>
 
-<div class="row g-3 mb-4">
-  <div class="col-lg-8">
-    <div class="card shadow-sm h-100">
-      <div class="card-header bg-white fw-bold"><i class="fa-solid fa-chart-column text-primary"></i> Pemasukan vs Pengeluaran — 6 Bulan Terakhir</div>
-      <div class="card-body"><canvas id="chartArus" height="120"></canvas></div>
-    </div>
-  </div>
-  <div class="col-lg-4">
-    <div class="card shadow-sm h-100">
-      <div class="card-header bg-white fw-bold"><i class="fa-solid fa-chart-pie text-primary"></i> Order per Status</div>
-      <div class="card-body"><canvas id="chartStatus" height="180"></canvas></div>
-    </div>
-  </div>
-</div>
-
-<div class="row g-3">
-  <div class="col-lg-7">
-    <div class="card shadow-sm h-100">
-      <div class="card-header bg-white d-flex justify-content-between align-items-center">
-        <span class="fw-bold"><i class="fa-solid fa-list-ol text-primary"></i> Urutan Antrian Aktif</span>
-        <a class="btn btn-sm btn-outline-primary" href="{{ url_for('orders_list') }}">Lihat Semua Order</a>
+<!-- ===================== QUEUE + ACTIVITY ===================== -->
+<div class="row g-3 align-items-stretch">
+  <div class="col-xl-7">
+    <article class="card analytics-card h-100">
+      <div class="analytics-head table-head">
+        <div>
+          <span class="analytics-kicker"><i class="fa-solid fa-list-ol"></i> Work Queue</span>
+          <h3>Urutan Antrian Aktif</h3>
+          <p>Nomor terkecil dikerjakan lebih dulu.</p>
+        </div>
+        <a class="btn btn-soft btn-sm" href="{{ url_for('orders_list') }}">Lihat Semua Order <i class="fa-solid fa-arrow-right"></i></a>
       </div>
       <div class="table-responsive">
-        <table class="table table-hover mb-0">
+        <table class="table table-hover align-middle mb-0 dashboard-table">
           <thead><tr><th>Antri</th><th>Client / Pesanan</th><th>Status</th><th>Progress</th><th class="text-end">Aksi Cepat</th></tr></thead>
           <tbody>
           {% for o in aktif %}
             <tr>
-              <td><span class="badge rounded-pill text-bg-dark">#{{ o.queue_no }}</span></td>
-              <td><a class="fw-bold text-decoration-none" href="{{ url_for('order_detail', order_id=o.id) }}">{{ o.client_name }}</a>
-                <div class="small text-muted">{{ o.order_code }} — {{ o.judul }} &middot; Deadline {{ o.deadline|tanggal }}</div></td>
+              <td><span class="queue-rank">#{{ o.queue_no }}</span></td>
+              <td>
+                <div class="client-cell">
+                  <span class="client-avatar">{{ (o.client_name or 'C')[:1]|upper }}</span>
+                  <span class="min-w-0">
+                    <a class="client-name" href="{{ url_for('order_detail', order_id=o.id) }}">{{ o.client_name }}</a>
+                    <span class="client-sub">{{ o.order_code }} — {{ o.judul }} &middot; Deadline {{ o.deadline|tanggal }}</span>
+                  </span>
+                </div>
+              </td>
               <td>{{ m.status_badge(o.status) }}</td>
-              <td style="min-width:120px"><div class="progress"><div class="progress-bar" style="width:{{ o.progress }}%"></div></div>
-                <span class="small text-muted">{{ o.progress }}%</span></td>
+              <td style="min-width:140px">
+                <div class="progress-label"><span>Progress</span><strong>{{ o.progress }}%</strong></div>
+                <div class="progress"><div class="progress-bar" style="width:{{ o.progress }}%"></div></div>
+              </td>
               <td class="text-end text-nowrap">
-                {% if o.drive_assets_url %}<a class="btn btn-sm btn-light border text-success btn-icon" target="_blank" rel="noopener" title="Google Drive Assets" href="{{ o.drive_assets_url }}"><i class="fa-brands fa-google-drive"></i></a>{% endif %}
+                {% if o.drive_assets_url %}<a class="btn btn-sm btn-soft text-success btn-icon" target="_blank" rel="noopener" title="Google Drive Assets" href="{{ o.drive_assets_url }}"><i class="fa-brands fa-google-drive"></i></a>{% endif %}
+                <a class="btn btn-sm btn-info text-white btn-icon" title="Detail order" href="{{ url_for('order_detail', order_id=o.id) }}"><i class="fa-solid fa-eye"></i></a>
                 <a class="btn btn-sm btn-success btn-icon" target="_blank" rel="noopener" title="{{ o.wa_number }}" href="{{ wa_link(o) }}"><i class="fa-brands fa-whatsapp"></i></a>
               </td>
             </tr>
-          {% else %}<tr><td colspan="5" class="text-center text-muted py-4">Belum ada antrian aktif.</td></tr>{% endfor %}
+          {% else %}
+            <tr><td colspan="5" class="text-center text-muted py-5"><i class="fa-solid fa-inbox d-block fs-3 mb-2"></i>Belum ada antrian aktif.</td></tr>
+          {% endfor %}
           </tbody>
         </table>
       </div>
-    </div>
+    </article>
   </div>
-  <div class="col-lg-5">
-    <div class="card shadow-sm h-100">
-      <div class="card-header bg-white d-flex justify-content-between align-items-center">
-        <span class="fw-bold"><i class="fa-solid fa-arrow-right-arrow-left text-primary"></i> Transaksi Terbaru</span>
-        <a class="btn btn-sm btn-outline-primary" href="{{ url_for('transactions_list', periode='semua') }}">Semua Transaksi</a>
+
+  <div class="col-xl-5">
+    <article class="card analytics-card h-100">
+      <div class="analytics-head table-head">
+        <div>
+          <span class="analytics-kicker"><i class="fa-solid fa-arrow-right-arrow-left"></i> Recent Activity</span>
+          <h3>Transaksi Terbaru</h3>
+          <p>Mutasi Jurnal paling baru.</p>
+        </div>
+        <a class="btn btn-soft btn-sm" href="{{ url_for('transactions_list', periode='semua') }}">Semua Transaksi <i class="fa-solid fa-arrow-right"></i></a>
       </div>
-      <div class="list-group list-group-flush">
+      <div class="activity-list">
         {% for t in recent_trx %}
-          <div class="list-group-item d-flex justify-content-between align-items-start">
-            <div>
-              <div class="fw-semibold small">{{ t.keterangan }}</div>
-              <div class="small text-muted">{{ t.tanggal|tanggal }} &middot; {{ account_label(t.akun_debit) }} → {{ account_label(t.akun_kredit) }}</div>
+          <div class="activity-item">
+            <span class="activity-icon"><i class="fa-solid fa-receipt"></i></span>
+            <div class="min-w-0 flex-grow-1">
+              <div class="activity-title">{{ t.keterangan }}</div>
+              <div class="activity-sub">{{ t.tanggal|tanggal }} &middot; {{ account_label(t.akun_debit) }} → {{ account_label(t.akun_kredit) }}</div>
             </div>
-            <span class="money fw-bold small">{{ t.jumlah|rupiah }}</span>
+            <span class="money activity-amount">{{ t.jumlah|rupiah }}</span>
           </div>
-        {% else %}<div class="list-group-item text-muted">Belum ada transaksi.</div>{% endfor %}
+        {% else %}
+          <div class="empty-state"><i class="fa-solid fa-receipt"></i><span>Belum ada transaksi.</span></div>
+        {% endfor %}
       </div>
-    </div>
+    </article>
   </div>
 </div>
 {% endblock %}
@@ -115,21 +244,193 @@
 {% block scripts %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
 <script>
-const CH = {{ chart | tojson }};
-new Chart(document.getElementById('chartArus'), {
-  type: 'bar',
-  data: { labels: CH.labels, datasets: [
-    { label: 'Pemasukan', data: CH.masuk, backgroundColor: '#198754' },
-    { label: 'Pengeluaran', data: CH.keluar, backgroundColor: '#dc3545' }
-  ]},
-  options: { responsive: true, plugins: { legend: { position: 'bottom' } },
-    scales: { y: { ticks: { callback: v => 'Rp' + Number(v).toLocaleString('id-ID') } } } }
-});
-new Chart(document.getElementById('chartStatus'), {
-  type: 'doughnut',
-  data: { labels: CH.status_labels, datasets: [{ data: CH.status_data,
-    backgroundColor: ['#0d6efd','#6c757d','#ffc107','#dc3545','#198754','#212529'] }]},
-  options: { plugins: { legend: { position: 'bottom' } } }
-});
+(function () {
+  const CH = {{ chart | tojson }};
+  const rupiah = value => 'Rp' + Number(value || 0).toLocaleString('id-ID');
+  const pct = (value, total) => total ? (value * 100 / total) : 0;
+
+  function renderDonutMeta(labels, data, colors, centerId, labelId, legendId) {
+    const total = data.reduce((sum, value) => sum + Number(value || 0), 0);
+    const center = document.getElementById(centerId);
+    const centerLabel = document.getElementById(labelId);
+    const legend = document.getElementById(legendId);
+    if (!legend) return;
+
+    if (!total) {
+      if (center) center.textContent = '0%';
+      if (centerLabel) centerLabel.textContent = 'Belum ada data';
+      legend.innerHTML = '<div class="legend-empty">Belum ada data untuk ditampilkan.</div>';
+      return;
+    }
+
+    let maxIndex = 0;
+    data.forEach((value, index) => { if (Number(value) > Number(data[maxIndex])) maxIndex = index; });
+    if (center) center.textContent = pct(data[maxIndex], total).toFixed(1) + '%';
+    if (centerLabel) centerLabel.textContent = labels[maxIndex] || 'Dominan';
+
+    legend.innerHTML = labels.map((label, index) => {
+      const value = Number(data[index] || 0);
+      return `<div class="legend-row">
+        <span class="legend-dot" style="background:${colors[index % colors.length]}"></span>
+        <span class="legend-label">${label}</span>
+        <strong>${value}</strong>
+        <span class="legend-pct">${pct(value, total).toFixed(1)}%</span>
+      </div>`;
+    }).join('');
+  }
+
+  function makeDonut(canvasId, labels, data, colors, centerId, labelId, legendId) {
+    labels = labels || [];
+    data = (data || []).map(value => Number(value || 0));
+    renderDonutMeta(labels, data, colors, centerId, labelId, legendId);
+
+    const canvas = document.getElementById(canvasId);
+    if (!window.Chart || !canvas) return;
+    const displayData = data.some(value => value > 0) ? data : [1];
+    const displayLabels = data.some(value => value > 0) ? labels : ['Belum ada data'];
+    const displayColors = data.some(value => value > 0) ? colors : ['rgba(100,116,139,.28)'];
+
+    new Chart(canvas, {
+      type: 'doughnut',
+      data: {
+        labels: displayLabels,
+        datasets: [{
+          data: displayData,
+          backgroundColor: displayColors,
+          borderColor: '#0a1027',
+          borderWidth: 4,
+          hoverOffset: 10,
+          borderRadius: 7,
+          spacing: 2
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        cutout: '72%',
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: 'rgba(5,10,28,.96)',
+            borderColor: 'rgba(125,164,255,.28)',
+            borderWidth: 1,
+            titleColor: '#f4f7ff',
+            bodyColor: '#cbd7ff',
+            padding: 12,
+            callbacks: {
+              label: context => {
+                const total = data.reduce((sum, value) => sum + value, 0);
+                return ` ${context.label}: ${context.parsed} (${pct(context.parsed, total).toFixed(1)}%)`;
+              }
+            }
+          }
+        }
+      }
+    });
+  }
+
+  makeDonut(
+    'chartStatus', CH.status_labels, CH.status_data,
+    ['#38bdf8', '#a78bfa', '#facc15', '#fb7185', '#34d399', '#64748b'],
+    'statusCenter', 'statusCenterLabel', 'statusLegend'
+  );
+  makeDonut(
+    'chartPayment', CH.pay_labels, CH.pay_data,
+    ['#fb7185', '#f59e0b', '#34d399'],
+    'paymentCenter', 'paymentCenterLabel', 'paymentLegend'
+  );
+  makeDonut(
+    'chartPriority', CH.priority_labels, CH.priority_data,
+    ['#38bdf8', '#a78bfa', '#fb7185'],
+    'priorityCenter', 'priorityCenterLabel', 'priorityLegend'
+  );
+
+  const cashCanvas = document.getElementById('chartArus');
+  if (!window.Chart || !cashCanvas) return;
+
+  Chart.defaults.font.family = "'Plus Jakarta Sans', system-ui, sans-serif";
+  Chart.defaults.color = '#8f9bbd';
+
+  const gradientFill = (topColor, bottomColor) => context => {
+    const { ctx, chartArea } = context.chart;
+    if (!chartArea) return topColor;
+    const gradient = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+    gradient.addColorStop(0, topColor);
+    gradient.addColorStop(1, bottomColor);
+    return gradient;
+  };
+
+  new Chart(cashCanvas, {
+    type: 'line',
+    data: {
+      labels: CH.labels,
+      datasets: [
+        {
+          label: 'Pemasukan',
+          data: CH.masuk,
+          borderColor: '#34d399',
+          backgroundColor: gradientFill('rgba(52,211,153,.38)', 'rgba(52,211,153,.015)'),
+          fill: true,
+          tension: .45,
+          borderWidth: 2.5,
+          pointRadius: 0,
+          pointHoverRadius: 5,
+          pointHoverBackgroundColor: '#a7f3d0',
+          pointHoverBorderColor: '#059669'
+        },
+        {
+          label: 'Pengeluaran',
+          data: CH.keluar,
+          borderColor: '#fb7185',
+          backgroundColor: gradientFill('rgba(251,113,133,.30)', 'rgba(251,113,133,.012)'),
+          fill: true,
+          tension: .45,
+          borderWidth: 2.5,
+          pointRadius: 0,
+          pointHoverRadius: 5,
+          pointHoverBackgroundColor: '#fecdd3',
+          pointHoverBorderColor: '#e11d48'
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: {
+          position: 'top',
+          align: 'end',
+          labels: { usePointStyle: true, pointStyle: 'circle', boxWidth: 7, boxHeight: 7, padding: 18 }
+        },
+        tooltip: {
+          backgroundColor: 'rgba(5,10,28,.97)',
+          borderColor: 'rgba(125,164,255,.30)',
+          borderWidth: 1,
+          titleColor: '#f4f7ff',
+          bodyColor: '#d7e1ff',
+          padding: 13,
+          callbacks: { label: context => ` ${context.dataset.label}: ${rupiah(context.parsed.y)}` }
+        }
+      },
+      scales: {
+        x: {
+          grid: { display: false },
+          border: { color: 'rgba(125,151,220,.14)' },
+          ticks: { padding: 8 }
+        },
+        y: {
+          beginAtZero: true,
+          border: { display: false },
+          grid: { color: 'rgba(125,151,220,.10)', borderDash: [5, 7] },
+          ticks: {
+            padding: 10,
+            callback: value => 'Rp' + Number(value).toLocaleString('id-ID')
+          }
+        }
+      }
+    }
+  });
+})();
 </script>
 {% endblock %}
