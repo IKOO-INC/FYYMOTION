@@ -1,5 +1,5 @@
 {% macro period_filter(action, preset, d_from, d_to, extra='') %}
-<form class="card filter-card shadow-sm mb-3 no-print" method="get" action="{{ action }}">
+<form class="card filter-card glass-filter shadow-sm mb-3 no-print" method="get" action="{{ action }}">
   <div class="card-body py-2">
     <div class="row g-2 align-items-end">
       <div class="col-md-3">
@@ -41,23 +41,23 @@
 {% endmacro %}
 
 {% macro status_badge(code) %}
-<span class="badge text-bg-{{ STATUS_BADGE.get(code, 'secondary') }}">{{ STATUS_LABEL.get(code, code) }}</span>
+<span class="badge status-pill text-bg-{{ STATUS_BADGE.get(code, 'secondary') }}"><i class="fa-solid fa-circle"></i>{{ STATUS_LABEL.get(code, code) }}</span>
 {% endmacro %}
 
 {% macro pay_badge(code) %}
-<span class="badge text-bg-{{ PAY_BADGE.get(code, 'secondary') }}">{{ PAY_LABEL.get(code, code) }}</span>
+<span class="badge status-pill text-bg-{{ PAY_BADGE.get(code, 'secondary') }}"><i class="fa-solid fa-circle"></i>{{ PAY_LABEL.get(code, code) }}</span>
 {% endmacro %}
 
 {% macro stat_card(title, value, icon, color, sub='') %}
 <div class="col-xl-3 col-md-6">
   <div class="card stat-card stat-{{ color }} shadow-sm h-100">
     <div class="card-body">
-      <span class="stat-icon"><i class="{{ icon }}"></i></span>
-      <div class="min-w-0 position-relative">
+      <div class="min-w-0 position-relative stat-main">
         <div class="stat-title">{{ title }}</div>
         <div class="stat-value">{{ value }}</div>
         {% if sub %}<div class="stat-sub">{{ sub }}</div>{% endif %}
       </div>
+      <span class="stat-icon"><i class="{{ icon }}"></i></span>
       <i class="{{ icon }} stat-watermark" aria-hidden="true"></i>
     </div>
   </div>

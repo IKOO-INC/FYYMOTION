@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="id">
+<html lang="id" data-bs-theme="dark">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -12,7 +12,7 @@
   <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
   {% block head %}{% endblock %}
 </head>
-<body>
+<body class="portal-body">
 <div class="layout">
   <!-- ============ SIDEBAR ============ -->
   <aside class="sidebar" id="sidebar">
@@ -23,6 +23,15 @@
         <span class="brand-sub">{{ settings.tagline or 'Portal Motion Graphic' }}</span>
       </span>
     </a>
+
+    <div class="storage-pill storage-{{ storage.backend }}" title="{{ storage.location }}">
+      <span class="storage-pulse" aria-hidden="true"></span>
+      <span class="storage-pill-copy">
+        <small>Database aktif</small>
+        <strong>{{ storage.label }}</strong>
+      </span>
+      <i class="fa-solid fa-database"></i>
+    </div>
 
     <div class="sidebar-heading">Menu Utama</div>
     <nav class="nav flex-column sidebar-nav">
@@ -62,7 +71,7 @@
       <a class="nav-link {% if request.endpoint in ['backup_page'] %}active{% endif %}" href="{{ url_for('backup_page') }}">
         <i class="fa-solid fa-database"></i> Backup & Database</a>
       <a class="nav-link" href="{{ url_for('backup_download') }}">
-        <i class="fa-solid fa-download"></i> Download database.json</a>
+        <i class="fa-solid fa-download"></i> Download Backup JSON</a>
     </nav>
 
     <div class="sidebar-footer">
@@ -83,21 +92,39 @@
 
   <!-- ============ MAIN ============ -->
   <div class="main">
-    <nav class="navbar navbar-expand bg-white border-bottom sticky-top topbar">
-      <div class="container-fluid">
-        <button class="btn btn-light d-lg-none me-2" id="btnSidebar" type="button"><i class="fa-solid fa-bars fs-5"></i></button>
-        <span class="navbar-brand mb-0 h5 fw-bold text-dark">{% block page_title %}Dashboard{% endblock %}</span>
-        <span class="storage-badge d-none d-xl-inline-flex ms-3" title="{{ storage.location }}">
-          <i class="fa-solid fa-database"></i> {{ storage.label }}
-        </span>
-        <div class="ms-auto d-flex gap-2">
-          <a class="btn btn-outline-primary btn-sm d-none d-md-inline-block" href="{{ url_for('transaction_new') }}"><i class="fa-solid fa-plus"></i> Transaksi</a>
+    <nav class="navbar navbar-expand sticky-top topbar">
+      <div class="container-fluid topbar-inner">
+        <button class="btn topbar-menu-btn d-lg-none" id="btnSidebar" type="button" aria-label="Buka menu"><i class="fa-solid fa-bars"></i></button>
+
+        <div class="page-heading">
+          <span class="page-eyebrow"><i class="fa-solid fa-sparkles"></i> Creative Operations Workspace</span>
+          <span class="navbar-brand mb-0 page-title">{% block page_title %}Dashboard{% endblock %}</span>
+        </div>
+
+        <form class="global-search d-none d-xl-flex" method="get" action="{{ url_for('orders_list') }}" role="search">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <input type="hidden" name="periode" value="semua">
+          <input class="form-control" type="search" name="q"
+                 value="{{ request.args.get('q', '') if request.endpoint == 'orders_list' else '' }}"
+                 placeholder="Cari client, kode order, WA, atau judul..." aria-label="Cari order">
+          <kbd>Enter</kbd>
+        </form>
+
+        <div class="topbar-actions ms-auto">
+          <span class="storage-badge storage-{{ storage.backend }} d-none d-md-inline-flex" title="{{ storage.location }}">
+            <span class="storage-dot"></span><i class="fa-solid fa-database"></i> {{ storage.label }}
+          </span>
+          <a class="btn btn-soft btn-sm d-none d-md-inline-flex" href="{{ url_for('transaction_new') }}"><i class="fa-solid fa-plus"></i> Transaksi</a>
           <a class="btn btn-primary btn-sm" href="{{ url_for('order_new') }}"><i class="fa-solid fa-plus"></i> Order Baru</a>
+          <div class="topbar-user d-none d-lg-flex">
+            <span class="avatar avatar-sm">{{ (session.get('username') or 'Admin')[:1]|upper }}</span>
+            <span class="topbar-user-copy"><strong>{{ session.get('username', 'Admin') }}</strong><small>Administrator</small></span>
+          </div>
         </div>
       </div>
     </nav>
 
-    <main class="container-fluid py-4">
+    <main class="container-fluid page-shell py-4">
       {% with messages = get_flashed_messages(with_categories=true) %}
         {% for cat, msg in messages %}
           <div class="alert alert-{{ cat }} alert-dismissible fade show shadow-sm" role="alert">
@@ -106,7 +133,7 @@
         {% endfor %}
       {% endwith %}
       {% block content %}{% endblock %}
-      <footer class="text-center text-muted small py-4">
+      <footer class="app-footer text-center small py-4">
         {{ settings.nama_usaha or 'FYY MOTION' }} Portal &copy; {{ now_year }} — Penyimpanan aktif:
         <b>{{ storage.label }}</b> &middot; Tetap lakukan <a href="{{ url_for('backup_page') }}">backup berkala</a>.
       </footer>
