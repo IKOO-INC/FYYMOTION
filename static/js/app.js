@@ -27,6 +27,38 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   });
 
+  // Animasi reveal ala landing agency: elemen naik halus saat masuk viewport.
+  var revealTargets = document.querySelectorAll('[data-reveal], .card, .analytics-card, .stat-card');
+  var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (revealTargets.length && 'IntersectionObserver' in window && !reduceMotion) {
+    var revealObserver = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) {
+          var target = entry.target;
+          target.classList.add('is-visible');
+          window.setTimeout(function () {
+            target.style.transitionDelay = '';
+            target.classList.remove('reveal-init', 'is-visible');
+          }, 950);
+          revealObserver.unobserve(target);
+        }
+      });
+    }, { threshold: 0.08, rootMargin: '0px 0px -36px 0px' });
+    revealTargets.forEach(function (el, index) {
+      el.classList.add('reveal-init');
+      el.style.transitionDelay = Math.min((index % 5) * 55, 220) + 'ms';
+      revealObserver.observe(el);
+    });
+  }
+
+  // Navigasi publik mendapat bayangan setelah halaman mulai digulir.
+  var publicNav = document.querySelector('.public-nav');
+  function syncPublicNav() {
+    if (publicNav) publicNav.classList.toggle('is-scrolled', window.scrollY > 18);
+  }
+  window.addEventListener('scroll', syncPublicNav, { passive: true });
+  syncPublicNav();
+
   // Preset Jurnal pada form transaksi: pilih jenis -> akun Debit/Kredit terisi otomatis
   var jenis = document.getElementById('jenisTransaksi');
   var dSel = document.getElementById('akunDebit');

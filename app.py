@@ -159,6 +159,171 @@ def today_str() -> str:
     return date.today().isoformat()
 
 
+PROFILE_STRING_FIELDS = {
+    "nav_cta_label": 60,
+    "hero_badge": 140,
+    "hero_title_prefix": 90,
+    "hero_title_accent": 90,
+    "hero_title_suffix": 140,
+    "hero_subtitle": 900,
+    "hero_primary_label": 80,
+    "hero_primary_url": 600,
+    "hero_secondary_label": 80,
+    "hero_secondary_url": 600,
+    "hero_note": 300,
+    "hero_image_url": 600,
+    "showreel_label": 80,
+    "showreel_title": 180,
+    "showreel_text": 900,
+    "showreel_url": 600,
+    "trusted_label": 120,
+    "about_eyebrow": 100,
+    "about_title": 220,
+    "about_text": 1600,
+    "works_eyebrow": 100,
+    "works_title": 220,
+    "works_text": 900,
+    "services_eyebrow": 100,
+    "services_title": 220,
+    "services_text": 900,
+    "process_eyebrow": 100,
+    "process_title": 220,
+    "process_text": 900,
+    "testimonial_eyebrow": 100,
+    "testimonial_title": 220,
+    "cta_title": 260,
+    "cta_text": 1000,
+    "cta_label": 80,
+    "cta_url": 600,
+    "email": 160,
+    "location": 180,
+    "instagram_url": 600,
+    "youtube_url": 600,
+    "behance_url": 600,
+    "footer_text": 500,
+}
+
+PROFILE_REQUIRED_FIELDS = {
+    "nav_cta_label", "hero_badge", "hero_title_prefix", "hero_title_accent",
+    "hero_title_suffix", "hero_subtitle", "hero_primary_label", "hero_secondary_label",
+    "hero_note", "showreel_label", "showreel_title", "showreel_text", "trusted_label",
+    "about_eyebrow", "about_title", "about_text", "works_eyebrow", "works_title",
+    "works_text", "services_eyebrow", "services_title", "services_text",
+    "process_eyebrow", "process_title", "process_text", "testimonial_eyebrow",
+    "testimonial_title", "cta_title", "cta_text", "cta_label", "footer_text",
+}
+
+
+def default_profile() -> dict:
+    """Teks awal halaman profil publik. Semua isi dapat diganti dari admin."""
+    return {
+        "nav_cta_label": "Mulai Project",
+        "hero_badge": "Partner motion graphic untuk brand & startup",
+        "hero_title_prefix": "Motion",
+        "hero_title_accent": "Graphic",
+        "hero_title_suffix": "Partner untuk Brand & Startup",
+        "hero_subtitle": (
+            "Lewati proses produksi yang ribet. Bekerja langsung dengan FYY MOTION untuk "
+            "membuat explainer, iklan, logo animation, dan konten motion yang tajam, rapi, "
+            "dan siap membantu brand Anda tampil lebih meyakinkan."
+        ),
+        "hero_primary_label": "Konsultasi Gratis",
+        "hero_primary_url": "",
+        "hero_secondary_label": "Lihat Portofolio",
+        "hero_secondary_url": "#works",
+        "hero_note": "Garansi revisi sesuai paket  •  Update progress jelas  •  File final rapi",
+        "hero_image_url": "",
+        "showreel_label": "Showreel FYY MOTION",
+        "showreel_title": "Top-tier motion at startup speed",
+        "showreel_text": (
+            "Dari brief sederhana sampai video final: konsep visual, storyboard/scene plan, "
+            "animasi, sound direction, revisi, dan delivery dikelola dalam satu alur yang jelas."
+        ),
+        "showreel_url": "",
+        "trusted_label": "Layanan motion yang paling sering dipesan",
+        "about_eyebrow": "Kenapa FYY MOTION?",
+        "about_title": "Motion berkualitas agency, proses tetap ringan",
+        "about_text": (
+            "FYY MOTION membantu brand, UMKM, creator, dan startup mengubah pesan yang kompleks "
+            "menjadi visual bergerak yang mudah dipahami. Setiap project masuk antrian produksi, "
+            "memiliki progress yang dapat dipantau, dan dikerjakan dengan arahan visual yang konsisten."
+        ),
+        "works_eyebrow": "Recent motion work",
+        "works_title": "Portofolio pilihan",
+        "works_text": "Contoh kategori project yang dapat dikerjakan. Ganti judul, gambar, dan link video dari ruang admin.",
+        "services_eyebrow": "Services",
+        "services_title": "Semua kebutuhan motion dalam satu partner",
+        "services_text": "Pilih satu video untuk campaign berikutnya atau jadikan FYY MOTION partner produksi konten rutin.",
+        "process_eyebrow": "How it works",
+        "process_title": "Proses simpel, progress selalu jelas",
+        "process_text": "Tidak perlu menebak project sudah sampai mana. Setiap tahap memiliki output yang jelas.",
+        "testimonial_eyebrow": "Client words",
+        "testimonial_title": "Apa kata client?",
+        "cta_title": "Punya brief? Kirim hari ini dan masuk antrian produksi.",
+        "cta_text": (
+            "Ceritakan produk, target audience, durasi, dan referensi visual yang Anda suka. "
+            "FYY MOTION akan membantu menyusun arah motion yang paling sesuai."
+        ),
+        "cta_label": "Chat WhatsApp",
+        "cta_url": "",
+        "email": "",
+        "location": "Indonesia — melayani client online",
+        "instagram_url": "",
+        "youtube_url": "",
+        "behance_url": "",
+        "footer_text": "FYY MOTION — Motion Graphic Partner untuk brand yang ingin bergerak lebih cepat.",
+        "marquee_items": [
+            "Explainer Video", "Logo Animation", "Motion Ads", "Social Media Motion",
+            "Product Video", "Intro YouTube", "Lyric Video", "Company Profile",
+        ],
+        "stats": [
+            {"value": "1 Partner", "label": "Semua kebutuhan motion"},
+            {"value": "Queue Jelas", "label": "Antrian & progress transparan"},
+            {"value": "Revisi Terarah", "label": "Feedback per scene lebih rapi"},
+            {"value": "File Siap Pakai", "label": "Output sesuai platform"},
+        ],
+        "benefits": [
+            {"title": "Ongoing atau one-off", "description": "Butuh satu video campaign atau konten rutin setiap bulan? Alur produksi dapat menyesuaikan kebutuhan brand."},
+            {"title": "Bekerja langsung dengan creator", "description": "Komunikasi lebih cepat tanpa lapisan birokrasi. Brief, preview, dan revisi dibahas langsung secara jelas."},
+            {"title": "Hasil dalam hitungan hari", "description": "Workflow scene-by-scene membuat produksi lebih terukur, dengan update progress di setiap tahap penting."},
+        ],
+        "services": [
+            {
+                "title": "Explainer & Product Video",
+                "description": "Menjelaskan produk, aplikasi, atau layanan dengan visual yang ringkas dan mudah diingat.",
+                "items": ["Script & scene plan", "Storyboard visual", "Voice-over direction", "Subtitle & final render"],
+            },
+            {
+                "title": "Motion Ads & Social Media",
+                "description": "Konten promosi vertikal, square, dan landscape yang dirancang untuk menghentikan scroll.",
+                "items": ["Instagram & TikTok ads", "Promo produk", "Motion poster", "Template campaign"],
+            },
+            {
+                "title": "Logo Animation & Branding",
+                "description": "Logo reveal dan identitas gerak yang membuat brand terasa premium di setiap pembuka video.",
+                "items": ["Logo reveal", "Intro / outro", "Lower third", "Motion identity"],
+            },
+            {
+                "title": "Company Profile & Presentation",
+                "description": "Presentasi perusahaan dan pitch deck bergerak dengan ritme visual yang profesional.",
+                "items": ["Company profile", "Pitch video", "Infografis animasi", "Presentasi produk"],
+            },
+        ],
+        "process": [
+            {"title": "Brief & konsultasi", "description": "Kirim tujuan video, script atau poin utama, aset brand, referensi, durasi, dan deadline."},
+            {"title": "Konsep & scene plan", "description": "Arah visual, pembagian scene, teks layar, dan kebutuhan aset disusun sebelum animasi dimulai."},
+            {"title": "Produksi & preview", "description": "Animasi dikerjakan per scene. Anda menerima preview untuk memeriksa ritme, teks, dan visual."},
+            {"title": "Revisi & final delivery", "description": "Feedback diterapkan secara terarah, lalu file final dikirim dalam format siap publish."},
+        ],
+        "portfolio": [
+            {"title": "Explainer Video Produk", "category": "Explainer", "description": "Video penjelasan produk dengan visual bersih, typography tegas, dan CTA yang jelas.", "image_url": "", "link_url": ""},
+            {"title": "Motion Ads untuk Social Media", "category": "Ads", "description": "Konten promosi singkat dengan hook visual cepat untuk Instagram, TikTok, dan Reels.", "image_url": "", "link_url": ""},
+            {"title": "Logo Animation Premium", "category": "Branding", "description": "Reveal logo sinematik untuk pembuka video, presentasi, dan identitas brand.", "image_url": "", "link_url": ""},
+            {"title": "Company Profile Motion", "category": "Corporate", "description": "Profil perusahaan bergerak dengan infografis, data, dan narasi yang profesional.", "image_url": "", "link_url": ""},
+        ],
+        "testimonials": [],
+    }
+
 def empty_db() -> dict:
     return {
         "meta": {"app": "FYY MOTION Portal", "version": 1,
@@ -169,6 +334,7 @@ def empty_db() -> dict:
         "orders": [],
         "transactions": [],
         "clipboard_items": [],
+        "profile": default_profile(),
     }
 
 
@@ -261,6 +427,129 @@ def sample_db() -> dict:
     return db
 
 
+def _profile_text(value, limit: int) -> str:
+    return str(value or "").replace("\r\n", "\n").replace("\r", "\n").strip()[:limit]
+
+
+def _profile_string_list(value, *, limit_items: int = 24, limit_chars: int = 180) -> list[str]:
+    if isinstance(value, str):
+        raw_items = re.split(r"[\n,]+", value)
+    elif isinstance(value, list):
+        raw_items = value
+    else:
+        raw_items = []
+    items = []
+    for item in raw_items:
+        text = _profile_text(item, limit_chars).lstrip("-• ").strip()
+        if text:
+            items.append(text)
+        if len(items) >= limit_items:
+            break
+    return items
+
+
+def _normalize_profile_cards(value, *, with_items: bool = False, limit_items: int = 12) -> list[dict]:
+    if not isinstance(value, list):
+        return []
+    cards = []
+    for raw in value[:limit_items]:
+        if not isinstance(raw, dict):
+            continue
+        title = _profile_text(raw.get("title"), 160)
+        if not title:
+            continue
+        card = {
+            "title": title,
+            "description": _profile_text(raw.get("description"), 900),
+        }
+        if with_items:
+            card["items"] = _profile_string_list(raw.get("items"), limit_items=12, limit_chars=160)
+        cards.append(card)
+    return cards
+
+
+def normalize_profile(raw) -> dict:
+    """Lengkapi profil dari database/backup lama tanpa menghilangkan teks admin."""
+    profile = default_profile()
+    if not isinstance(raw, dict):
+        return profile
+
+    for field, limit in PROFILE_STRING_FIELDS.items():
+        value = _profile_text(raw.get(field), limit)
+        if value or field not in PROFILE_REQUIRED_FIELDS:
+            profile[field] = value
+
+    for field in (
+        "hero_primary_url", "hero_secondary_url", "hero_image_url", "showreel_url",
+        "cta_url", "instagram_url", "youtube_url", "behance_url",
+    ):
+        if profile[field] and not is_valid_profile_url(profile[field]):
+            profile[field] = ""
+
+    marquee = _profile_string_list(raw.get("marquee_items"), limit_items=24, limit_chars=90)
+    if marquee:
+        profile["marquee_items"] = marquee
+
+    stats = []
+    if isinstance(raw.get("stats"), list):
+        for item in raw["stats"][:8]:
+            if not isinstance(item, dict):
+                continue
+            value = _profile_text(item.get("value"), 60)
+            label = _profile_text(item.get("label"), 120)
+            if value or label:
+                stats.append({"value": value, "label": label})
+    if stats:
+        profile["stats"] = stats
+
+    for field in ("benefits", "process"):
+        cards = _normalize_profile_cards(raw.get(field), limit_items=12)
+        if cards:
+            profile[field] = cards
+
+    services = _normalize_profile_cards(raw.get("services"), with_items=True, limit_items=16)
+    if services:
+        profile["services"] = services
+
+    portfolio = []
+    if isinstance(raw.get("portfolio"), list):
+        for item in raw["portfolio"][:24]:
+            if not isinstance(item, dict):
+                continue
+            title = _profile_text(item.get("title"), 180)
+            if not title:
+                continue
+            image_url = _profile_text(item.get("image_url"), 600)
+            link_url = _profile_text(item.get("link_url"), 600)
+            portfolio.append({
+                "title": title,
+                "category": _profile_text(item.get("category"), 100) or "Motion Graphic",
+                "description": _profile_text(item.get("description"), 900),
+                "image_url": image_url if is_valid_profile_url(image_url) else "",
+                "link_url": link_url if is_valid_profile_url(link_url) else "",
+            })
+    # Daftar portofolio memang boleh dikosongkan dari admin; halaman publik
+    # akan memakai order selesai sebagai cadangan bila daftar ini kosong.
+    if "portfolio" in raw:
+        profile["portfolio"] = portfolio
+
+    testimonials = []
+    if isinstance(raw.get("testimonials"), list):
+        for item in raw["testimonials"][:12]:
+            if not isinstance(item, dict):
+                continue
+            quote = _profile_text(item.get("quote"), 1000)
+            if not quote:
+                continue
+            testimonials.append({
+                "quote": quote,
+                "name": _profile_text(item.get("name"), 120),
+                "role": _profile_text(item.get("role"), 160),
+            })
+    profile["testimonials"] = testimonials
+    return profile
+
+
 def normalize_db(data) -> dict:
     """Validasi & lengkapi struktur database hasil baca / upload."""
     if not isinstance(data, dict):
@@ -279,10 +568,13 @@ def normalize_db(data) -> dict:
         for item in data["clipboard_items"]:
             if not isinstance(item, dict):
                 raise ValueError("Semua isi 'clipboard_items' harus berupa object { }.")
+    if "profile" in data and not isinstance(data["profile"], dict):
+        raise ValueError("Key 'profile' harus berupa OBJECT { }.")
     base = empty_db()
     base.update({k: data[k] for k in ("accounts", "orders", "transactions")})
     if isinstance(data.get("clipboard_items"), list):
         base["clipboard_items"] = data["clipboard_items"]
+    base["profile"] = normalize_profile(data.get("profile"))
     if isinstance(data.get("settings"), dict):
         base["settings"].update(data["settings"])
     if isinstance(data.get("meta"), dict):
@@ -448,7 +740,12 @@ def _save_db_mongo(db: dict):
         _sync_collection(db_mongo, collection, db.get(collection, []))
     db_mongo["app_state"].replace_one(
         {"_id": "state"},
-        {"_id": "state", "meta": db.get("meta", {}), "settings": db.get("settings", {})},
+        {
+            "_id": "state",
+            "meta": db.get("meta", {}),
+            "settings": db.get("settings", {}),
+            "profile": normalize_profile(db.get("profile")),
+        },
         upsert=True,
     )
 
@@ -466,6 +763,7 @@ def _load_db_mongo() -> dict:
     data = {
         "meta": (state or {}).get("meta", {}),
         "settings": (state or {}).get("settings", {}),
+        "profile": (state or {}).get("profile", {}),
         "accounts": list(db_mongo["accounts"].find({}, {"_id": 0}).sort("kode", 1)),
         "orders": list(db_mongo["orders"].find({}, {"_id": 0})),
         "transactions": list(db_mongo["transactions"].find({}, {"_id": 0})),
@@ -662,6 +960,212 @@ def clipboard_from_form():
     return {"title": title or "Teks Clipboard", "content": content}, errors
 
 
+def is_valid_profile_url(value: str) -> bool:
+    value = str(value or "").strip()
+    if not value:
+        return True
+    if value.startswith(("#", "/", "mailto:", "tel:")):
+        return True
+    return is_valid_url(value)
+
+
+def _split_profile_blocks(text: str) -> list[list[str]]:
+    blocks = []
+    for block in re.split(r"\n\s*\n", str(text or "").replace("\r\n", "\n").replace("\r", "\n").strip()):
+        lines = [line.strip() for line in block.splitlines() if line.strip()]
+        if lines:
+            blocks.append(lines)
+    return blocks
+
+
+def _parse_profile_stats(text: str) -> list[dict]:
+    stats = []
+    for line in str(text or "").splitlines():
+        if not line.strip():
+            continue
+        parts = [part.strip() for part in line.split("|", 1)]
+        stats.append({
+            "value": parts[0][:60],
+            "label": (parts[1] if len(parts) > 1 else "")[:120],
+        })
+    return stats[:8]
+
+
+def _parse_profile_cards(text: str, *, with_items: bool = False) -> list[dict]:
+    cards = []
+    for lines in _split_profile_blocks(text):
+        description_lines = []
+        items = []
+        for line in lines[1:]:
+            if with_items and line.startswith(("-", "•")):
+                items.append(line.lstrip("-• ").strip()[:160])
+            else:
+                description_lines.append(line)
+        card = {"title": lines[0][:160], "description": "\n".join(description_lines)[:900]}
+        if with_items:
+            card["items"] = items[:12]
+        cards.append(card)
+    return cards[:16]
+
+
+def _parse_profile_portfolio(text: str) -> tuple[list[dict], list[str]]:
+    portfolio = []
+    errors = []
+    for lines in _split_profile_blocks(text):
+        meta = [part.strip() for part in lines[0].split("|")]
+        meta += [""] * (4 - len(meta))
+        title, category, image_url, link_url = meta[:4]
+        if not title:
+            continue
+        if image_url and not is_valid_profile_url(image_url):
+            errors.append(f"URL gambar portofolio '{title}' tidak valid.")
+        if link_url and not is_valid_profile_url(link_url):
+            errors.append(f"URL link portofolio '{title}' tidak valid.")
+        portfolio.append({
+            "title": title[:180],
+            "category": (category or "Motion Graphic")[:100],
+            "description": "\n".join(lines[1:])[:900],
+            "image_url": image_url[:600],
+            "link_url": link_url[:600],
+        })
+    return portfolio[:24], errors
+
+
+def _parse_profile_testimonials(text: str) -> list[dict]:
+    testimonials = []
+    for lines in _split_profile_blocks(text):
+        name = ""
+        role = ""
+        quote_lines = lines
+        if len(lines) > 1 and "|" in lines[-1]:
+            name_role = [part.strip() for part in lines[-1].split("|", 1)]
+            name = name_role[0][:120]
+            role = (name_role[1] if len(name_role) > 1 else "")[:160]
+            quote_lines = lines[:-1]
+        testimonials.append({
+            "quote": "\n".join(quote_lines)[:1000],
+            "name": name,
+            "role": role,
+        })
+    return testimonials[:12]
+
+
+def profile_form_data(db: dict) -> dict:
+    profile = normalize_profile(db.get("profile"))
+    settings = db.get("settings", {})
+    form = {
+        "nama_usaha": settings.get("nama_usaha", "FYY MOTION"),
+        "tagline": settings.get("tagline", ""),
+        "pemilik": settings.get("pemilik", ""),
+        "wa_admin": settings.get("wa_admin", ""),
+    }
+    form.update({field: profile.get(field, "") for field in PROFILE_STRING_FIELDS})
+    form["marquee_text"] = "\n".join(profile.get("marquee_items", []))
+    form["stats_text"] = "\n".join(
+        f"{item.get('value', '')} | {item.get('label', '')}".strip(" |")
+        for item in profile.get("stats", [])
+    )
+
+    def cards_text(items, with_items=False):
+        blocks = []
+        for item in items:
+            lines = [item.get("title", "")]
+            if item.get("description"):
+                lines.append(item["description"])
+            if with_items:
+                lines.extend(f"- {point}" for point in item.get("items", []))
+            blocks.append("\n".join(lines))
+        return "\n\n".join(blocks)
+
+    form["benefits_text"] = cards_text(profile.get("benefits", []))
+    form["services_cards_text"] = cards_text(profile.get("services", []), with_items=True)
+    form["process_cards_text"] = cards_text(profile.get("process", []))
+    portfolio_blocks = []
+    for item in profile.get("portfolio", []):
+        header = " | ".join([
+            item.get("title", ""), item.get("category", ""),
+            item.get("image_url", ""), item.get("link_url", ""),
+        ]).rstrip(" |")
+        lines = [header]
+        if item.get("description"):
+            lines.append(item["description"])
+        portfolio_blocks.append("\n".join(lines))
+    form["portfolio_text"] = "\n\n".join(portfolio_blocks)
+    testimonial_blocks = []
+    for item in profile.get("testimonials", []):
+        lines = [item.get("quote", "")]
+        if item.get("name") or item.get("role"):
+            lines.append(" | ".join([item.get("name", ""), item.get("role", "")]).strip(" |"))
+        testimonial_blocks.append("\n".join(lines))
+    form["testimonials_text"] = "\n\n".join(testimonial_blocks)
+    return form
+
+
+PROFILE_URL_FIELDS = {
+    "hero_primary_url": "URL tombol utama hero",
+    "hero_secondary_url": "URL tombol kedua hero",
+    "hero_image_url": "URL gambar hero/showreel",
+    "showreel_url": "URL showreel",
+    "cta_url": "URL tombol CTA akhir",
+    "instagram_url": "URL Instagram",
+    "youtube_url": "URL YouTube",
+    "behance_url": "URL Behance/Dribbble",
+}
+
+
+def profile_from_form():
+    profile = default_profile()
+    errors = []
+    for field, limit in PROFILE_STRING_FIELDS.items():
+        profile[field] = _profile_text(request.form.get(field, ""), limit)
+        if field in PROFILE_REQUIRED_FIELDS and not profile[field]:
+            profile[field] = default_profile()[field]
+
+    for field, label in PROFILE_URL_FIELDS.items():
+        if not is_valid_profile_url(profile[field]):
+            errors.append(f"{label} harus kosong, diawali # atau /, atau URL http/https yang valid.")
+
+    email = profile.get("email", "")
+    if email and not re.match(r"^[^@\s]+@[^@\s]+\.[^@\s]+$", email):
+        errors.append("Format email profil tidak valid.")
+
+    profile["marquee_items"] = _profile_string_list(request.form.get("marquee_text", ""), limit_items=24, limit_chars=90)
+    if not profile["marquee_items"]:
+        profile["marquee_items"] = default_profile()["marquee_items"]
+    profile["stats"] = _parse_profile_stats(request.form.get("stats_text", "")) or default_profile()["stats"]
+    profile["benefits"] = _parse_profile_cards(request.form.get("benefits_text", "")) or default_profile()["benefits"]
+    profile["services"] = _parse_profile_cards(request.form.get("services_cards_text", ""), with_items=True) or default_profile()["services"]
+    profile["process"] = _parse_profile_cards(request.form.get("process_cards_text", "")) or default_profile()["process"]
+    portfolio, portfolio_errors = _parse_profile_portfolio(request.form.get("portfolio_text", ""))
+    profile["portfolio"] = portfolio
+    errors.extend(portfolio_errors)
+    profile["testimonials"] = _parse_profile_testimonials(request.form.get("testimonials_text", ""))
+
+    wa_admin = request.form.get("wa_admin", "").strip()
+    normalized_wa = normalize_wa(wa_admin)
+    if wa_admin and not normalized_wa:
+        errors.append("Nomor WhatsApp admin tidak valid.")
+    settings = {
+        "nama_usaha": request.form.get("nama_usaha", "").strip()[:80] or "FYY MOTION",
+        "tagline": request.form.get("tagline", "").strip()[:160],
+        "pemilik": request.form.get("pemilik", "").strip()[:100],
+        "wa_admin": normalized_wa,
+    }
+    return normalize_profile(profile), settings, errors
+
+
+def public_whatsapp_url(db: dict) -> str:
+    from urllib.parse import quote
+
+    settings = db.get("settings", {})
+    number = normalize_wa(settings.get("wa_admin", ""))
+    if not number:
+        return ""
+    brand = settings.get("nama_usaha") or "FYY MOTION"
+    message = f"Halo {brand}, saya ingin konsultasi project motion graphic. Boleh info paket dan antrian produksi?"
+    return f"https://wa.me/{number}?text={quote(message)}"
+
+
 def in_range(tanggal, d_from, d_to) -> bool:
     t = str(tanggal or "")[:10]
     if d_from and t < d_from:
@@ -831,6 +1335,7 @@ def inject_globals():
     active_orders = [o for o in db["orders"] if o.get("status") in STATUS_AKTIF]
     return {
         "settings": db.get("settings", {}),
+        "profile": normalize_profile(db.get("profile")),
         "STATUS_ORDER": STATUS_ORDER, "STATUS_LABEL": STATUS_LABEL, "STATUS_BADGE": STATUS_BADGE,
         "STATUS_PEMBAYARAN": STATUS_PEMBAYARAN, "PAY_LABEL": PAY_LABEL, "PAY_BADGE": PAY_BADGE,
         "JENIS_ANIMASI": JENIS_ANIMASI, "PRIORITAS": PRIORITAS, "METODE_BAYAR": METODE_BAYAR,
@@ -861,7 +1366,7 @@ app.jinja_env.filters["wa"] = normalize_wa
 @app.before_request
 def guard():
     endpoint = request.endpoint or ""
-    if endpoint in ("static", "login", "health"):
+    if endpoint in ("static", "login", "health", "public_profile"):
         pass
     elif not session.get("logged_in"):
         return redirect(url_for("login", next=request.path))
@@ -912,9 +1417,84 @@ def logout():
 
 
 # --------------------------------------------------------------------------- #
-# Dashboard
+# Profil publik & editor profil admin
 # --------------------------------------------------------------------------- #
 @app.route("/")
+def public_profile():
+    """Halaman profil/portofolio publik FYY MOTION di root domain."""
+    db = load_db()
+    profile = normalize_profile(db.get("profile"))
+    settings = db.get("settings", {})
+    portfolio = profile.get("portfolio", [])
+    if not portfolio:
+        fallback = []
+        for order in sorted_orders_by_queue(db):
+            if order.get("status") != "selesai":
+                continue
+            fallback.append({
+                "title": order.get("judul") or "Project Motion Graphic",
+                "category": order.get("jenis_animasi") or "Motion Graphic",
+                "description": " • ".join(
+                    part for part in [order.get("paket", ""), order.get("durasi", ""), order.get("resolusi", "")]
+                    if part
+                ),
+                "image_url": "",
+                "link_url": order.get("link_hasil") or order.get("link_preview") or "",
+            })
+        portfolio = fallback
+
+    wa_url = public_whatsapp_url(db)
+    primary_url = profile.get("hero_primary_url") or wa_url or "#contact"
+    secondary_url = profile.get("hero_secondary_url") or "#works"
+    cta_url = profile.get("cta_url") or wa_url or "#contact"
+    showreel_url = profile.get("showreel_url") or "#works"
+    return render_template(
+        "profile.html",
+        profile=profile,
+        settings=settings,
+        portfolio=portfolio,
+        wa_url=wa_url,
+        primary_url=primary_url,
+        secondary_url=secondary_url,
+        cta_url=cta_url,
+        showreel_url=showreel_url,
+        is_admin=bool(session.get("logged_in")),
+        page_title=f"{settings.get('nama_usaha') or 'FYY MOTION'} — {settings.get('tagline') or 'Motion Graphic Partner'}",
+    )
+
+
+@app.route("/admin/profil", methods=["GET", "POST"])
+def profile_edit():
+    """Edit seluruh teks halaman profil publik dari ruang admin."""
+    db = load_db()
+    if request.method == "POST":
+        profile, settings_updates, errors = profile_from_form()
+        if errors:
+            for error in errors:
+                flash(error, "danger")
+            return render_template(
+                "profile_edit.html",
+                form={key: value for key, value in request.form.items()},
+                page_title="Edit Profil Publik",
+                page_icon="fa-solid fa-pen-ruler",
+            )
+        db["settings"].update(settings_updates)
+        db["profile"] = profile
+        save_db(db)
+        flash("Profil publik berhasil diperbarui. Buka route / untuk melihat hasilnya.", "success")
+        return redirect(url_for("profile_edit"))
+    return render_template(
+        "profile_edit.html",
+        form=profile_form_data(db),
+        page_title="Edit Profil Publik",
+        page_icon="fa-solid fa-pen-ruler",
+    )
+
+
+# --------------------------------------------------------------------------- #
+# Dashboard admin
+# --------------------------------------------------------------------------- #
+@app.route("/dashboard")
 def dashboard():
     db = load_db()
     preset, d_from, d_to = period_params(request.args)
@@ -1477,7 +2057,7 @@ def account_delete(kode):
 
 
 # --------------------------------------------------------------------------- #
-# Backup & Restore + Export CSV + Pengaturan
+# Backup & Restore + Export Excel/CSV + Pengaturan
 # --------------------------------------------------------------------------- #
 @app.route("/backup")
 def backup_page():
@@ -1571,48 +2151,359 @@ def csv_response(filename, header, rows):
                     headers={"Content-Disposition": f'attachment; filename="{filename}"'})
 
 
+ORDERS_EXPORT_HEADERS = [
+    "No Antrian", "Kode", "Client", "WA", "Judul", "Jenis", "Tgl Masuk", "Deadline",
+    "Harga", "DP", "Sisa", "Status Bayar", "Status Order", "Progress %",
+    "Google Drive Assets", "Link Preview", "Link Hasil Final",
+]
+TRANSACTIONS_EXPORT_HEADERS = [
+    "Tanggal", "Keterangan", "Jenis", "Akun Debit", "Akun Kredit", "Jumlah", "Metode",
+]
+Jurnal_EXPORT_HEADERS = ["Tanggal", "Akun", "Ref/Kode", "Keterangan", "Debit", "Kredit"]
+NERACA_EXPORT_HEADERS = ["Kode", "Nama Akun", "Tipe", "Saldo Debit", "Saldo Kredit"]
+
+
+def orders_export_rows(db):
+    return [[
+        o.get("queue_no"), o.get("order_code"), o.get("client_name"), o.get("wa_number"),
+        o.get("judul"), o.get("jenis_animasi"), o.get("tanggal_masuk"), o.get("deadline"),
+        parse_int(o.get("harga")), parse_int(o.get("dp")), sisa_bayar(o),
+        PAY_LABEL.get(o.get("status_pembayaran"), ""), STATUS_LABEL.get(o.get("status"), ""),
+        parse_int(o.get("progress", 0)), o.get("drive_assets_url", ""), o.get("link_preview", ""),
+        o.get("link_hasil", ""),
+    ] for o in sorted_orders_by_queue(db)]
+
+
+def transactions_export_rows(db):
+    return [[
+        t.get("tanggal"), t.get("keterangan"), JENIS_LABEL.get(t.get("jenis"), t.get("jenis")),
+        account_label(db, t.get("akun_debit")), account_label(db, t.get("akun_kredit")),
+        parse_int(t.get("jumlah")), t.get("metode_bayar"),
+    ] for t in sorted_transactions(db)]
+
+
+def Jurnal_export_rows(db):
+    return [[
+        r["tanggal"], r["akun"], r["kode"], r["keterangan"], r["debit"] or "", r["kredit"] or "",
+    ] for r in journal_rows(db)]
+
+
+def neraca_export_data(db):
+    rows_data, td, tk = trial_balance(db)
+    rows = [[
+        r["kode"], r["nama"], r["tipe"], r["saldo_debit"] or "", r["saldo_kredit"] or "",
+    ] for r in rows_data]
+    return rows, td, tk
+
+
+def _excel_value(value):
+    if value is None:
+        return ""
+    if isinstance(value, str):
+        text = value.strip()
+        if re.fullmatch(r"\d{4}-\d{2}-\d{2}", text):
+            try:
+                return date.fromisoformat(text)
+            except ValueError:
+                return value
+        if re.fullmatch(r"\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}(:\d{2})?", text):
+            try:
+                return datetime.fromisoformat(text.replace(" ", "T"))
+            except ValueError:
+                return value
+    return value
+
+
+def _safe_excel_name(value: str, fallback: str = "Sheet") -> str:
+    name = re.sub(r"[^A-Za-z0-9_ ]", "", str(value or "")).strip() or fallback
+    return name[:31]
+
+
+def _safe_table_name(value: str, index: int) -> str:
+    name = re.sub(r"[^A-Za-z0-9_]", "", str(value or "")) or f"Tabel{index}"
+    if name[0].isdigit():
+        name = f"Tabel{name}"
+    suffix = f"_{index}" if index else ""
+    return (name[:240 - len(suffix)] + suffix) or f"Tabel{index}"
+
+
+def excel_response(filename: str, sheets: list[dict]):
+    """Buat file .xlsx dengan Excel Table asli (bukan CSV yang diganti nama)."""
+    from openpyxl import Workbook
+    from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
+    from openpyxl.utils import get_column_letter
+    from openpyxl.worksheet.table import Table, TableStyleInfo
+
+    workbook = Workbook()
+    workbook.remove(workbook.active)
+    workbook.properties.creator = "FYY MOTION Portal"
+    workbook.properties.title = "Export FYY MOTION"
+    workbook.properties.created = datetime.now()
+
+    header_fill = PatternFill("solid", fgColor="11120F")
+    header_font = Font(name="Calibri", size=11, bold=True, color="FFF9E8")
+    body_font = Font(name="Calibri", size=10, color="181913")
+    link_font = Font(name="Calibri", size=10, color="5B3DF5", underline="single")
+    footer_fill = PatternFill("solid", fgColor="C8F169")
+    footer_font = Font(name="Calibri", size=11, bold=True, color="11120F")
+    thin_border = Border(
+        left=Side(style="thin", color="D8D0BF"),
+        right=Side(style="thin", color="D8D0BF"),
+        top=Side(style="thin", color="D8D0BF"),
+        bottom=Side(style="thin", color="D8D0BF"),
+    )
+
+    used_titles = set()
+    for sheet_index, sheet in enumerate(sheets, start=1):
+        headers = [str(header) for header in sheet.get("headers", [])]
+        rows = [[_excel_value(value) for value in row] for row in sheet.get("rows", [])]
+        footer_rows = [[_excel_value(value) for value in row] for row in sheet.get("footer_rows", [])]
+        money_columns = set(sheet.get("money_columns", []))
+        percent_columns = set(sheet.get("percent_columns", []))
+        date_columns = set(sheet.get("date_columns", []))
+        widths = sheet.get("widths") or {}
+
+        title = _safe_excel_name(sheet.get("title"), f"Sheet {sheet_index}")
+        base_title = title
+        suffix_number = 2
+        while title.lower() in used_titles:
+            suffix = f" {suffix_number}"
+            title = (base_title[:31 - len(suffix)] + suffix).strip()
+            suffix_number += 1
+        used_titles.add(title.lower())
+        ws = workbook.create_sheet(title=title)
+        ws.sheet_view.showGridLines = False
+        ws.freeze_panes = "A2"
+        ws.sheet_properties.pageSetUpPr.fitToPage = True
+        ws.page_setup.orientation = "landscape"
+        ws.page_setup.fitToWidth = 1
+        ws.page_setup.fitToHeight = 0
+        ws.print_title_rows = "1:1"
+
+        ws.append(headers)
+        if rows:
+            for row in rows:
+                ws.append((list(row) + [""] * len(headers))[:len(headers)])
+        else:
+            # Satu baris kosong membuat range tetap menjadi Excel Table yang
+            # valid meskipun database belum mempunyai data.
+            ws.append([""] * len(headers))
+
+        last_table_row = ws.max_row
+        last_column = get_column_letter(max(len(headers), 1))
+        table = Table(
+            displayName=_safe_table_name(sheet.get("table_name") or title, sheet_index),
+            ref=f"A1:{last_column}{last_table_row}",
+        )
+        table.tableStyleInfo = TableStyleInfo(
+            name="TableStyleMedium9",
+            showFirstColumn=False,
+            showLastColumn=False,
+            showRowStripes=True,
+            showColumnStripes=False,
+        )
+        ws.add_table(table)
+
+        ws.row_dimensions[1].height = 30
+        for cell in ws[1]:
+            cell.fill = header_fill
+            cell.font = header_font
+            cell.alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
+            cell.border = thin_border
+
+        for row_index, row in enumerate(ws.iter_rows(min_row=2, max_row=last_table_row), start=2):
+            ws.row_dimensions[row_index].height = 22
+            for column_index, cell in enumerate(row, start=1):
+                cell.font = body_font
+                cell.border = thin_border
+                cell.alignment = Alignment(
+                    vertical="center",
+                    wrap_text=isinstance(cell.value, str) and (len(cell.value) > 42 or "\n" in cell.value),
+                )
+                if isinstance(cell.value, str) and cell.value.startswith(("http://", "https://")):
+                    cell.hyperlink = cell.value
+                    cell.font = link_font
+                header_name = headers[column_index - 1] if column_index <= len(headers) else ""
+                if header_name in money_columns and isinstance(cell.value, (int, float)):
+                    cell.number_format = '"Rp"#,##0'
+                elif header_name in percent_columns and isinstance(cell.value, (int, float)):
+                    cell.number_format = '0"%"'
+                elif header_name in date_columns and isinstance(cell.value, (date, datetime)):
+                    cell.number_format = "dd-mmm-yyyy"
+                if isinstance(cell.value, str) and (len(cell.value) > 90 or cell.value.count("\n") >= 2):
+                    ws.row_dimensions[row_index].height = max(ws.row_dimensions[row_index].height or 22, 46)
+
+        for column_index, header in enumerate(headers, start=1):
+            letter = get_column_letter(column_index)
+            requested_width = widths.get(header) or widths.get(column_index)
+            if requested_width:
+                ws.column_dimensions[letter].width = requested_width
+                continue
+            max_length = len(header)
+            for row in rows[:250]:
+                if column_index <= len(row):
+                    cell_text = str(row[column_index - 1] or "")
+                    max_length = max(max_length, min(len(cell_text), 60))
+            ws.column_dimensions[letter].width = max(11, min(max_length + 2, 48))
+
+        if footer_rows:
+            ws.append([""] * len(headers))
+            footer_start = ws.max_row + 1
+            for footer in footer_rows:
+                ws.append((list(footer) + [""] * len(headers))[:len(headers)])
+            for row in ws.iter_rows(min_row=footer_start, max_row=ws.max_row):
+                for column_index, cell in enumerate(row, start=1):
+                    cell.fill = footer_fill
+                    cell.font = footer_font
+                    cell.border = thin_border
+                    cell.alignment = Alignment(vertical="center", wrap_text=True)
+                    header_name = headers[column_index - 1] if column_index <= len(headers) else ""
+                    if header_name in money_columns and isinstance(cell.value, (int, float)):
+                        cell.number_format = '"Rp"#,##0'
+
+    buffer = io.BytesIO()
+    workbook.save(buffer)
+    buffer.seek(0)
+    return send_file(
+        buffer,
+        mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        as_attachment=True,
+        download_name=filename,
+    )
+
+
+def workbook_sheets(db):
+    neraca_rows, total_debit, total_kredit = neraca_export_data(db)
+    income = income_statement(db)
+    laba_rows = []
+    for row in income["pendapatan"]:
+        laba_rows.append([
+            "Pendapatan", row["kode"], row["nama"],
+            parse_int(row["saldo_kredit"]) - parse_int(row["saldo_debit"]),
+        ])
+    for row in income["beban"]:
+        laba_rows.append([
+            "Beban", row["kode"], row["nama"],
+            parse_int(row["saldo_debit"]) - parse_int(row["saldo_kredit"]),
+        ])
+    return [
+        {
+            "title": "Orders", "table_name": "OrdersFYY", "headers": ORDERS_EXPORT_HEADERS,
+            "rows": orders_export_rows(db),
+            "money_columns": {"Harga", "DP", "Sisa"},
+            "percent_columns": {"Progress %"},
+            "date_columns": {"Tgl Masuk", "Deadline"},
+            "widths": {"WA": 18, "Judul": 38, "Google Drive Assets": 34, "Link Preview": 34, "Link Hasil Final": 34},
+        },
+        {
+            "title": "Transaksi", "table_name": "TransaksiFYY", "headers": TRANSACTIONS_EXPORT_HEADERS,
+            "rows": transactions_export_rows(db),
+            "money_columns": {"Jumlah"}, "date_columns": {"Tanggal"},
+            "widths": {"Keterangan": 48, "Jenis": 34, "Akun Debit": 28, "Akun Kredit": 28},
+        },
+        {
+            "title": "Jurnal Umum", "table_name": "JurnalUmumFYY", "headers": Jurnal_EXPORT_HEADERS,
+            "rows": Jurnal_export_rows(db),
+            "money_columns": {"Debit", "Kredit"}, "date_columns": {"Tanggal"},
+            "widths": {"Akun": 34, "Keterangan": 48},
+        },
+        {
+            "title": "Neraca Saldo", "table_name": "NeracaSaldoFYY", "headers": NERACA_EXPORT_HEADERS,
+            "rows": neraca_rows,
+            "footer_rows": [["", "TOTAL", "", total_debit, total_kredit]],
+            "money_columns": {"Saldo Debit", "Saldo Kredit"},
+            "widths": {"Nama Akun": 42},
+        },
+        {
+            "title": "Laba Rugi", "table_name": "LabaRugiFYY",
+            "headers": ["Kategori", "Kode", "Nama Akun", "Jumlah"],
+            "rows": laba_rows,
+            "footer_rows": [
+                ["", "", "TOTAL PENDAPATAN", income["total_pendapatan"]],
+                ["", "", "TOTAL BEBAN", income["total_beban"]],
+                ["", "", "LABA BERSIH", income["laba_bersih"]],
+            ],
+            "money_columns": {"Jumlah"}, "widths": {"Nama Akun": 42},
+        },
+        {
+            "title": "Akun COA", "table_name": "AkunCOAFYY",
+            "headers": ["Kode", "Nama Akun", "Tipe", "Saldo Normal", "Kas/Bank"],
+            "rows": [[
+                account.get("kode"), account.get("nama"), account.get("tipe"),
+                account.get("saldo_normal"), "Ya" if account.get("is_cash") else "Tidak",
+            ] for account in sorted(db.get("accounts", []), key=lambda item: str(item.get("kode", "")))],
+            "widths": {"Nama Akun": 42},
+        },
+        {
+            "title": "Clipboard", "table_name": "ClipboardFYY",
+            "headers": ["Judul", "Isi Teks", "Dibuat", "Diperbarui"],
+            "rows": [[
+                item.get("title"), item.get("content"), item.get("created_at"), item.get("updated_at"),
+            ] for item in sorted_clipboard_items(db)],
+            "date_columns": {"Dibuat", "Diperbarui"},
+            "widths": {"Judul": 34, "Isi Teks": 70},
+        },
+    ]
+
+
+def _timestamp_name(prefix: str) -> str:
+    return f"{prefix}-{datetime.now().strftime('%Y%m%d-%H%M%S')}.xlsx"
+
+
+@app.route("/export/workbook.xlsx")
+def export_workbook_excel():
+    db = load_db()
+    return excel_response(_timestamp_name("fyymotion-workbook"), workbook_sheets(db))
+
+
 @app.route("/export/orders.csv")
 def export_orders():
     db = load_db()
-    rows = [[o.get("queue_no"), o.get("order_code"), o.get("client_name"), o.get("wa_number"),
-             o.get("judul"), o.get("jenis_animasi"), o.get("tanggal_masuk"), o.get("deadline"),
-             parse_int(o.get("harga")), parse_int(o.get("dp")), sisa_bayar(o),
-             PAY_LABEL.get(o.get("status_pembayaran"), ""), STATUS_LABEL.get(o.get("status"), ""),
-             o.get("progress", 0), o.get("drive_assets_url", ""), o.get("link_preview", ""),
-             o.get("link_hasil", "")] for o in sorted_orders_by_queue(db)]
-    return csv_response("fyymotion-orders.csv",
-                        ["No Antrian", "Kode", "Client", "WA", "Judul", "Jenis", "Tgl Masuk", "Deadline",
-                         "Harga", "DP", "Sisa", "Status Bayar", "Status Order", "Progress%",
-                         "Google Drive Assets", "Link Preview", "Link Hasil Final"], rows)
+    return csv_response("fyymotion-orders.csv", ORDERS_EXPORT_HEADERS, orders_export_rows(db))
+
+
+@app.route("/export/orders.xlsx")
+def export_orders_excel():
+    db = load_db()
+    return excel_response(_timestamp_name("fyymotion-orders"), [workbook_sheets(db)[0]])
 
 
 @app.route("/export/transactions.csv")
 def export_transactions():
     db = load_db()
-    rows = [[t.get("tanggal"), t.get("keterangan"), JENIS_LABEL.get(t.get("jenis"), t.get("jenis")),
-             account_label(db, t.get("akun_debit")), account_label(db, t.get("akun_kredit")),
-             parse_int(t.get("jumlah")), t.get("metode_bayar")] for t in sorted_transactions(db)]
-    return csv_response("fyymotion-transaksi.csv",
-                        ["Tanggal", "Keterangan", "Jenis", "Akun Debit", "Akun Kredit", "Jumlah", "Metode"], rows)
+    return csv_response("fyymotion-transaksi.csv", TRANSACTIONS_EXPORT_HEADERS, transactions_export_rows(db))
+
+
+@app.route("/export/transactions.xlsx")
+def export_transactions_excel():
+    db = load_db()
+    return excel_response(_timestamp_name("fyymotion-transaksi"), [workbook_sheets(db)[1]])
 
 
 @app.route("/export/Jurnal.csv")
 def export_jurnal():
     db = load_db()
-    rows = [[r["tanggal"], r["akun"], r["kode"], r["keterangan"], r["debit"] or "", r["kredit"] or ""]
-            for r in journal_rows(db)]
-    return csv_response("fyymotion-Jurnal-umum.csv",
-                        ["Tanggal", "Akun", "Ref/Kode", "Keterangan", "Debit", "Kredit"], rows)
+    return csv_response("fyymotion-Jurnal-umum.csv", Jurnal_EXPORT_HEADERS, Jurnal_export_rows(db))
+
+
+@app.route("/export/Jurnal.xlsx")
+def export_jurnal_excel():
+    db = load_db()
+    return excel_response(_timestamp_name("fyymotion-Jurnal-umum"), [workbook_sheets(db)[2]])
 
 
 @app.route("/export/neraca-saldo.csv")
 def export_neraca():
     db = load_db()
-    rows_data, td, tk = trial_balance(db)
-    rows = [[r["kode"], r["nama"], r["tipe"], r["saldo_debit"] or "", r["saldo_kredit"] or ""] for r in rows_data]
+    rows, td, tk = neraca_export_data(db)
     rows.append(["", "TOTAL", "", td, tk])
-    return csv_response("fyymotion-neraca-saldo.csv",
-                        ["Kode", "Nama Akun", "Tipe", "Saldo Debit", "Saldo Kredit"], rows)
+    return csv_response("fyymotion-neraca-saldo.csv", NERACA_EXPORT_HEADERS, rows)
+
+
+@app.route("/export/neraca-saldo.xlsx")
+def export_neraca_excel():
+    db = load_db()
+    return excel_response(_timestamp_name("fyymotion-neraca-saldo"), [workbook_sheets(db)[3]])
 
 
 @app.errorhandler(404)

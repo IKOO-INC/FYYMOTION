@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="id" data-bs-theme="dark">
+<html lang="id" data-bs-theme="light">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -8,7 +8,7 @@
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@500;600;700;800;900&family=Inter:wght@400;500;600;700;800&family=Instrument+Serif:ital@0;1&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
   <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
   {% block head %}{% endblock %}
 </head>
@@ -69,6 +69,16 @@
         <i class="fa-solid fa-diagram-project"></i> Daftar Akun (COA)</a>
     </nav>
 
+    <div class="sidebar-heading">Website Publik</div>
+    <nav class="nav flex-column sidebar-nav">
+      <a class="nav-link" href="{{ url_for('public_profile') }}" target="_blank" rel="noopener">
+        <i class="fa-solid fa-globe"></i> Lihat Profil <span class="badge text-bg-success ms-auto">/</span></a>
+      <a class="nav-link {% if request.endpoint=='profile_edit' %}active{% endif %}" href="{{ url_for('profile_edit') }}">
+        <i class="fa-solid fa-pen-ruler"></i> Edit Profil</a>
+      <a class="nav-link" href="{{ url_for('export_workbook_excel') }}">
+        <i class="fa-solid fa-file-excel"></i> Workbook Excel</a>
+    </nav>
+
     <div class="sidebar-heading">Sistem Data</div>
     <nav class="nav flex-column sidebar-nav">
       <a class="nav-link {% if request.endpoint in ['backup_page'] %}active{% endif %}" href="{{ url_for('backup_page') }}">
@@ -117,6 +127,7 @@
           <span class="storage-badge storage-{{ storage.backend }} d-none d-md-inline-flex" title="{{ storage.location }}">
             <span class="storage-dot"></span><i class="fa-solid fa-database"></i> {{ storage.label }}
           </span>
+          <a class="btn btn-soft btn-sm d-none d-lg-inline-flex" href="{{ url_for('public_profile') }}" target="_blank" rel="noopener"><i class="fa-solid fa-globe"></i> Profil</a>
           <a class="btn btn-soft btn-sm d-none d-md-inline-flex" href="{{ url_for('transaction_new') }}"><i class="fa-solid fa-plus"></i> Transaksi</a>
           <a class="btn btn-primary btn-sm" href="{{ url_for('order_new') }}"><i class="fa-solid fa-plus"></i> Order Baru</a>
           <div class="topbar-user d-none d-lg-flex">

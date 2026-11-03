@@ -7,7 +7,7 @@
 <div class="d-flex flex-wrap gap-2 mb-3 no-print">
   <a class="btn btn-primary" href="{{ url_for('order_new') }}"><i class="fa-solid fa-plus"></i> Tambah Order Baru</a>
   <a class="btn btn-outline-dark" href="{{ url_for('antrian') }}"><i class="fa-solid fa-table-columns"></i> Papan Antrian</a>
-  <a class="btn btn-outline-success" href="{{ url_for('export_orders') }}"><i class="fa-solid fa-file-csv"></i> Export CSV</a>
+  <a class="btn btn-outline-success" href="{{ url_for('export_orders_excel') }}"><i class="fa-solid fa-file-excel"></i> Export Excel</a>
   <!-- Filter cepat status -->
   <div class="btn-group ms-md-auto" role="group" aria-label="Filter cepat status">
     <a class="btn btn-sm {% if not status %}btn-dark{% else %}btn-outline-dark{% endif %}" href="{{ url_for('orders_list') }}">Semua</a>

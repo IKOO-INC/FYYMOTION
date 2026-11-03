@@ -297,7 +297,7 @@
         datasets: [{
           data: displayData,
           backgroundColor: displayColors,
-          borderColor: '#0a1027',
+          borderColor: '#fff9ea',
           borderWidth: 4,
           hoverOffset: 10,
           borderRadius: 7,
@@ -311,11 +311,11 @@
         plugins: {
           legend: { display: false },
           tooltip: {
-            backgroundColor: 'rgba(5,10,28,.96)',
-            borderColor: 'rgba(125,164,255,.28)',
+            backgroundColor: '#11120f',
+            borderColor: '#11120f',
             borderWidth: 1,
-            titleColor: '#f4f7ff',
-            bodyColor: '#cbd7ff',
+            titleColor: '#fff9ea',
+            bodyColor: '#e9e2cf',
             padding: 12,
             callbacks: {
               label: context => {
@@ -331,25 +331,25 @@
 
   makeDonut(
     'chartStatus', CH.status_labels, CH.status_data,
-    ['#38bdf8', '#a78bfa', '#facc15', '#fb7185', '#34d399', '#64748b'],
+    ['#6d4aff', '#11120f', '#ffb43a', '#ff6b6b', '#9bd45a', '#b8b1a1'],
     'statusCenter', 'statusCenterLabel', 'statusLegend'
   );
   makeDonut(
     'chartPayment', CH.pay_labels, CH.pay_data,
-    ['#fb7185', '#f59e0b', '#34d399'],
+    ['#ff6b6b', '#ffb43a', '#9bd45a'],
     'paymentCenter', 'paymentCenterLabel', 'paymentLegend'
   );
   makeDonut(
     'chartPriority', CH.priority_labels, CH.priority_data,
-    ['#38bdf8', '#a78bfa', '#fb7185'],
+    ['#4f7cff', '#6d4aff', '#ff6b6b'],
     'priorityCenter', 'priorityCenterLabel', 'priorityLegend'
   );
 
   const cashCanvas = document.getElementById('chartArus');
   if (!window.Chart || !cashCanvas) return;
 
-  Chart.defaults.font.family = "'Plus Jakarta Sans', system-ui, sans-serif";
-  Chart.defaults.color = '#8f9bbd';
+  Chart.defaults.font.family = "'Inter', system-ui, sans-serif";
+  Chart.defaults.color = '#746e5f';
 
   const gradientFill = (topColor, bottomColor) => context => {
     const { ctx, chartArea } = context.chart;
@@ -368,28 +368,28 @@
         {
           label: 'Pemasukan',
           data: CH.masuk,
-          borderColor: '#34d399',
-          backgroundColor: gradientFill('rgba(52,211,153,.38)', 'rgba(52,211,153,.015)'),
+          borderColor: '#65a30d',
+          backgroundColor: gradientFill('rgba(184,241,53,.42)', 'rgba(184,241,53,.02)'),
           fill: true,
           tension: .45,
           borderWidth: 2.5,
           pointRadius: 0,
           pointHoverRadius: 5,
-          pointHoverBackgroundColor: '#a7f3d0',
-          pointHoverBorderColor: '#059669'
+          pointHoverBackgroundColor: '#d9ff7a',
+          pointHoverBorderColor: '#65a30d'
         },
         {
           label: 'Pengeluaran',
           data: CH.keluar,
-          borderColor: '#fb7185',
-          backgroundColor: gradientFill('rgba(251,113,133,.30)', 'rgba(251,113,133,.012)'),
+          borderColor: '#ff6b6b',
+          backgroundColor: gradientFill('rgba(255,107,107,.28)', 'rgba(255,107,107,.012)'),
           fill: true,
           tension: .45,
           borderWidth: 2.5,
           pointRadius: 0,
           pointHoverRadius: 5,
-          pointHoverBackgroundColor: '#fecdd3',
-          pointHoverBorderColor: '#e11d48'
+          pointHoverBackgroundColor: '#ffd1d1',
+          pointHoverBorderColor: '#e05252'
         }
       ]
     },
@@ -404,11 +404,11 @@
           labels: { usePointStyle: true, pointStyle: 'circle', boxWidth: 7, boxHeight: 7, padding: 18 }
         },
         tooltip: {
-          backgroundColor: 'rgba(5,10,28,.97)',
-          borderColor: 'rgba(125,164,255,.30)',
+          backgroundColor: '#11120f',
+          borderColor: '#11120f',
           borderWidth: 1,
-          titleColor: '#f4f7ff',
-          bodyColor: '#d7e1ff',
+          titleColor: '#fff9ea',
+          bodyColor: '#e9e2cf',
           padding: 13,
           callbacks: { label: context => ` ${context.dataset.label}: ${rupiah(context.parsed.y)}` }
         }
@@ -416,13 +416,13 @@
       scales: {
         x: {
           grid: { display: false },
-          border: { color: 'rgba(125,151,220,.14)' },
+          border: { color: 'rgba(17,18,15,.16)' },
           ticks: { padding: 8 }
         },
         y: {
           beginAtZero: true,
           border: { display: false },
-          grid: { color: 'rgba(125,151,220,.10)', borderDash: [5, 7] },
+          grid: { color: 'rgba(17,18,15,.10)', borderDash: [5, 7] },
           ticks: {
             padding: 10,
             callback: value => 'Rp' + Number(value).toLocaleString('id-ID')
