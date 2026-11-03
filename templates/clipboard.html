@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+{% block title %}Clipboard{% endblock %}
+{% block page_title %}<i class="fa-solid fa-clipboard text-primary"></i> Clipboard{% endblock %}
+{% block content %}
+
+<div class="alert alert-info shadow-sm">
+  <i class="fa-solid fa-clipboard"></i>
+  Simpan teks yang sering dipakai di sini — misalnya <b>price list</b>. Isi manual sekali, setelah tersimpan tinggal klik <b>Salin</b> lalu tempel ke WhatsApp/chat.
+</div>
+
+<div class="row g-3">
+  <div class="col-lg-4">
+    <div class="card shadow-sm clipboard-form-card">
+      <div class="card-header bg-white fw-bold">
+        <i class="fa-solid {{ 'fa-pen-to-square' if editing else 'fa-plus' }} text-primary"></i>
+        {{ 'Edit Teks Clipboard' if editing else 'Tambah Teks Clipboard' }}
+      </div>
+      <div class="card-body">
+        <form method="post" action="{{ url_for('clipboard_page') }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          {% if editing %}<input type="hidden" name="item_id" value="{{ editing.id }}">{% endif %}
+
+          <label class="form-label fw-bold" for="clipboardTitle">Judul <span class="text-muted fw-normal">(opsional)</span></label>
+          <input id="clipboardTitle" name="title" class="form-control mb-3" maxlength="120"
+                 value="{{ form_item.title or '' }}" placeholder="Contoh: Price List">
+
+          <label class="form-label fw-bold" for="clipboardContent">Isi Teks *</label>
+          <textarea id="clipboardContent" name="content" class="form-control clipboard-editor" rows="12" maxlength="20000" required
+                    placeholder="Tempel teks price list / jawaban yang sering dipakai di sini...">{{ form_item.content or '' }}</textarea>
+          <div class="form-text">Bila judul dikosongkan, judul diambil dari baris pertama teks.</div>
+
+          <div class="d-grid gap-2 mt-3">
+            <button class="btn btn-primary fw-bold" type="submit">
+              <i class="fa-solid fa-floppy-disk"></i> {{ 'Simpan Perubahan' if editing else 'Simpan ke Clipboard' }}
+            </button>
+            {% if editing %}
+              <a class="btn btn-outline-secondary" href="{{ url_for('clipboard_page') }}"><i class="fa-solid fa-xmark"></i> Batal Edit</a>
+            {% endif %}
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-8">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+      <div>
+        <h5 class="fw-bold mb-0"><i class="fa-solid fa-layer-group text-primary"></i> Teks Tersimpan</h5>
+        <div class="text-muted small">{{ items|length }} teks siap disalin</div>
+      </div>
+      <span class="badge text-bg-info"><i class="fa-solid fa-clipboard"></i> Clipboard</span>
+    </div>
+
+    {% if items %}
+      <div class="row g-3">
+        {% for item in items %}
+          <div class="col-xl-6">
+            <div class="card shadow-sm clipboard-card h-100">
+              <div class="card-body d-flex flex-column">
+                <div class="d-flex align-items-start justify-content-between gap-2 mb-2">
+                  <div class="min-w-0">
+                    <div class="fw-bold clipboard-title">{{ item.title }}</div>
+                    <div class="text-muted small">Diperbarui {{ item.updated_at|tanggal }}</div>
+                  </div>
+                  <span class="badge text-bg-primary flex-shrink-0"><i class="fa-solid fa-clipboard"></i></span>
+                </div>
+
+                <textarea id="clipText{{ loop.index }}" class="form-control clipboard-text flex-grow-1" rows="9" readonly>{{ item.content }}</textarea>
+
+                <div class="d-flex flex-wrap gap-2 mt-3">
+                  <button type="button" class="btn btn-primary btn-sm btn-copy" data-copy-target="#clipText{{ loop.index }}">
+                    <i class="fa-solid fa-clipboard"></i> Salin
+                  </button>
+                  <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('clipboard_page', edit=item.id) }}">
+                    <i class="fa-solid fa-pen"></i> Edit
+                  </a>
+                  <form method="post" action="{{ url_for('clipboard_delete', item_id=item.id) }}" class="ms-auto"
+                        onsubmit="return confirm('Hapus teks clipboard ini?')">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button class="btn btn-outline-danger btn-sm" type="submit"><i class="fa-solid fa-trash"></i> Hapus</button>
+                  </form>
+                </div>
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="card shadow-sm">
+        <div class="card-body empty-state">
+          <i class="fa-solid fa-clipboard"></i>
+          <div class="fw-bold">Belum ada teks tersimpan</div>
+          <div class="small">Tempel teks price list Anda pada form, simpan, lalu gunakan tombol Salin kapan pun dibutuhkan.</div>
+        </div>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

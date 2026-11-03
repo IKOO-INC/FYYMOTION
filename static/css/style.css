@@ -780,6 +780,21 @@ pre { color: #dbeafe; }
 }
 .text-truncate-link { max-width: 100%; display: inline-block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: middle; }
 
+/* ============================== CLIPBOARD ============================== */
+.clipboard-form-card { position: sticky; top: 96px; }
+.clipboard-editor { min-height: 260px; line-height: 1.65; resize: vertical; }
+.clipboard-card { overflow: hidden; }
+.clipboard-title { overflow-wrap: anywhere; }
+.clipboard-text {
+  min-height: 190px;
+  line-height: 1.65;
+  resize: vertical;
+  white-space: pre-wrap;
+}
+@media (max-width: 991.98px) {
+  .clipboard-form-card { position: static; }
+}
+
 /* ============================== LOGIN ============================== */
 .login-body { overflow-x: hidden; }
 .login-wrap {

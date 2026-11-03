@@ -168,6 +168,7 @@ def empty_db() -> dict:
         "accounts": deepcopy(DEFAULT_ACCOUNTS),
         "orders": [],
         "transactions": [],
+        "clipboard_items": [],
     }
 
 
@@ -272,8 +273,16 @@ def normalize_db(data) -> dict:
         for item in data[key]:
             if not isinstance(item, dict):
                 raise ValueError(f"Semua isi '{key}' harus berupa object {{ }}.")
+    if "clipboard_items" in data:
+        if not isinstance(data["clipboard_items"], list):
+            raise ValueError("Key 'clipboard_items' harus berupa ARRAY [ ].")
+        for item in data["clipboard_items"]:
+            if not isinstance(item, dict):
+                raise ValueError("Semua isi 'clipboard_items' harus berupa object { }.")
     base = empty_db()
     base.update({k: data[k] for k in ("accounts", "orders", "transactions")})
+    if isinstance(data.get("clipboard_items"), list):
+        base["clipboard_items"] = data["clipboard_items"]
     if isinstance(data.get("settings"), dict):
         base["settings"].update(data["settings"])
     if isinstance(data.get("meta"), dict):
@@ -290,6 +299,22 @@ def normalize_db(data) -> dict:
     for t in base["transactions"]:
         t.setdefault("id", uuid.uuid4().hex)
         t.setdefault("jumlah", 0)
+    seen_clipboard_ids = set()
+    for item in base["clipboard_items"]:
+        item_id = str(item.get("id") or "").strip()
+        if not item_id or item_id in seen_clipboard_ids:
+            item_id = uuid.uuid4().hex
+        seen_clipboard_ids.add(item_id)
+        content = str(item.get("content") or "").replace("\r\n", "\n").replace("\r", "\n")
+        title = str(item.get("title") or "").strip()
+        if not title:
+            first_line = next((line.strip() for line in content.splitlines() if line.strip()), "Teks Clipboard")
+            title = first_line[:80] + ("…" if len(first_line) > 80 else "")
+        item["id"] = item_id
+        item["title"] = title
+        item["content"] = content
+        item["created_at"] = str(item.get("created_at") or now_iso())
+        item["updated_at"] = str(item.get("updated_at") or item["created_at"])
     return base
 
 
@@ -373,6 +398,7 @@ def get_mongo_db():
             db["orders"].create_index([("tanggal_masuk", -1)])
             db["transactions"].create_index([("tanggal", -1), ("order_id", 1)])
             db["accounts"].create_index([("kode", 1)], unique=True)
+            db["clipboard_items"].create_index([("updated_at", -1)])
             _MONGO_READY = True
         _MONGO_CLIENT = client
         _MONGO_DB = db
@@ -418,7 +444,7 @@ def _sync_collection(db_mongo, collection: str, items: list[dict]):
 
 def _save_db_mongo(db: dict):
     db_mongo = get_mongo_db()
-    for collection in ("accounts", "orders", "transactions"):
+    for collection in ("accounts", "orders", "transactions", "clipboard_items"):
         _sync_collection(db_mongo, collection, db.get(collection, []))
     db_mongo["app_state"].replace_one(
         {"_id": "state"},
@@ -431,7 +457,7 @@ def _load_db_mongo() -> dict:
     db_mongo = get_mongo_db()
     state = db_mongo["app_state"].find_one({"_id": "state"}, {"_id": 0})
     counts = {name: db_mongo[name].estimated_document_count()
-              for name in ("accounts", "orders", "transactions")}
+              for name in ("accounts", "orders", "transactions", "clipboard_items")}
     if state is None and sum(counts.values()) == 0:
         seed = _load_seed_db()
         _save_db_mongo(seed)
@@ -443,6 +469,7 @@ def _load_db_mongo() -> dict:
         "accounts": list(db_mongo["accounts"].find({}, {"_id": 0}).sort("kode", 1)),
         "orders": list(db_mongo["orders"].find({}, {"_id": 0})),
         "transactions": list(db_mongo["transactions"].find({}, {"_id": 0})),
+        "clipboard_items": list(db_mongo["clipboard_items"].find({}, {"_id": 0})),
     }
     return normalize_db(data)
 
@@ -605,6 +632,34 @@ def gen_order_code(db, queue_no: int) -> str:
 
 def find_by_id(items, item_id):
     return next((x for x in items if str(x.get("id")) == str(item_id)), None)
+
+
+def clipboard_title_from_content(content: str) -> str:
+    first_line = next((line.strip() for line in str(content or "").splitlines() if line.strip()), "Teks Clipboard")
+    return first_line[:80] + ("…" if len(first_line) > 80 else "")
+
+
+def sorted_clipboard_items(db):
+    return sorted(
+        db.get("clipboard_items", []),
+        key=lambda x: (str(x.get("updated_at", "")), str(x.get("created_at", ""))),
+        reverse=True,
+    )
+
+
+def clipboard_from_form():
+    title = request.form.get("title", "").strip()
+    content = str(request.form.get("content", "")).replace("\r\n", "\n").replace("\r", "\n").strip()
+    errors = []
+    if len(title) > 120:
+        errors.append("Judul maksimal 120 karakter.")
+    if not content:
+        errors.append("Isi teks clipboard wajib diisi.")
+    if len(content) > 20000:
+        errors.append("Isi teks maksimal 20.000 karakter.")
+    if not title and content:
+        title = clipboard_title_from_content(content)
+    return {"title": title or "Teks Clipboard", "content": content}, errors
 
 
 def in_range(tanggal, d_from, d_to) -> bool:
@@ -781,6 +836,7 @@ def inject_globals():
         "JENIS_ANIMASI": JENIS_ANIMASI, "PRIORITAS": PRIORITAS, "METODE_BAYAR": METODE_BAYAR,
         "JENIS_TRANSAKSI": JENIS_TRANSAKSI, "JENIS_LABEL": JENIS_LABEL, "JENIS_PRESET": JENIS_PRESET,
         "TIPE_AKUN": TIPE_AKUN,
+        "count_clipboard": len(db.get("clipboard_items", [])),
         "count_antrian": len(active_orders),
         "count_revisi": len([o for o in db["orders"] if o.get("status") == "revisi"]),
         "count_masuk": len([o for o in db["orders"] if o.get("status") == "masuk"]),
@@ -1107,6 +1163,63 @@ def antrian():
     current = next((o for o in aktif if o.get("status") in ("proses", "revisi")), aktif[0] if aktif else None)
     return render_template("antrian.html", board=board, aktif=aktif, current=current,
                            wa_link=wa_link, sisa_bayar=sisa_bayar)
+
+
+# --------------------------------------------------------------------------- #
+# Clipboard — tempat simpan teks manual yang sering dipakai ulang
+# --------------------------------------------------------------------------- #
+@app.route("/clipboard", methods=["GET", "POST"])
+def clipboard_page():
+    db = load_db()
+    items = sorted_clipboard_items(db)
+    editing = None
+    form_item = {}
+
+    if request.method == "POST":
+        item_id = request.form.get("item_id", "").strip()
+        existing = find_by_id(db["clipboard_items"], item_id) if item_id else None
+        if item_id and not existing:
+            abort(404)
+        data, errors = clipboard_from_form()
+        if errors:
+            for error in errors:
+                flash(error, "danger")
+            form_item = {**(existing or {}), **data}
+            return render_template("clipboard.html", items=items, editing=existing,
+                                   form_item=form_item), 400
+        if existing:
+            updated = dict(existing)
+            updated.update(data)
+            updated["updated_at"] = now_iso()
+            idx = db["clipboard_items"].index(existing)
+            db["clipboard_items"][idx] = updated
+            flash(f"Clipboard '{updated['title']}' berhasil diperbarui.", "success")
+        else:
+            data.update({
+                "id": uuid.uuid4().hex,
+                "created_at": now_iso(),
+                "updated_at": now_iso(),
+            })
+            db["clipboard_items"].append(data)
+            flash(f"Teks '{data['title']}' berhasil disimpan ke Clipboard.", "success")
+        save_db(db)
+        return redirect(url_for("clipboard_page"))
+
+    edit_id = request.args.get("edit", "").strip()
+    if edit_id:
+        editing = find_by_id(db["clipboard_items"], edit_id) or abort(404)
+        form_item = dict(editing)
+    return render_template("clipboard.html", items=items, editing=editing, form_item=form_item)
+
+
+@app.route("/clipboard/<item_id>/delete", methods=["POST"])
+def clipboard_delete(item_id):
+    db = load_db()
+    item = find_by_id(db["clipboard_items"], item_id) or abort(404)
+    db["clipboard_items"] = [x for x in db["clipboard_items"] if str(x.get("id")) != str(item_id)]
+    save_db(db)
+    flash(f"Clipboard '{item.get('title')}' telah dihapus.", "warning")
+    return redirect(url_for("clipboard_page"))
 
 
 # --------------------------------------------------------------------------- #
