@@ -48,6 +48,9 @@
         {% if count_revisi %}<span class="badge text-bg-danger ms-auto">{{ count_revisi }}</span>{% endif %}</a>
       <a class="nav-link" href="{{ url_for('orders_list', status='selesai') }}">
         <i class="fa-solid fa-circle-check"></i> Orderan Sudah Jadi</a>
+      <a class="nav-link {% if request.endpoint=='clipboard_page' %}active{% endif %}" href="{{ url_for('clipboard_page') }}">
+        <i class="fa-solid fa-clipboard"></i> Clipboard
+        {% if count_clipboard %}<span class="badge text-bg-info ms-auto">{{ count_clipboard }}</span>{% endif %}</a>
     </nav>
 
     <div class="sidebar-heading">Keuangan & Akuntansi</div>
