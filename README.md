@@ -1,11 +1,11 @@
 # FYY MOTION — Portal Order & Keuangan Jasa Animasi Motion Graphic
 
-Website admin (portal) untuk mengelola usaha jasa pembuatan animasi **Motion Graphic**:
-orderan & nomor antrian, data pesanan teks, pemasukan/pengeluaran, sampai akuntansi lengkap
-(**Jurnal Umum → Buku Besar → Neraca Saldo → Laba Rugi**). Dibangun dengan **Python Flask**,
- database utama **MongoDB Atlas** (melalui ENV `MONGODB_URI`) dengan **JSON fallback + backup/restore**
- yang tetap bisa **di-download** dan **di-upload**, tampilan **Admin Bootstrap 5 + Font Awesome**,
-dan siap **deploy ke Vercel**.
+Website profil publik + portal admin untuk mengelola usaha jasa pembuatan animasi **Motion Graphic**:
+route `/` adalah **profil/portofolio publik FYY MOTION yang seluruh teksnya bisa diedit dari admin**,
+sedangkan `/dashboard` adalah ruang operasional untuk orderan & nomor antrian, data pesanan teks,
+pemasukan/pengeluaran, sampai akuntansi lengkap (**Jurnal Umum → Buku Besar → Neraca Saldo → Laba Rugi**).
+Dibangun dengan **Python Flask**, database utama **MongoDB Atlas** (melalui ENV `MONGODB_URI`) dengan
+**JSON fallback + backup/restore**, tampilan agency Bootstrap 5 + Font Awesome, dan siap **deploy ke Vercel**.
 
 ---
 
@@ -13,7 +13,8 @@ dan siap **deploy ke Vercel**.
 
 | Kebutuhan | Implementasi |
 |---|---|
-| Portal admin rapi | Login (session + CSRF), sidebar admin Bootstrap 5 + **Font Awesome (`fa-solid`/`fa-brands`)**, card modern bergradasi, responsif HP & desktop, bisa print laporan |
+| Profil publik di route `/` | Halaman hero, showreel, marquee layanan, keunggulan, proses, portofolio, layanan, testimoni, dan CTA WhatsApp. Semua teks, URL gambar/video, daftar layanan/proses/portofolio, statistik, kontak, dan sosial media diedit dari **Admin → Edit Profil** (`/admin/profil`) |
+| Portal admin rapi | Dashboard operasional kini di `/dashboard`; login session + CSRF, sidebar Bootstrap 5 + **Font Awesome (`fa-solid`/`fa-brands`)**, tipografi Inter Tight/Inter/Instrument Serif, card paper-ink dengan offset shadow, animasi reveal/hover/marquee, responsif HP & desktop, bisa print laporan |
 | Pemasukan & pengeluaran | Dashboard kartu Pemasukan (Kas masuk), Pengeluaran (Kas keluar), Laba Bersih, Saldo Kas + grafik 6 bulan (Chart.js), semua bisa difilter periode |
 | Daftar orderan & nomor antrian | Nomor antrian otomatis (`#1, #2, ...`) + kode order `FYY-0001`, halaman khusus **Antrian Kerja** (antrian terdepan, urutan aktif, papan Kanban per status) |
 | Data pesanan & assets | Per order ada **Brief**, **Script/Teks yang dianimasikan**, **Referensi**, **Catatan Revisi**, **Link Google Drive Assets client**, link preview & hasil — ada tombol **Salin**, buka Drive 1-klik, dan **Print Brief Kerja** |
@@ -22,8 +23,10 @@ dan siap **deploy ke Vercel**.
 | Dashboard bisa difilter | Filter periode (Hari Ini/Bulan Ini/Bulan Lalu/Tahun Ini/Semua/Custom), cari nama/WA/kode, filter status/bayar/prioritas, urut antrian/terbaru/deadline/harga, filter cepat 1-klik per status |
 | Transaksi transparan | Halaman **Transaksi (In/Out)**: semua uang masuk-keluar terlihat, terkait order mana, metode apa, akun debit/kreditnya apa |
 | Akuntansi lengkap | **Jurnal Umum** double-entry (cek Debit = Kredit), **Buku Besar** per akun dengan saldo berjalan, **Neraca Saldo** (cek balance), **Laporan Laba Rugi**, **Daftar Akun/COA** bisa tambah/edit |
-| MongoDB Atlas permanen | Koleksi `orders`, `transactions`, `accounts`, dan `app_state` di MongoDB Atlas melalui `MONGODB_URI`; tanpa URI, aplikasi otomatis memakai JSON fallback |
-| Backup & restore | **Download** snapshot JSON dari MongoDB/JSON aktif kapan saja; **Upload/Restore** file `.json` (atau paste teks JSON) untuk memulihkan data; export CSV termasuk link Drive; reset data contoh / kosongkan data |
+| Clipboard teks berulang | Simpan price list/teks manual, lalu salin dengan satu klik; tersimpan di koleksi `clipboard_items` |
+| Export Excel tabel asli | Orders, Transaksi, Jurnal Umum, Neraca Saldo, dan workbook lengkap diunduh sebagai `.xlsx` dengan **Excel Table asli**, header berfilter, freeze pane, zebra rows, hyperlink, serta format Rupiah/tanggal/persen. CSV lama tetap tersedia sebagai kompatibilitas |
+| MongoDB Atlas permanen | Koleksi `orders`, `transactions`, `accounts`, `clipboard_items`, dan `app_state` (meta/settings/profile) di MongoDB Atlas melalui `MONGODB_URI`; tanpa URI, aplikasi otomatis memakai JSON fallback |
+| Backup & restore | **Download** snapshot JSON dari MongoDB/JSON aktif kapan saja; **Upload/Restore** file `.json` (atau paste teks JSON) untuk memulihkan data termasuk profil & clipboard; backup lama tanpa `profile` otomatis memakai teks bawaan; reset data contoh / kosongkan data |
 
 ---
 
@@ -48,7 +51,7 @@ Butuh Python 3.10+ (disarankan 3.11/3.12).
 # 1) masuk folder proyek
 cd FYYMOTION
 
-# 2) buat virtual environment & install Flask + PyMongo
+# 2) buat virtual environment & install Flask + PyMongo + OpenPyXL
 python -m venv .venv
 # Windows:      .venv\Scripts\activate
 # macOS/Linux:  source .venv/bin/activate
@@ -64,7 +67,7 @@ pip install -r requirements.txt
 python app.py
 ```
 
-Buka **http://127.0.0.1:5000** → login → langsung terlihat dashboard berisi **data contoh**.
+Buka **http://127.0.0.1:5000** untuk profil publik, lalu **http://127.0.0.1:5000/login** → login → dashboard admin di **`/dashboard`** berisi **data contoh**.
 Tanpa `MONGODB_URI`, perubahan lokal tersimpan permanen di `database.json`. Bila `MONGODB_URI`
 diisi, lokal dan Vercel memakai MongoDB Atlas yang sama.
 
@@ -111,7 +114,7 @@ vercel --prod   # deploy production
 4. Vercel → Project → Settings → Environment Variables → buat:
    - `MONGODB_URI` = connection string lengkap (target Production & Preview)
    - `MONGODB_DB_NAME` = `fyymotion` (opsional)
-5. **Redeploy**. Saat pertama terhubung dan koleksi kosong, aplikasi otomatis men-seed data awal dari `database.json` repo ke koleksi `accounts`, `orders`, `transactions`, dan `app_state`.
+5. **Redeploy**. Saat pertama terhubung dan koleksi kosong, aplikasi otomatis men-seed data awal dari `database.json` repo ke koleksi `accounts`, `orders`, `transactions`, `clipboard_items`, dan `app_state`.
 6. Cek `https://domain-anda/health`: harus menampilkan `"storage":"mongodb"` dan `"database_connected":true`.
 
 Bila `MONGODB_URI` belum terpasang/terputus, aplikasi memakai JSON fallback agar tetap bisa dibuka.
@@ -126,8 +129,9 @@ Namun di Vercel file JSON berada di `/tmp` yang bisa ter-reset, jadi selesaikan 
 3. **Client minta revisi** → ubah status ke **Minta Revisi** dan tulis poin revisi di kolom Catatan Revisi. Menu sidebar *Minta Revisi* menampilkan badge jumlahnya supaya tidak ada yang terlupa.
 4. **Selesai & pelunasan** → status **Selesai/Sudah Jadi**, lalu dari detail order klik **Catat Pembayaran/Pelunasan** (form transaksi terisi otomatis sebesar sisa bayar). Kirim kabar ke client lewat tombol **WA**.
 5. **Pengeluaran** (langganan software, internet, freelancer, iklan) → menu **Transaksi → Catat Transaksi Baru**, pilih jenisnya — akun Debit/Kredit terisi otomatis.
-6. **Cek keuangan** → **Dashboard** (ringkas), **Jurnal Umum** (detail double-entry), **Buku Besar** (per akun), **Neraca Saldo** (pastikan *SEIMBANG*), **Laba Rugi** — semua bisa difilter per bulan dan di-print/export CSV.
-7. **Tutup hari** (opsional tapi dianjurkan) → **Download Backup JSON** dari database aktif sebagai arsip offline bertanggal.
+6. **Cek keuangan** → **Dashboard** (ringkas), **Jurnal Umum** (detail double-entry), **Buku Besar** (per akun), **Neraca Saldo** (pastikan *SEIMBANG*), **Laba Rugi** — semua bisa difilter per bulan, di-print, dan diekspor ke Excel.
+7. **Perbarui etalase publik** → **Edit Profil**: ganti hero, showreel, portofolio, layanan, proses, testimoni, nomor WA, dan sosial media, lalu buka route `/` untuk pratinjau.
+8. **Tutup hari** (opsional tapi dianjurkan) → **Download Backup JSON** dan/atau **Workbook Excel** dari database aktif sebagai arsip offline bertanggal.
 
 ---
 
@@ -138,13 +142,15 @@ Di MongoDB Atlas data disimpan sebagai koleksi:
 - `orders` — termasuk `drive_assets_url` untuk folder Google Drive Assets client
 - `transactions` — sumber Jurnal Umum, Buku Besar, Neraca Saldo, dan Laba Rugi
 - `accounts` — Chart of Accounts
-- `app_state` — dokumen `state` berisi `meta` dan `settings`
+- `clipboard_items` — teks price list dan teks berulang
+- `app_state` — dokumen `state` berisi `meta`, `settings`, dan `profile` publik
 
 Format file backup/restore tetap JSON berikut:
 
 ```jsonc
 {
   "settings":     { "nama_usaha": "FYY MOTION", "tagline": "...", "pemilik": "", "wa_admin": "" },
+  "profile":      { "hero_title_prefix": "Motion", "hero_title_accent": "Graphic", "portfolio": [ ... ] },
   "accounts":     [ { "kode": "101", "nama": "Kas", "tipe": "Aset", "saldo_normal": "Debit", "is_cash": true }, ... ],
   "orders":       [ { "id": "...", "order_code": "FYY-0001", "queue_no": 1,
                       "client_name": "...", "wa_number": "628...", "judul": "...",
@@ -154,7 +160,8 @@ Format file backup/restore tetap JSON berikut:
                       "drive_assets_url": "https://drive.google.com/drive/folders/...", ... }, ... ],
   "transactions": [ { "id": "...", "tanggal": "2026-10-21", "keterangan": "DP order FYY-0002 ...",
                       "jenis": "dp_order", "akun_debit": "101", "akun_kredit": "202",
-                      "jumlah": 425000, "order_id": "...", "metode_bayar": "DANA" }, ... ]
+                      "jumlah": 425000, "order_id": "...", "metode_bayar": "DANA" }, ... ],
+  "clipboard_items": [ { "title": "Price List", "content": "..." }, ... ]
 }
 ```
 
@@ -171,12 +178,11 @@ FYYMOTION/
 ├── app.py                 # Aplikasi Flask lengkap (entrypoint utama Vercel & lokal)
 ├── api/index.py           # Entrypoint cadangan Vercel (re-export app)
 ├── database.json          # Seed awal + fallback JSON + format backup/restore
-├── requirements.txt       # Flask + PyMongo (MongoDB Atlas)
-├── app.py                 # Memilih MongoDB bila MONGODB_URI ada, selain itu JSON
+├── requirements.txt       # Flask + PyMongo + OpenPyXL (Excel .xlsx)
 ├── vercel.json            # Konfigurasi Vercel (include templates/static/database)
 ├── .vercelignore / .env.example
-├── templates/             # 15 halaman Admin Bootstrap 5 (Jinja2)
-└── static/css/style.css, static/js/app.js
+├── templates/             # Profil publik + halaman Admin Bootstrap 5 (Jinja2)
+└── static/css/style.css, static/js/app.js, static/img/motion-showreel.jpg
 ```
 
 ## 🔧 Troubleshooting

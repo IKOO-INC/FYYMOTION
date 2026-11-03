@@ -8,7 +8,7 @@
   <a class="btn btn-primary" href="{{ url_for('transaction_new') }}"><i class="fa-solid fa-plus"></i> Catat Transaksi Baru</a>
   <a class="btn btn-success" href="{{ url_for('transactions_list', arah='masuk') }}"><i class="fa-solid fa-circle-arrow-down"></i> Hanya Pemasukan</a>
   <a class="btn btn-danger" href="{{ url_for('transactions_list', arah='keluar') }}"><i class="fa-solid fa-circle-arrow-up"></i> Hanya Pengeluaran</a>
-  <a class="btn btn-outline-success" href="{{ url_for('export_transactions') }}"><i class="fa-solid fa-file-csv"></i> Export CSV</a>
+  <a class="btn btn-outline-success" href="{{ url_for('export_transactions_excel') }}"><i class="fa-solid fa-file-excel"></i> Export Excel</a>
   <a class="btn btn-outline-dark" href="{{ url_for('jurnal') }}"><i class="fa-solid fa-book-open"></i> Lihat Jurnal Umum</a>
 </div>
 

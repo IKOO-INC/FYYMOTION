@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="id" data-bs-theme="dark">
+<html lang="id" data-bs-theme="light">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -8,7 +8,7 @@
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@500;600;700;800;900&family=Inter:wght@400;500;600;700;800&family=Instrument+Serif:ital@0;1&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
   <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
 </head>
 <body class="login-body">
@@ -22,8 +22,8 @@
 
       <div class="login-copy">
         <span class="login-eyebrow"><i class="fa-solid fa-sparkles"></i> Motion Graphic Command Center</span>
-        <h1>Order, antrian, assets, dan keuangan dalam satu ruang kerja elegan.</h1>
-        <p>Pantau client, buka Google Drive Assets, kendalikan progress produksi, dan lihat Jurnal akuntansi secara transparan tanpa berpindah aplikasi.</p>
+        <h1>Motion <em>partners</em> work faster here.</h1>
+        <p>Kelola profil publik di route <b>/</b>, order dan antrian di <b>/dashboard</b>, Google Drive Assets, clipboard price list, export Excel, serta Jurnal akuntansi dalam satu ruang admin.</p>
       </div>
 
       <div class="login-metrics">
@@ -38,7 +38,7 @@
     <div class="card login-card shadow-lg">
     <div class="card-body p-4 p-md-5">
       <div class="text-center mb-4">
-        <span class="brand-icon mx-auto mb-3" style="width:64px;height:64px;font-size:2rem;display:flex"><i class="fa-solid fa-clapperboard m-auto text-white"></i></span>
+        <span class="brand-icon mx-auto mb-3" style="width:64px;height:64px;font-size:2rem;display:flex"><i class="fa-solid fa-clapperboard m-auto"></i></span>
         <h4 class="fw-bold mb-0">{{ settings.nama_usaha or 'FYY MOTION' }}</h4>
         <p class="text-muted small mb-3">{{ settings.tagline or 'Jasa Pembuatan Animasi Motion Graphic' }}<br>Portal Order &amp; Keuangan</p>
         <div class="login-features">
@@ -64,8 +64,9 @@
           <div class="input-group"><span class="input-group-text"><i class="fa-solid fa-lock"></i></span>
             <input name="password" type="password" class="form-control" required autocomplete="current-password" placeholder="••••••••"></div>
         </div>
-        <button class="btn btn-primary w-100 fw-bold" type="submit"><i class="fa-solid fa-right-to-bracket"></i> Masuk ke Portal</button>
+        <button class="btn btn-primary w-100 fw-bold" type="submit"><i class="fa-solid fa-right-to-bracket"></i> Masuk ke Dashboard</button>
       </form>
+      <a class="btn btn-soft w-100 mt-2 justify-content-center" href="{{ url_for('public_profile') }}"><i class="fa-solid fa-globe"></i> Lihat Profil Publik</a>
       {% if default_hint %}
       <div class="alert alert-info small mt-3 mb-0">
         <i class="fa-solid fa-circle-info"></i> Akun bawaan: <code>admin</code> / <code>fyymotion123</code><br>
