@@ -31,12 +31,14 @@ from copy import deepcopy
 from datetime import date, datetime, timedelta
 from functools import wraps
 from pathlib import Path
-from urllib.parse import urlparse
+from urllib.parse import quote, urlparse
 
 from flask import (
     Flask, Response, abort, flash, g, redirect, render_template,
     request, send_file, session, url_for,
 )
+
+from alight_presets import CANVAS_PRESETS, CURVES, FONTS, PRESETS, ValidationError, build_text_scene_xml
 
 # --------------------------------------------------------------------------- #
 # Konfigurasi dasar
@@ -1366,7 +1368,10 @@ app.jinja_env.filters["wa"] = normalize_wa
 @app.before_request
 def guard():
     endpoint = request.endpoint or ""
-    if endpoint in ("static", "login", "health", "public_profile"):
+    if endpoint in (
+        "static", "login", "health", "public_profile",
+        "teks_creator", "teks_creator_generate", "academy", "daftar_academy",
+    ):
         pass
     elif not session.get("logged_in"):
         return redirect(url_for("login", next=request.path))
@@ -2504,6 +2509,63 @@ def export_neraca():
 def export_neraca_excel():
     db = load_db()
     return excel_response(_timestamp_name("fyymotion-neraca-saldo"), [workbook_sheets(db)[3]])
+
+
+# --------------------------------------------------------------------------- #
+# Teks Creator — generator preset teks Alight Motion (publik, tanpa login)
+# --------------------------------------------------------------------------- #
+@app.route("/teks-creator")
+def teks_creator():
+    """Halaman 4-langkah untuk membuat preset teks Alight Motion siap pasang."""
+    return render_template(
+        "teks_creator.html",
+        page_title="Teks Creator — Preset Alight Motion | FYY MOTION",
+        presets=PRESETS,
+        curves=CURVES,
+        fonts=FONTS,
+        canvas_presets=CANVAS_PRESETS,
+    )
+
+
+@app.route("/api/teks-creator/generate", methods=["POST"])
+def teks_creator_generate():
+    """Validasi input lalu bangun file .xml preset teks di memori (tanpa tulis disk)."""
+    payload = request.get_json(silent=True)
+    if not isinstance(payload, dict):
+        return {"error": "Payload tidak valid. Kirim JSON dari form Teks Creator."}, 400
+    try:
+        xml_text, filename = build_text_scene_xml(payload)
+    except ValidationError as exc:
+        return {"error": str(exc)}, 400
+    except Exception:
+        return {"error": "Terjadi kesalahan tak terduga saat membuat XML. Coba lagi."}, 500
+    return Response(
+        xml_text,
+        mimetype="application/xml",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
+
+
+# --------------------------------------------------------------------------- #
+# FYY MOTION Academy — landing kelas dasar motion graphic (publik)
+# --------------------------------------------------------------------------- #
+@app.route("/academy")
+def academy():
+    wa_number = re.sub(r"\D", "", os.environ.get("WA_NUMBER", ""))
+    return render_template(
+        "academy.html",
+        page_title="FYY MOTION Academy — Kelas Dasar Motion Graphic",
+        wa_configured=bool(wa_number),
+    )
+
+
+@app.route("/daftar")
+def daftar_academy():
+    """Redirect 302 ke WhatsApp dengan pesan tetap 'J-ACADEMY'."""
+    wa_number = re.sub(r"\D", "", os.environ.get("WA_NUMBER", ""))
+    if not wa_number:
+        return render_template("wa_not_configured.html"), 503
+    return redirect(f"https://wa.me/{wa_number}?text={quote('J-ACADEMY')}", code=302)
 
 
 @app.errorhandler(404)

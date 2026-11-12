@@ -34,6 +34,8 @@
       <a href="#works">Portofolio</a>
       <a href="#perks">Keunggulan</a>
       <a href="#services">Layanan</a>
+      <a href="{{ url_for('academy') }}">Academy</a>
+      <a href="{{ url_for('teks_creator') }}">Teks Creator</a>
       <a href="#contact">Kontak</a>
     </div>
     <div class="public-nav-actions">
@@ -311,6 +313,7 @@
       <a class="public-brand footer-brand" href="#top"><span class="public-brand-mark"><i class="fa-solid fa-play"></i></span><span>{{ settings.nama_usaha or 'FYY MOTION' }}</span></a>
       <div class="footer-links">
         <a href="#process">Cara Kerja</a><a href="#works">Portofolio</a><a href="#services">Layanan</a><a href="#contact">Kontak</a>
+        <a href="{{ url_for('academy') }}">Academy</a><a href="{{ url_for('teks_creator') }}">Teks Creator</a>
         {% if is_admin %}<a href="{{ url_for('profile_edit') }}">Edit Profil</a>{% else %}<a href="{{ url_for('login') }}">Login Admin</a>{% endif %}
       </div>
     </div>
