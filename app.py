@@ -38,7 +38,16 @@ from flask import (
     request, send_file, session, url_for,
 )
 
-from alight_presets import CANVAS_PRESETS, CURVES, FONTS, PRESETS, ValidationError, build_text_scene_xml
+from alight_presets import (
+    CANVAS_PRESETS,
+    CATEGORY_LABELS,
+    CURVES,
+    FONTS,
+    PRESETS,
+    ValidationError,
+    build_text_scene_xml,
+    list_presets_by_category,
+)
 
 # --------------------------------------------------------------------------- #
 # Konfigurasi dasar
@@ -2521,6 +2530,8 @@ def teks_creator():
         "teks_creator.html",
         page_title="Teks Creator — Preset Alight Motion | FYY MOTION",
         presets=PRESETS,
+        preset_groups=list_presets_by_category(),
+        category_labels=CATEGORY_LABELS,
         curves=CURVES,
         fonts=FONTS,
         canvas_presets=CANVAS_PRESETS,
