@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Buat preset teks Alight Motion siap pasang: Fade + Blur In, Slide Up, Scale Spring, Word Reveal, Letter Stagger, dan Kinetic Tight.">
+  <meta name="csrf-token" content="{{ csrf_token() }}">
+  <title>{{ page_title }}</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link href="{{ url_for('static', filename='css/teks-creator.css') }}" rel="stylesheet">
+</head>
+<body class="tc-body">
+
+<div class="tc-topbar">
+  <a class="tc-back" href="{{ url_for('public_profile') }}"><i class="fa-solid fa-arrow-left"></i> FYY MOTION</a>
+  <span class="tc-title">Teks Creator</span>
+  <a class="tc-back" href="{{ url_for('academy') }}">Academy <i class="fa-solid fa-arrow-right"></i></a>
+</div>
+
+<div class="tc-wrap">
+  <div class="tc-hero">
+    <h1>Buat preset teks Alight Motion<br>dalam 4 langkah.</h1>
+    <p>Pilih gaya animasi, ganti teks, atur kurva pergerakan, lalu export file .xml yang siap diimpor langsung ke Alight Motion.</p>
+  </div>
+
+  <div class="tc-steps" id="tcSteps">
+    <span class="tc-step-pill active" data-step="1"><span class="num">1</span> Pilih Preset</span>
+    <span class="tc-step-pill" data-step="2"><span class="num">2</span> Ganti Teks</span>
+    <span class="tc-step-pill" data-step="3"><span class="num">3</span> Edit Kurva</span>
+    <span class="tc-step-pill" data-step="4"><span class="num">4</span> Export</span>
+  </div>
+
+  <!-- STEP 1: PILIH PRESET -->
+  <section class="tc-panel active" data-panel="1">
+    <h2>Pilih jenis preset</h2>
+    <p class="tc-sub">Enam gaya animasi teks bergaya Apple keynote. Kamu bisa ganti teks dan kurva di langkah berikutnya.</p>
+    <div class="tc-preset-grid" id="tcPresetGrid"></div>
+    <div class="tc-actions">
+      <span></span>
+      <div class="tc-actions-right">
+        <button type="button" class="tc-btn tc-btn-primary" id="tcNext1" disabled>Lanjut <i class="fa-solid fa-arrow-right"></i></button>
+      </div>
+    </div>
+  </section>
+
+  <!-- STEP 2: GANTI TEKS -->
+  <section class="tc-panel" data-panel="2">
+    <h2>Ganti teks</h2>
+    <p class="tc-sub">Atur isi teks, ukuran, warna, font, perataan, durasi, dan ukuran kanvas.</p>
+
+    <div class="tc-field">
+      <label for="tcText">Isi teks</label>
+      <textarea class="tc-textarea" id="tcText" maxlength="240" placeholder="Tulis teks di sini...">FYY MOTION</textarea>
+      <div class="tc-hint">Maksimal 240 karakter, 5 baris.</div>
+    </div>
+
+    <div class="tc-grid-2">
+      <div class="tc-field">
+        <label for="tcFontSize">Ukuran teks (px)</label>
+        <input class="tc-input" type="number" id="tcFontSize" min="10" max="320" value="80">
+      </div>
+      <div class="tc-field">
+        <label for="tcColor">Warna teks</label>
+        <div class="tc-color-row">
+          <input type="color" id="tcColor" value="#f5f5f7">
+          <input class="tc-input" type="text" id="tcColorText" value="#f5f5f7">
+        </div>
+      </div>
+      <div class="tc-field">
+        <label for="tcFont">Font</label>
+        <select class="tc-select" id="tcFont"></select>
+      </div>
+      <div class="tc-field">
+        <label for="tcWeight">Ketebalan font</label>
+        <select class="tc-select" id="tcWeight">
+          <option value="400">Regular (400)</option>
+          <option value="500">Medium (500)</option>
+          <option value="600">Semibold (600)</option>
+          <option value="700" selected>Bold (700)</option>
+          <option value="800">Extra Bold (800)</option>
+          <option value="900">Black (900)</option>
+        </select>
+      </div>
+      <div class="tc-field">
+        <label for="tcAlign">Perataan</label>
+        <select class="tc-select" id="tcAlign">
+          <option value="left">Kiri</option>
+          <option value="center" selected>Tengah</option>
+          <option value="right">Kanan</option>
+        </select>
+      </div>
+      <div class="tc-field">
+        <label for="tcDuration">Durasi (ms)</label>
+        <input class="tc-input" type="number" id="tcDuration" min="200" max="20000" step="50" value="900">
+      </div>
+      <div class="tc-field">
+        <label for="tcCanvas">Ukuran kanvas</label>
+        <select class="tc-select" id="tcCanvas"></select>
+      </div>
+    </div>
+
+    <div class="tc-field">
+      <label>Preview teks</label>
+      <div class="tc-preview-box">
+        <div class="tc-preview-text" id="tcPreviewText2">FYY MOTION</div>
+      </div>
+    </div>
+
+    <div class="tc-actions">
+      <button type="button" class="tc-btn tc-btn-ghost" id="tcBack2"><i class="fa-solid fa-arrow-left"></i> Kembali</button>
+      <div class="tc-actions-right">
+        <button type="button" class="tc-btn tc-btn-primary" id="tcNext2">Lanjut <i class="fa-solid fa-arrow-right"></i></button>
+      </div>
+    </div>
+  </section>
+
+  <!-- STEP 3: EDIT KURVA -->
+  <section class="tc-panel" data-panel="3">
+    <h2>Edit kurva pergerakan</h2>
+    <p class="tc-sub">Geser dua handle untuk mengatur cubic-bezier, atau pakai salah satu preset kurva. Preview di kanan bergerak mengikuti kurva yang dipilih.</p>
+
+    <div class="tc-curve-wrap">
+      <div class="tc-curve-editor">
+        <svg id="tcCurveSvg" viewBox="0 0 260 260"></svg>
+      </div>
+      <div class="tc-curve-side">
+        <div class="tc-curve-presets" id="tcCurvePresets"></div>
+        <div class="tc-curve-values">
+          <div class="tc-field"><label>X1</label><input class="tc-input" type="number" id="tcX1" step="0.01" min="0" max="1"></div>
+          <div class="tc-field"><label>Y1</label><input class="tc-input" type="number" id="tcY1" step="0.01"></div>
+          <div class="tc-field"><label>X2</label><input class="tc-input" type="number" id="tcX2" step="0.01" min="0" max="1"></div>
+          <div class="tc-field"><label>Y2</label><input class="tc-input" type="number" id="tcY2" step="0.01"></div>
+        </div>
+        <div class="tc-preview-box">
+          <div class="tc-preview-text" id="tcPreviewText3">FYY MOTION</div>
+          <button type="button" class="tc-btn tc-btn-ghost tc-replay-btn" id="tcReplay"><i class="fa-solid fa-rotate-right"></i> Replay</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="tc-actions">
+      <button type="button" class="tc-btn tc-btn-ghost" id="tcBack3"><i class="fa-solid fa-arrow-left"></i> Kembali</button>
+      <div class="tc-actions-right">
+        <button type="button" class="tc-btn tc-btn-primary" id="tcNext3">Lanjut <i class="fa-solid fa-arrow-right"></i></button>
+      </div>
+    </div>
+  </section>
+
+  <!-- STEP 4: EXPORT -->
+  <section class="tc-panel" data-panel="4">
+    <h2>Export XML</h2>
+    <p class="tc-sub">Cek ringkasan di bawah, lalu unduh atau salin XML preset untuk dipasang di Alight Motion.</p>
+
+    <div class="tc-summary" id="tcSummary"></div>
+
+    <div class="tc-actions">
+      <button type="button" class="tc-btn tc-btn-ghost" id="tcBack4"><i class="fa-solid fa-arrow-left"></i> Kembali</button>
+      <div class="tc-actions-right">
+        <button type="button" class="tc-btn tc-btn-dark" id="tcCopyBtn"><i class="fa-solid fa-copy"></i> Copy XML</button>
+        <button type="button" class="tc-btn tc-btn-primary" id="tcExportBtn"><i class="fa-solid fa-download"></i> Export XML</button>
+      </div>
+    </div>
+
+    <div class="tc-result" id="tcResult"></div>
+
+    <div class="tc-howto">
+      <h3>Cara memasang di Alight Motion</h3>
+      <ol>
+        <li>Unduh atau salin file <code>.xml</code> hasil export, lalu simpan di penyimpanan HP (misal folder Download).</li>
+        <li>Buka aplikasi Alight Motion, masuk ke project yang ingin ditambahkan teks ini.</li>
+        <li>Gunakan menu Import/Insert layer dari file, lalu pilih file <code>.xml</code> yang sudah disimpan.</li>
+        <li>Layer teks preset akan muncul di project — sesuaikan posisi, waktu mulai, dan teksnya bila perlu.</li>
+        <li>Langkah menu tepatnya bisa sedikit berbeda tergantung versi aplikasi Alight Motion yang kamu pakai.</li>
+      </ol>
+    </div>
+  </section>
+</div>
+
+<script>
+  window.TC_PRESETS = {{ presets|tojson }};
+  window.TC_CURVES = {{ curves|tojson }};
+  window.TC_FONTS = {{ fonts|tojson }};
+  window.TC_CANVAS = {{ canvas_presets|tojson }};
+</script>
+<script src="{{ url_for('static', filename='js/teks-creator.js') }}"></script>
+</body>
+</html>

@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pendaftaran Belum Aktif — FYY MOTION Academy</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
+  <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
+  <style>
+    body{display:flex; min-height:100vh; align-items:center; justify-content:center; background:#111; color:#fff; font-family:'Inter',sans-serif; padding:24px;}
+    .wnc-box{max-width:480px; text-align:center; background:#1a1a1a; border:1px solid #2c2c2c; border-radius:20px; padding:40px 32px;}
+    .wnc-box i{font-size:2.4rem; color:#ffb020; margin-bottom:16px;}
+    .wnc-box h1{font-size:1.3rem; margin-bottom:10px;}
+    .wnc-box p{color:#b8b8b8; font-size:.95rem; line-height:1.6;}
+    .wnc-box a{display:inline-block; margin-top:18px; color:#fff; background:#0071e3; padding:12px 22px; border-radius:999px; text-decoration:none; font-weight:600;}
+  </style>
+</head>
+<body>
+  <div class="wnc-box">
+    <i class="fa-solid fa-triangle-exclamation"></i>
+    <h1>Pendaftaran belum aktif</h1>
+    <p>
+      Admin belum mengatur nomor WhatsApp pendaftaran (<code>WA_NUMBER</code>) di environment variable,
+      jadi tombol daftar belum bisa diarahkan ke WhatsApp. Silakan coba lagi beberapa saat lagi,
+      atau hubungi admin FYY MOTION melalui kontak di halaman utama.
+    </p>
+    <a href="{{ url_for('academy') }}"><i class="fa-solid fa-arrow-left"></i> Kembali ke Academy</a>
+  </div>
+</body>
+</html>
