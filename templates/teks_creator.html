@@ -3,22 +3,67 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Buat preset teks Alight Motion siap pasang dari 30 animasi asli: 10 preset Hand-Crafted dan 20 preset One-Click.">
+  <meta name="description" content="Buat preset teks Alight Motion siap pasang dari 40 animasi asli: 10 preset Hand-Crafted, 20 preset One-Click, dan 10 preset Apple.">
   <meta name="csrf-token" content="{{ csrf_token() }}">
   <title>{{ page_title }}</title>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Inter+Tight:wght@700;800;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
   <link href="{{ url_for('static', filename='css/teks-creator.css') }}" rel="stylesheet">
 </head>
 <body class="tc-body">
 
-<div class="tc-topbar">
-  <a class="tc-back" href="{{ url_for('public_profile') }}"><i class="fa-solid fa-arrow-left"></i> FYY MOTION</a>
-  <span class="tc-title">Teks Creator</span>
-  <a class="tc-back" href="{{ url_for('academy') }}">Academy <i class="fa-solid fa-arrow-right"></i></a>
-</div>
+<header class="tc-nav-wrap public-nav-wrap">
+  <nav class="tc-public-nav public-nav" aria-label="Navigasi Teks Creator">
+    <a class="tc-public-brand public-brand" href="{{ url_for('public_profile') }}">
+      <span class="tc-public-brand-mark public-brand-mark"><i class="fa-solid fa-play"></i></span>
+      <span>{{ settings.nama_usaha or 'FYY MOTION' }}</span>
+    </a>
+    <div class="tc-public-links public-links">
+      <a href="{{ url_for('public_profile') }}">Beranda</a>
+      <a href="{{ url_for('academy') }}">Academy</a>
+      <a class="is-active" href="{{ url_for('teks_creator') }}">Teks Creator</a>
+    </div>
+    <div class="tc-public-nav-actions public-nav-actions">
+      {% if is_admin %}
+      <a class="tc-public-login public-login-link" href="{{ url_for('dashboard') }}">Dashboard</a>
+      {% else %}
+      <a class="tc-public-login public-login-link" href="{{ url_for('login') }}">Admin</a>
+      {% endif %}
+      <a class="btn tc-public-cta public-cta-btn" href="{{ primary_url }}" {% if primary_url.startswith('http') %}target="_blank" rel="noopener"{% endif %}>
+        <span class="tc-public-cta-label">{{ profile.nav_cta_label or 'Order Sekarang' }}</span> <i class="fa-solid fa-arrow-up-right-from-square"></i>
+      </a>
+      <button type="button" class="tc-drawer-btn" id="tcDrawerBtn" aria-label="Buka menu" aria-expanded="false" aria-controls="tcDrawer">
+        <i class="fa-solid fa-bars"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+
+<div class="tc-drawer-backdrop" id="tcDrawerBackdrop"></div>
+<aside class="tc-drawer" id="tcDrawer" aria-hidden="true">
+  <div class="tc-drawer-head">
+    <a class="tc-public-brand" href="{{ url_for('public_profile') }}">
+      <span class="tc-public-brand-mark public-brand-mark"><i class="fa-solid fa-play"></i></span>
+      <span>{{ settings.nama_usaha or 'FYY MOTION' }}</span>
+    </a>
+    <button type="button" class="tc-drawer-close" id="tcDrawerClose" aria-label="Tutup menu"><i class="fa-solid fa-xmark"></i></button>
+  </div>
+  <nav class="tc-drawer-links">
+    <a href="{{ url_for('public_profile') }}"><i class="fa-solid fa-house"></i> Beranda</a>
+    <a href="{{ url_for('academy') }}"><i class="fa-solid fa-graduation-cap"></i> Academy</a>
+    <a class="is-active" href="{{ url_for('teks_creator') }}"><i class="fa-solid fa-wand-magic-sparkles"></i> Teks Creator</a>
+    {% if is_admin %}
+    <a href="{{ url_for('dashboard') }}"><i class="fa-solid fa-gauge-high"></i> Dashboard</a>
+    {% else %}
+    <a href="{{ url_for('login') }}"><i class="fa-solid fa-lock"></i> Admin</a>
+    {% endif %}
+  </nav>
+  <a class="btn tc-public-cta public-cta-btn tc-drawer-cta" href="{{ primary_url }}" {% if primary_url.startswith('http') %}target="_blank" rel="noopener"{% endif %}>
+    <span class="tc-public-cta-label">{{ profile.nav_cta_label or 'Order Sekarang' }}</span> <i class="fa-solid fa-arrow-up-right-from-square"></i>
+  </a>
+</aside>
 
 <div class="tc-wrap">
   <div class="tc-hero">
@@ -36,7 +81,7 @@
   <!-- STEP 1: PILIH PRESET -->
   <section class="tc-panel active" data-panel="1">
     <h2>Pilih jenis preset</h2>
-    <p class="tc-sub">30 animasi asli dari koleksi Alight Motion: 10 preset Hand-Crafted (animasi per huruf) dan 20 preset One-Click (animasi satu efek). Kamu bisa ganti teks dan kurva di langkah berikutnya.</p>
+    <p class="tc-sub">40 animasi asli dari koleksi Alight Motion: 10 preset Hand-Crafted (animasi per huruf), 20 preset One-Click (animasi satu efek), dan 10 preset Apple (gaya reveal halus ala Apple). Kamu bisa ganti teks dan kurva di langkah berikutnya.</p>
     <div class="tc-cat-tabs" id="tcCatTabs"></div>
     <div id="tcCatPanels"></div>
     <div class="tc-actions">
@@ -179,6 +224,25 @@
     </div>
   </section>
 </div>
+
+<footer class="tc-public-footer public-footer">
+  <div class="tc-public-container public-container">
+    <div class="footer-top">
+      <a class="tc-public-brand public-brand footer-brand" href="{{ url_for('public_profile') }}">
+        <span class="tc-public-brand-mark public-brand-mark"><i class="fa-solid fa-play"></i></span>
+        <span>{{ settings.nama_usaha or 'FYY MOTION' }}</span>
+      </a>
+      <div class="footer-links">
+        <a href="{{ url_for('public_profile') }}">Beranda</a>
+        <a href="{{ url_for('academy') }}">Academy</a>
+        <a href="{{ url_for('teks_creator') }}">Teks Creator</a>
+        {% if is_admin %}<a href="{{ url_for('dashboard') }}">Dashboard</a>{% else %}<a href="{{ url_for('login') }}">Login Admin</a>{% endif %}
+      </div>
+    </div>
+    <div class="footer-giant">{{ settings.nama_usaha or 'FYY MOTION' }}</div>
+    <div class="footer-bottom"><span>{{ profile.footer_text or '© ' ~ (settings.nama_usaha or 'FYY MOTION') }}</span><span>&copy; {{ now_year }}</span></div>
+  </div>
+</footer>
 
 <script>
   window.TC_PRESETS = {{ presets|tojson }};

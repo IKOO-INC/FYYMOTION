@@ -11,6 +11,16 @@ Google Drive milik pengguna:
   - 20 file dari folder "One-Click" (animasi satu-klik, umumnya 1 layer teks
     + 1 efek bawaan Alight Motion).
 
+Ditambah 10 preset kategori "Apple" yang diambil dari folder Google Drive
+terpisah (10 file .xml nama UUID, judul internal "Text Animation 1" s/d
+"Text Animation 10"). File-file ini jauh lebih kompleks (banyak <embedScene>
+bersarang, <nullobj>, shape dekoratif .circle/.roundrect, path-stroke custom)
+sehingga untuk tiap preset Apple hanya ANIMASI INTI TEKS yang diambil persis
+dari file sumber (kurva cubic-bezier, properti efek, path vektor hand-drawn,
+dsb.), sedangkan shape dekoratif sekunder (lingkaran, pil badge, panah) yang
+tidak esensial untuk reveal teks disederhanakan/dibuang — selalu ditandai
+lewat field "note" bila ada penyederhanaan struktural.
+
 Setiap preset di bawah ini (PRESETS) menyimpan parameter ASLI yang diambil
 dari file sumbernya masing-masing (kurva cubic-bezier, sudut rotasi, offset,
 nama efek, dsb). Tidak ada efek/atribut yang dikarang; yang disederhanakan
@@ -29,6 +39,8 @@ Efek Alight Motion asli yang terbukti dipakai (dan karenanya tersedia di sini):
   - com.alightcreative.effects.fade           (fade in/out halus)
   - com.alightcreative.effects.offset         (geser dengan mask persegi)
   - com.alightcreative.effects.textspacing    (animasi kerapatan huruf)
+  - com.alightcreative.effects.flicker2       (kedip-kedip sesaat sebelum stabil)
+  - com.alightcreative.effects.drawing.progress (coretan vektor tergambar progresif)
   - <transform><scale>/<rotation>/<location> dengan <kf t=".." v=".." e="cubicBezier a b c d" />
 
 Beberapa preset sumber memakai kurva "elastic ..." (pegas) yang BUKAN
@@ -402,11 +414,136 @@ PRESETS = {
         "curve": None,
         "params": {"component": 1, "anchor": 1, "offset": None, "overlap": 1.62, "alpha": "-1.000000", "ease_in": "0.0", "ease_out": "0.0", "end_start": 0.0, "end_target": 0.928, "mirror": False, "angle": 0.0, "scale_prop": 1.71},
     },
+
+    # ================================ APPLE (10) ================================ #
+    # Sumber: folder Google Drive "Apple" (10 file .xml nama UUID, judul internal
+    # "Text Animation 1" s/d "Text Animation 10"). Lihat docstring modul ini untuk
+    # penjelasan penyederhanaan shape dekoratif.
+    "ap01_defocus_reveal": {
+        "name": "Defocus Reveal",
+        "category": "apple",
+        "description": "Teks masuk dari buram (gaussian blur kuat) menuju fokus tajam — reveal asli dari 'Text Animation 3'.",
+        "icon": "fa-solid fa-circle-notch",
+        "engine": "blur_pop",
+        "demo_text": "Text Here",
+        "default_duration_ms": 700,
+        "curve": (0.32, 0.0, 0.0, 1.0),
+        "note": "Shape mask penyapu & efek blur pada file asli digabung menjadi satu reveal blur langsung pada teks.",
+        "params": {"blur_start": 0.525},
+    },
+    "ap02_soft_blur_pop": {
+        "name": "Soft Blur Pop",
+        "category": "apple",
+        "description": "Variasi defocus yang lebih lembut dengan kurva percepatan landai — dari 'Text Animation 7'.",
+        "icon": "fa-solid fa-circle-half-stroke",
+        "engine": "blur_pop",
+        "demo_text": "Your Text here",
+        "default_duration_ms": 650,
+        "curve": (0.4357519, 0.0, 0.0, 1.0),
+        "note": "Dekorasi lingkaran & garis aksen pada file asli tidak disertakan agar preset tetap fokus pada teks.",
+        "params": {"blur_start": 0.455},
+    },
+    "ap03_slide_settle_down": {
+        "name": "Slide Settle Down",
+        "category": "apple",
+        "description": "Teks meluncur dari atas lalu menetap mulus di posisi akhir — animasi judul bertingkat dari 'Text Animation 5'.",
+        "icon": "fa-solid fa-arrow-down-long",
+        "engine": "slide_settle",
+        "demo_text": "Like a Pro",
+        "default_duration_ms": 750,
+        "curve": (0.0, 0.28987166, 0.2758527, 1.0),
+        "note": "Reveal mask penyapu pada file asli disederhanakan; gerakan <location> tetap memakai nilai & kurva asli.",
+        "params": {"slide_offset_y": -179.458008},
+    },
+    "ap04_pop_scale_soft": {
+        "name": "Pop Scale Soft",
+        "category": "apple",
+        "description": "Teks membesar masuk dengan kurva percepatan khas — dari animasi kotak teks 'Text Animation 2'.",
+        "icon": "fa-solid fa-up-right-and-down-left-from-center",
+        "engine": "pop",
+        "demo_text": "Clean and modern",
+        "default_duration_ms": 600,
+        "curve": (0.4683649, 0.0, 0.19912732, 1.0),
+        "note": "Latar pil (roundrect) & animasi keluar (blur + scroll) pada file asli tidak disertakan.",
+        "params": {},
+    },
+    "ap05_flicker_reveal": {
+        "name": "Flicker Reveal",
+        "category": "apple",
+        "description": "Teks melompat masuk dengan pegas lalu berkedip (flicker) sesaat sebelum stabil — efek 'flicker2' asli dari 'Text Animation 10'.",
+        "icon": "fa-solid fa-bolt",
+        "engine": "flicker_reveal",
+        "demo_text": "SMOOTH",
+        "default_duration_ms": 900,
+        "curve": _REAL_FALLBACK_CURVE,
+        "elastic_note": "Preset asli memakai kurva pegas 'elastic 0.45063996 1.0 0.0 0.15295398' untuk skala masuk.",
+        "params": {"freq": 8.139999, "mag_start_frac": 0.038178, "mag_end_frac": 0.171053},
+    },
+    "ap06_marquee_scroll": {
+        "name": "Marquee Scroll",
+        "category": "apple",
+        "description": "Teks bergulir horizontal melintasi layar dari kanan ke kiri — animasi berjalan dari 'Text Animation 6'.",
+        "icon": "fa-solid fa-angles-left",
+        "engine": "marquee",
+        "demo_text": "Use text animations to make your content stand out",
+        "default_duration_ms": 4200,
+        "curve": _REAL_FALLBACK_CURVE,
+        "elastic_note": "Preset asli memakai kurva pegas 'elastic 0.42520362 1.0 0.0 0.21020746' di setiap titik gulir.",
+        "params": {},
+    },
+    "ap07_stacked_reveal": {
+        "name": "Stacked Reveal",
+        "category": "apple",
+        "description": "Tiap baris teks terungkap dari bawah dengan sedikit efek stretch overshoot — Text Transform asli dari 'Text Animation 8'.",
+        "icon": "fa-solid fa-layer-group",
+        "engine": "texttransform",
+        "demo_text": "Create\nSmooth Text\nAnimation",
+        "default_duration_ms": 900,
+        "curve": (0.0, 0.5948694, 1.0, 0.40455785),
+        "note": "Garis bawah coretan tangan & panah dekoratif pada file asli dipindahkan ke preset terpisah 'Hand-drawn Underline'.",
+        "params": {"component": 1, "anchor": 1, "offset": (0.0, -210.0), "overlap": 10.0, "alpha": "-1.000000", "ease_in": "1.0", "ease_out": "-1.0", "end_start": 0.0, "end_target": 1.0, "mirror": False, "angle": 0.0, "scale_prop": 0.0, "stretch_anim": (0.012043, 1.0, 0.029382, 1.5)},
+    },
+    "ap08_typewriter_caption": {
+        "name": "Typewriter Caption",
+        "category": "apple",
+        "description": "Teks diketik progresif tanpa kursor berkedip, dengan kerapatan huruf direnggangkan — Text Progress + Text Spacing asli dari 'Text Animation 8'.",
+        "icon": "fa-solid fa-terminal",
+        "engine": "typewriter",
+        "demo_text": "Create smooth and professional text animations in Alight Motion.",
+        "default_duration_ms": 1800,
+        "curve": (0.3761968, 0.0, 0.046700478, 1.0),
+        "params": {"cursor": 0, "blink": False, "use_curve": True, "textspacing": (0.09, 1.115)},
+    },
+    "ap09_handdrawn_underline": {
+        "name": "Hand-drawn Underline",
+        "category": "apple",
+        "description": "Teks membesar lalu garis bawah coretan tangan tergambar progresif — efek 'drawing.progress' + path vektor asli dari 'Text Animation 8'.",
+        "icon": "fa-solid fa-pen-nib",
+        "engine": "handdrawn_underline",
+        "demo_text": "Animation",
+        "default_duration_ms": 900,
+        "curve": (0.36937612, 0.0, 0.0, 1.0),
+        "note": "Path vektor coretan tangan diambil verbatim dari file sumber; posisi & skala disesuaikan otomatis agar pas di bawah teks apa pun.",
+        "params": {},
+    },
+    "ap10_spaced_caption_reveal": {
+        "name": "Spaced Caption Reveal",
+        "category": "apple",
+        "description": "Caption terungkap huruf demi huruf dengan kerapatan huruf direnggangkan (letterspacing) — dari grup caption 'Text Animation 9'.",
+        "icon": "fa-solid fa-circle-dot",
+        "engine": "texttransform",
+        "demo_text": "Create smooth simple text animations in Alight Motion.",
+        "default_duration_ms": 1200,
+        "curve": (0.0, 0.5948694, 1.0, 0.40455785),
+        "note": "Cincin titik berputar & label 'Point 1-4' dekoratif pada file asli tidak disertakan; fokus pada reveal caption.",
+        "params": {"component": 1, "anchor": 1, "offset": (0.0, -210.0), "overlap": 10.0, "alpha": "-1.000000", "ease_in": "1.0", "ease_out": "-1.0", "end_start": 0.0, "end_target": 1.0, "mirror": False, "angle": 0.0, "scale_prop": 0.0, "stretch_value": 1.0, "textspacing": (0.09, 1.115)},
+    },
 }
 
 CATEGORY_LABELS = {
     "hand_crafted": "Hand-Crafted",
     "one_click": "One-Click",
+    "apple": "Apple",
 }
 
 CURVES = {
@@ -437,7 +574,7 @@ CANVAS_PRESETS = {
 
 def list_presets_by_category() -> dict:
     """Kelompokkan katalog PRESETS per kategori untuk ditampilkan sebagai tab di UI."""
-    grouped: dict = {"hand_crafted": [], "one_click": []}
+    grouped: dict = {"hand_crafted": [], "one_click": [], "apple": []}
     for preset_id, preset in PRESETS.items():
         grouped[preset["category"]].append({
             "id": preset_id,
@@ -698,21 +835,34 @@ def _engine_wipe(data: dict, cx: float, cy: float) -> tuple[str, str]:
 # --------------------------------------------------------------------------- #
 def _engine_typewriter(data: dict, cx: float, cy: float) -> tuple[str, str]:
     dur_s = data["duration_ms"] / 1000.0
-    cursor = data["preset"]["params"].get("cursor", 5)
-    blink = "true" if data["preset"]["params"].get("blink", True) else "false"
+    p = data["preset"]["params"]
+    cursor = p.get("cursor", 5)
+    blink = "true" if p.get("blink", True) else "false"
     transform = f'      <location value="{cx:.6f},{cy:.6f},0.000000" />'
-    effect = "\n".join([
+    # Preset oc14 asli tidak memakai kurva cubic-bezier pada kf "end" (linear).
+    # Preset Apple baru (dengan use_curve=True) memakai kurva asli file sumber.
+    end_kf_final = _kf(dur_s, "1.000000", _curve_str(data["curve"])) if p.get("use_curve") else _kf(dur_s, "1.000000")
+    effect_lines = [
         '      <effect id="com.alightcreative.effects.textprogress" locallyApplied="true">',
         '        <property name="start" type="float" value="0.000000" />',
         '        <property name="end" type="float">',
         _kf(0.0, "0.000000"),
-        _kf(dur_s, "1.000000"),
+        end_kf_final,
         "        </property>",
         f'        <property name="cursor" type="int" value="{cursor}" />',
         f'        <property name="blink" type="bool" value="{blink}" />',
         "      </effect>",
-    ])
-    return transform, effect
+    ]
+    textspacing = p.get("textspacing")
+    if textspacing:
+        ls, lns = textspacing
+        effect_lines = [
+            '      <effect id="com.alightcreative.effects.textspacing" locallyApplied="true">',
+            f'        <property name="letterspacing" type="float" value="{ls:.6f}" />',
+            f'        <property name="linespacing" type="float" value="{lns:.6f}" />',
+            "      </effect>",
+        ] + effect_lines
+    return transform, "\n".join(effect_lines)
 
 
 # --------------------------------------------------------------------------- #
@@ -824,6 +974,19 @@ def _engine_texttransform(data: dict, cx: float, cy: float) -> tuple[str, str]:
     random_order = "true" if p.get("random_order") else "false"
     seed = p.get("seed", 0.0)
 
+    stretch_anim = p.get("stretch_anim")
+    if stretch_anim:
+        t1f, v1, t2f, v2 = stretch_anim
+        pts = sorted([(t1f, v1), (t2f, v2)], key=lambda item: item[0])
+        stretch_block = "\n".join([
+            '        <property name="stretch" type="float">',
+            _kf(pts[0][0] * dur_s, f"{pts[0][1]:.6f}"),
+            _kf(pts[1][0] * dur_s, f"{pts[1][1]:.6f}"),
+            "        </property>",
+        ])
+    else:
+        stretch_block = f'        <property name="stretch" type="float" value="{p.get("stretch_value", 0.0):.6f}" />'
+
     effect_lines = [
         '      <effect id="com.alightcreative.effects.texttransform" locallyApplied="true">',
         '        <property name="start" type="float" value="0.000000" />',
@@ -834,7 +997,7 @@ def _engine_texttransform(data: dict, cx: float, cy: float) -> tuple[str, str]:
         offset_block,
         f'        <property name="angle" type="float" value="{p.get("angle", 0.0):.6f}" />',
         f'        <property name="scale" type="float" value="{p.get("scale_prop", 0.0):.6f}" />',
-        '        <property name="stretch" type="float" value="0.000000" />',
+        stretch_block,
         f'        <property name="alpha" type="float" value="{p.get("alpha", "0.000000")}" />',
         '        <property name="useFillColor" type="bool" value="false" />',
         '        <property name="fillColor" type="color" value="#ff00ff00" />',
@@ -860,7 +1023,166 @@ def _engine_texttransform(data: dict, cx: float, cy: float) -> tuple[str, str]:
             "      </effect>",
         ])
 
+    textspacing_static = p.get("textspacing")
+    if textspacing_static:
+        ls, lns = textspacing_static
+        effect_lines.extend([
+            '      <effect id="com.alightcreative.effects.textspacing" locallyApplied="true">',
+            f'        <property name="letterspacing" type="float" value="{ls:.6f}" />',
+            f'        <property name="linespacing" type="float" value="{lns:.6f}" />',
+            "      </effect>",
+        ])
+
     return transform, "\n".join(effect_lines)
+
+
+# --------------------------------------------------------------------------- #
+# Engine "slide_settle": teks meluncur vertikal lalu menetap di posisi akhir —
+# dipakai di preset Apple yang sumbernya memakai reveal mask terpisah untuk
+# teks (bagian mask disederhanakan di sini, gerakan <location> tetap memakai
+# nilai & kurva asli dari file sumber "Text Animation 5").
+# --------------------------------------------------------------------------- #
+def _engine_slide_settle(data: dict, cx: float, cy: float) -> tuple[str, str]:
+    dur_s = data["duration_ms"] / 1000.0
+    curve_str = _curve_str(data["curve"])
+    slide_y = data["preset"]["params"].get("slide_offset_y", -180.0)
+    transform = "\n".join([
+        "      <location>",
+        _kf(dur_s, f"{cx:.6f},{cy:.6f},0.000000", curve_str),
+        _kf(0.0, f"{cx:.6f},{cy + slide_y:.6f},0.000000"),
+        "      </location>",
+    ])
+    return transform, ""
+
+
+# --------------------------------------------------------------------------- #
+# Engine "flicker_reveal": skala masuk + com.alightcreative.effects.flicker2
+# (freq/mag) — efek "kedip" asli terbukti dipakai langsung pada layer teks di
+# file sumber Apple "Text Animation 10" (frekuensi & rentang waktu mag persis
+# nilai asli).
+# --------------------------------------------------------------------------- #
+def _engine_flicker_reveal(data: dict, cx: float, cy: float) -> tuple[str, str]:
+    dur_s = data["duration_ms"] / 1000.0
+    curve_str = _curve_str(data["curve"])
+    p = data["preset"]["params"]
+    freq = p.get("freq", 8.139999)
+    mag_start_frac = p.get("mag_start_frac", 0.038178)
+    mag_end_frac = p.get("mag_end_frac", 0.171053)
+    transform = "\n".join([
+        f'      <location value="{cx:.6f},{cy:.6f},0.000000" />',
+        "      <scale>",
+        _kf(0.0, "0.000000,0.000000"),
+        _kf(dur_s, "1.000000,1.000000", curve_str),
+        "      </scale>",
+    ])
+    effect = "\n".join([
+        '      <effect id="com.alightcreative.effects.flicker2" locallyApplied="true">',
+        f'        <property name="freq" type="float" value="{freq:.6f}" />',
+        '        <property name="mag" type="float">',
+        _kf(dur_s * mag_start_frac, "1.000000"),
+        _kf(dur_s * mag_end_frac, "0.000000"),
+        "        </property>",
+        '        <property name="seed" type="float" value="0.000000" />',
+        '        <property name="basis" type="int" value="0" />',
+        "      </effect>",
+    ])
+    return transform, effect
+
+
+# --------------------------------------------------------------------------- #
+# Engine "marquee": teks bergulir horizontal melewati 11 titik <kf> — posisi
+# relatif & urutan waktu persis file sumber Apple "Text Animation 6" (nilai x
+# diskalakan proporsional terhadap lebar kanvas 1920 aslinya).
+# --------------------------------------------------------------------------- #
+_MARQUEE_KEYFRAMES = (
+    (0.003101, 2001.783936),
+    (0.100008, 1427.994873),
+    (0.196682, 1139.744873),
+    (0.293821, 659.166748),
+    (0.390728, 239.816162),
+    (0.481278, 0.000000),
+    (0.578107, -319.135742),
+    (0.681448, -714.244141),
+    (0.778355, -1154.336914),
+    (0.875262, -1431.478516),
+    (0.972168, -2069.395508),
+)
+_MARQUEE_SOURCE_WIDTH = 1920.0
+
+
+def _engine_marquee(data: dict, cx: float, cy: float) -> tuple[str, str]:
+    dur_s = data["duration_ms"] / 1000.0
+    curve_str = _curve_str(data["curve"])
+    width_ratio = data["canvas"]["width"] / _MARQUEE_SOURCE_WIDTH
+    lines = ["      <location>"]
+    for t_frac, x_offset in _MARQUEE_KEYFRAMES:
+        x = cx + x_offset * width_ratio
+        lines.append(_kf(t_frac * dur_s, f"{x:.6f},{cy:.6f},0.000000", curve_str))
+    lines.append("      </location>")
+    return "\n".join(lines), ""
+
+
+# --------------------------------------------------------------------------- #
+# Engine "handdrawn_underline": teks pop-in + shape garis-bawah coretan tangan
+# memakai <path-stroke>/<path> dan efek com.alightcreative.effects.drawing.
+# progress — path vektor diambil VERBATIM dari shape "underline" file sumber
+# Apple "Text Animation 8" (hanya transform lokasi/skala yang disesuaikan
+# otomatis agar pas di bawah teks apa pun).
+# --------------------------------------------------------------------------- #
+_UNDERLINE_PATH_D = (
+    "M 662.40485 -239.72884C 546.17175 -308.91995, 278.52103 -318.61603, "
+    "258.92902 -227.34421C 239.33702 -136.07239, 415.25797 -126.639046, "
+    "462.74255 -127.75764C 510.22714 -128.87622, 710.4639 -139.09311, "
+    "631.37067 -239.72594C 552.2774 -340.35876, 778.63794 -170.53772, "
+    "662.40485 -239.72884"
+)
+_UNDERLINE_BBOX = {"min_x": 239.33702, "max_x": 778.63794, "min_y": -340.35876, "max_y": -126.639046}
+
+
+def _engine_handdrawn_underline(data: dict, cx: float, cy: float) -> tuple[str, str, str]:
+    dur_s = data["duration_ms"] / 1000.0
+    curve_str = _curve_str(data["curve"])
+
+    transform = "\n".join([
+        f'      <location value="{cx:.6f},{cy:.6f},0.000000" />',
+        "      <scale>",
+        _kf(0.0, "0.000000,0.000000"),
+        _kf(dur_s * 0.5, "1.000000,1.000000", curve_str),
+        "      </scale>",
+    ])
+
+    bb = _UNDERLINE_BBOX
+    path_w = bb["max_x"] - bb["min_x"]
+    path_h = bb["max_y"] - bb["min_y"]
+    path_cx = (bb["min_x"] + bb["max_x"]) / 2.0
+    path_cy = (bb["min_y"] + bb["max_y"]) / 2.0
+    target_w = max(180.0, min(_wrap_width(data) * 0.55, 420.0))
+    scale_x = target_w / path_w
+    scale_y = scale_x * 0.42
+    loc_x = cx - path_cx * scale_x
+    loc_y = (cy + data["font_size"] * 0.95) - path_cy * scale_y
+
+    underline = "\n".join([
+        f'  <shape id="102" label="FYY Teks Creator - garis bawah" startTime="{int(dur_s * 300)}" '
+        f'endTime="{data["duration_ms"]}" fillType="none" mediaFillMode="fill">',
+        '    <transform lockAspectRatio="false">',
+        f'      <location value="{loc_x:.6f},{loc_y:.6f},0.000000" />',
+        f'      <scale value="{scale_x:.6f},{scale_y:.6f}" />',
+        "    </transform>",
+        f'    <fillColor value="#ff{data["color_hex"]}" />',
+        '    <effect id="com.alightcreative.effects.drawing.progress" locallyApplied="true">',
+        '      <property name="start" type="float" value="0.000000" />',
+        '      <property name="end" type="float">',
+        _kf(dur_s * 0.35, "0.000000"),
+        _kf(dur_s, "100.000000", curve_str),
+        "      </property>",
+        "    </effect>",
+        f'    <path-stroke direction="centered" end-size="1.500000"><color value="#ff{data["color_hex"]}" />'
+        '<size value="5.500000" /></path-stroke>',
+        f'    <path d="{_UNDERLINE_PATH_D}" />',
+        "  </shape>",
+    ])
+    return transform, "", underline
 
 
 _ENGINES = {
@@ -872,6 +1194,10 @@ _ENGINES = {
     "distort": _engine_distort,
     "mask_slide": _engine_mask_slide,
     "texttransform": _engine_texttransform,
+    "slide_settle": _engine_slide_settle,
+    "flicker_reveal": _engine_flicker_reveal,
+    "marquee": _engine_marquee,
+    "handdrawn_underline": _engine_handdrawn_underline,
 }
 
 
@@ -881,7 +1207,12 @@ def _build_single_layer_xml(data: dict) -> str:
     font_attr = _font_attr(data["font_family"], data["weight"])
     wrap_width = _wrap_width(data)
     engine_fn = _ENGINES[data["preset"]["engine"]]
-    transform_xml, effect_xml = engine_fn(data, cx, cy)
+    engine_result = engine_fn(data, cx, cy)
+    if len(engine_result) == 3:
+        transform_xml, effect_xml, extra_xml = engine_result
+    else:
+        transform_xml, effect_xml = engine_result
+        extra_xml = ""
 
     lines = [
         f'  <text id="101" label="FYY Teks Creator - {esc_attr(data["preset"]["name"])}" '
@@ -897,7 +1228,10 @@ def _build_single_layer_xml(data: dict) -> str:
         lines.append(effect_xml)
     lines.append(f"    <content>{esc_text(data['text'])}</content>")
     lines.append("  </text>")
-    return "\n".join(lines)
+    text_block = "\n".join(lines)
+    if extra_xml:
+        return text_block + "\n" + extra_xml
+    return text_block
 
 
 # --------------------------------------------------------------------------- #
