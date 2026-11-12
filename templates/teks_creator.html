@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Buat preset teks Alight Motion siap pasang: Fade + Blur In, Slide Up, Scale Spring, Word Reveal, Letter Stagger, dan Kinetic Tight.">
+  <meta name="description" content="Buat preset teks Alight Motion siap pasang dari 30 animasi asli: 10 preset Hand-Crafted dan 20 preset One-Click.">
   <meta name="csrf-token" content="{{ csrf_token() }}">
   <title>{{ page_title }}</title>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
@@ -36,8 +36,9 @@
   <!-- STEP 1: PILIH PRESET -->
   <section class="tc-panel active" data-panel="1">
     <h2>Pilih jenis preset</h2>
-    <p class="tc-sub">Enam gaya animasi teks bergaya Apple keynote. Kamu bisa ganti teks dan kurva di langkah berikutnya.</p>
-    <div class="tc-preset-grid" id="tcPresetGrid"></div>
+    <p class="tc-sub">30 animasi asli dari koleksi Alight Motion: 10 preset Hand-Crafted (animasi per huruf) dan 20 preset One-Click (animasi satu efek). Kamu bisa ganti teks dan kurva di langkah berikutnya.</p>
+    <div class="tc-cat-tabs" id="tcCatTabs"></div>
+    <div id="tcCatPanels"></div>
     <div class="tc-actions">
       <span></span>
       <div class="tc-actions-right">
@@ -181,6 +182,8 @@
 
 <script>
   window.TC_PRESETS = {{ presets|tojson }};
+  window.TC_PRESET_GROUPS = {{ preset_groups|tojson }};
+  window.TC_CATEGORY_LABELS = {{ category_labels|tojson }};
   window.TC_CURVES = {{ curves|tojson }};
   window.TC_FONTS = {{ fonts|tojson }};
   window.TC_CANVAS = {{ canvas_presets|tojson }};

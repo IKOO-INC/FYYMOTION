@@ -3,10 +3,13 @@
   "use strict";
 
   var PRESETS = window.TC_PRESETS || {};
+  var PRESET_GROUPS = window.TC_PRESET_GROUPS || {};
+  var CATEGORY_LABELS = window.TC_CATEGORY_LABELS || {};
   var CURVES = window.TC_CURVES || {};
   var FONTS = window.TC_FONTS || {};
   var CANVAS = window.TC_CANVAS || {};
   var CSRF = (document.querySelector('meta[name="csrf-token"]') || {}).content || "";
+  var CATEGORY_ORDER = ["hand_crafted", "one_click"];
 
   var FONT_STACK = {
     inter: '"Inter", -apple-system, sans-serif',
@@ -51,32 +54,70 @@
   }
 
   // ------------------------------------------------------------------ //
-  // STEP 1 — preset cards
+  // STEP 1 — kategori tab (Hand-Crafted / One-Click) + preset cards
   // ------------------------------------------------------------------ //
+  function selectPresetCard(id, card) {
+    document.querySelectorAll(".tc-preset-card").forEach(function (c) { c.classList.remove("selected"); });
+    if (card) card.classList.add("selected");
+    var preset = PRESETS[id];
+    state.presetId = id;
+    state.durationMs = preset.default_duration_ms;
+    state.text = preset.demo_text || state.text;
+    var curveArr = preset.curve;
+    if (curveArr && curveArr.length === 4) {
+      state.curve = { x1: curveArr[0], y1: curveArr[1], x2: curveArr[2], y2: curveArr[3] };
+    }
+    state.curveId = "";
+    document.getElementById("tcNext1").disabled = false;
+  }
+
   function renderPresetCards() {
-    var grid = document.getElementById("tcPresetGrid");
-    grid.innerHTML = "";
-    Object.keys(PRESETS).forEach(function (id) {
-      var preset = PRESETS[id];
-      var card = document.createElement("button");
-      card.type = "button";
-      card.className = "tc-preset-card";
-      card.dataset.presetId = id;
-      card.innerHTML =
-        '<span class="tc-preset-icon"><i class="' + preset.icon + '"></i></span>' +
-        "<h3>" + preset.name + "</h3>" +
-        "<p>" + preset.description + "</p>" +
-        (preset.note ? '<div class="tc-preset-note"><i class="fa-solid fa-circle-info"></i> ' + preset.note + "</div>" : "");
-      card.addEventListener("click", function () {
-        document.querySelectorAll(".tc-preset-card").forEach(function (c) { c.classList.remove("selected"); });
-        card.classList.add("selected");
-        state.presetId = id;
-        state.durationMs = preset.default_duration_ms;
-        state.curveId = preset.default_curve;
-        state.curve = Object.assign({}, CURVES[preset.default_curve]);
-        document.getElementById("tcNext1").disabled = false;
+    var tabsWrap = document.getElementById("tcCatTabs");
+    var panelsWrap = document.getElementById("tcCatPanels");
+    tabsWrap.innerHTML = "";
+    panelsWrap.innerHTML = "";
+
+    CATEGORY_ORDER.forEach(function (catId, idx) {
+      var items = PRESET_GROUPS[catId] || [];
+      if (!items.length) return;
+      var label = CATEGORY_LABELS[catId] || catId;
+
+      var tab = document.createElement("button");
+      tab.type = "button";
+      tab.className = "tc-cat-tab" + (idx === 0 ? " active" : "");
+      tab.dataset.catId = catId;
+      tab.innerHTML = label + ' <span class="tc-cat-count">' + items.length + "</span>";
+      tab.addEventListener("click", function () {
+        document.querySelectorAll(".tc-cat-tab").forEach(function (t) { t.classList.remove("active"); });
+        document.querySelectorAll(".tc-cat-panel").forEach(function (p) { p.classList.remove("active"); });
+        tab.classList.add("active");
+        document.getElementById("tcCatPanel-" + catId).classList.add("active");
       });
-      grid.appendChild(card);
+      tabsWrap.appendChild(tab);
+
+      var panel = document.createElement("div");
+      panel.className = "tc-cat-panel" + (idx === 0 ? " active" : "");
+      panel.id = "tcCatPanel-" + catId;
+      var grid = document.createElement("div");
+      grid.className = "tc-preset-grid";
+
+      items.forEach(function (item) {
+        var card = document.createElement("button");
+        card.type = "button";
+        card.className = "tc-preset-card";
+        card.dataset.presetId = item.id;
+        card.innerHTML =
+          '<span class="tc-preset-icon"><i class="' + item.icon + '"></i></span>' +
+          "<h3>" + item.name + "</h3>" +
+          "<p>" + item.description + "</p>" +
+          (item.demo_text ? '<span class="tc-preset-demo">"' + escapeHtml(item.demo_text) + '"</span>' : "") +
+          (item.note ? '<div class="tc-preset-note"><i class="fa-solid fa-circle-info"></i> ' + item.note + "</div>" : "");
+        card.addEventListener("click", function () { selectPresetCard(item.id, card); });
+        grid.appendChild(card);
+      });
+
+      panel.appendChild(grid);
+      panelsWrap.appendChild(panel);
     });
   }
 
@@ -160,12 +201,31 @@
 
     var dur = state.durationMs;
     var easing = "cubic-bezier(" + state.curve.x1 + "," + state.curve.y1 + "," + state.curve.x2 + "," + state.curve.y2 + ")";
-    var anim = preset.animation;
+    var engine = preset.engine;
 
-    if (anim === "texttransform_word" || anim === "texttransform_letter") {
-      var isWord = anim === "texttransform_word";
-      var units = isWord ? state.text.split(/(\s+)/) : state.text.split("");
-      var stagger = isWord ? 90 : 35;
+    if (engine === "letter_pop") {
+      var letters = state.text.split("").filter(function (c) { return c !== "\n"; });
+      var rotationDeg = (preset.params && preset.params.rotation_deg) || 0;
+      var staggerMs = (preset.params && preset.params.stagger_ms) || 100;
+      letters.forEach(function (ch, i) {
+        var span = document.createElement("span");
+        span.textContent = ch === " " ? "\u00a0" : ch;
+        span.style.display = "inline-block";
+        span.style.opacity = "0";
+        el.appendChild(span);
+        try {
+          span.animate(
+            [
+              { opacity: 0, transform: "scale(0) rotate(" + rotationDeg + "deg)" },
+              { opacity: 1, transform: "scale(1) rotate(0deg)" },
+            ],
+            { duration: Math.max(200, dur * 0.6), delay: i * staggerMs, easing: easing, fill: "both" }
+          );
+        } catch (e) { span.style.opacity = "1"; }
+      });
+    } else if (engine === "texttransform" || engine === "wipe") {
+      var isMirror = preset.params && preset.params.mirror;
+      var units = state.text.split(/(\s+)/);
       units.forEach(function (chunk, i) {
         var span = document.createElement("span");
         span.textContent = chunk === " " ? "\u00a0" : chunk;
@@ -175,28 +235,46 @@
         try {
           span.animate(
             [
-              { opacity: 0, transform: "translateY(14px)" },
-              { opacity: 1, transform: "translateY(0)" },
+              { opacity: 0, transform: isMirror ? "scaleX(-1) translateX(20px)" : "translateY(14px)" },
+              { opacity: 1, transform: isMirror ? "scaleX(1) translateX(0)" : "translateY(0)" },
             ],
-            { duration: Math.max(180, dur * 0.6), delay: i * stagger, easing: easing, fill: "both" }
+            { duration: Math.max(180, dur * 0.6), delay: i * 90, easing: easing, fill: "both" }
           );
         } catch (e) { span.style.opacity = "1"; }
+      });
+    } else if (engine === "typewriter") {
+      el.textContent = "";
+      var chars = state.text.split("");
+      var perChar = Math.max(30, dur / Math.max(1, chars.length));
+      chars.forEach(function (ch, i) {
+        setTimeout(function () { el.textContent += ch; }, i * perChar);
       });
     } else {
       el.textContent = state.text;
       var keyframes;
-      if (anim === "slide_up") {
+      if (engine === "blur_pop") {
         keyframes = [
-          { opacity: 0, transform: "translateY(40px)" },
+          { opacity: 0, filter: "blur(8px)", transform: "scale(0.9)" },
+          { opacity: 1, filter: "blur(0px)", transform: "scale(1)" },
+        ];
+      } else if (engine === "fade_slide") {
+        keyframes = [
+          { opacity: 0, transform: "translateY(30px)" },
           { opacity: 1, transform: "translateY(0)" },
         ];
-      } else if (anim === "scale_spring") {
-        keyframes = [{ transform: "scale(0)" }, { transform: "scale(1)" }];
-      } else if (anim === "texttransform_block_slide") {
-        keyframes = [{ transform: "translateX(-40px)" }, { transform: "translateX(0)" }];
+      } else if (engine === "distort") {
+        keyframes = [
+          { opacity: 0, transform: "scale(1.4)" },
+          { opacity: 1, transform: "scale(1)" },
+        ];
+      } else if (engine === "mask_slide") {
+        keyframes = [
+          { opacity: 0, transform: "translateX(-60px)" },
+          { opacity: 1, transform: "translateX(0)" },
+        ];
       } else {
         keyframes = [
-          { opacity: 0, transform: "scale(1.08)" },
+          { opacity: 0, transform: "scale(0)" },
           { opacity: 1, transform: "scale(1)" },
         ];
       }
