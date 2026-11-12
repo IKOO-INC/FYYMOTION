@@ -9,7 +9,7 @@
   var FONTS = window.TC_FONTS || {};
   var CANVAS = window.TC_CANVAS || {};
   var CSRF = (document.querySelector('meta[name="csrf-token"]') || {}).content || "";
-  var CATEGORY_ORDER = ["hand_crafted", "one_click"];
+  var CATEGORY_ORDER = ["hand_crafted", "one_click", "apple"];
 
   var FONT_STACK = {
     inter: '"Inter", -apple-system, sans-serif',
@@ -514,9 +514,47 @@
   }
 
   // ------------------------------------------------------------------ //
+  // Navigasi — drawer mobile (sidebar toggle), desktop pakai top navbar
+  // ------------------------------------------------------------------ //
+  function bindMobileDrawer() {
+    var btn = document.getElementById("tcDrawerBtn");
+    var drawer = document.getElementById("tcDrawer");
+    var backdrop = document.getElementById("tcDrawerBackdrop");
+    var closeBtn = document.getElementById("tcDrawerClose");
+    if (!btn || !drawer || !backdrop) return;
+
+    function openDrawer() {
+      drawer.classList.add("show");
+      backdrop.classList.add("show");
+      drawer.setAttribute("aria-hidden", "false");
+      btn.setAttribute("aria-expanded", "true");
+      document.body.style.overflow = "hidden";
+    }
+    function closeDrawer() {
+      drawer.classList.remove("show");
+      backdrop.classList.remove("show");
+      drawer.setAttribute("aria-hidden", "true");
+      btn.setAttribute("aria-expanded", "false");
+      document.body.style.overflow = "";
+    }
+
+    btn.addEventListener("click", openDrawer);
+    backdrop.addEventListener("click", closeDrawer);
+    if (closeBtn) closeBtn.addEventListener("click", closeDrawer);
+    drawer.querySelectorAll("a").forEach(function (a) { a.addEventListener("click", closeDrawer); });
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape" && drawer.classList.contains("show")) closeDrawer();
+    });
+    window.addEventListener("resize", function () {
+      if (window.innerWidth > 991 && drawer.classList.contains("show")) closeDrawer();
+    });
+  }
+
+  // ------------------------------------------------------------------ //
   // Init
   // ------------------------------------------------------------------ //
   document.addEventListener("DOMContentLoaded", function () {
+    bindMobileDrawer();
     renderPresetCards();
     renderFontOptions();
     renderCanvasOptions();

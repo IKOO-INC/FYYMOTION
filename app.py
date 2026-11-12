@@ -2526,6 +2526,10 @@ def export_neraca_excel():
 @app.route("/teks-creator")
 def teks_creator():
     """Halaman 4-langkah untuk membuat preset teks Alight Motion siap pasang."""
+    db = load_db()
+    profile = normalize_profile(db.get("profile"))
+    wa_url = public_whatsapp_url(db)
+    primary_url = profile.get("hero_primary_url") or wa_url or "#"
     return render_template(
         "teks_creator.html",
         page_title="Teks Creator — Preset Alight Motion | FYY MOTION",
@@ -2535,6 +2539,8 @@ def teks_creator():
         curves=CURVES,
         fonts=FONTS,
         canvas_presets=CANVAS_PRESETS,
+        primary_url=primary_url,
+        is_admin=bool(session.get("logged_in")),
     )
 
 
