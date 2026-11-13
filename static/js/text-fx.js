@@ -618,14 +618,15 @@
 
     units.forEach(function (unit, idx) {
       var t = timing.timings[idx];
-      var color = pickColor(idx, n);
       var row = document.createElement("div");
       row.className = "tf-layer-row";
 
+      // Warna panel Layer ini SENGAJA dipatenkan (bukan ikut palet warna
+      // user) — mengikuti tampilan panel layer Alight Motion/Flamo Creative
+      // yang dipakai sebagai acuan, supaya konsisten & mudah dibaca.
       var label = document.createElement("div");
       label.className = "tf-layer-label";
       label.textContent = unit.charAt(0);
-      label.style.background = color;
       row.appendChild(label);
 
       var track = document.createElement("div");
@@ -636,12 +637,10 @@
       bar.className = "tf-layer-bar";
       bar.style.left = leftPct + "%";
       bar.style.width = widthPct + "%";
-      bar.style.background = color;
       track.appendChild(bar);
       var kf = document.createElement("div");
       kf.className = "tf-layer-kf";
       kf.style.left = leftPct + "%";
-      kf.style.borderColor = color;
       track.appendChild(kf);
       row.appendChild(track);
 
