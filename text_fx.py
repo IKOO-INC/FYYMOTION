@@ -61,6 +61,7 @@ from alight_presets import (
     _font_attr,
     _kf,
     _validate_hex_color,
+    am_xml_header,
     esc_attr,
     esc_text,
 )
@@ -645,11 +646,8 @@ def build_text_fx_xml(payload: dict) -> tuple[str, str]:
     title = f"Text FX {style['name']} - {data['text'][:30]}"
 
     xml_text = (
-        "<?xml version='1.0' encoding='UTF-8' ?><!--\n"
-        "Dibuat oleh FYY MOTION Text FX (bukan diekspor dari aplikasi Alight Motion)\n"
-        f"Style: {style['name']} | Mode: {TEXT_FX_MODES[data['mode']]}\n"
-        "-->\r\n"
-        f'<scene title="{esc_attr(title)}" width="{w}" height="{h}" exportWidth="{w}" '
+        am_xml_header()
+        + f'<scene title="{esc_attr(title)}" width="{w}" height="{h}" exportWidth="{w}" '
         f'exportHeight="{h}" precompose="dynamicResolution" bgcolor="#00000000" '
         f'totalTime="{total_ms}" fps="30" modifiedTime="{now_ms}" '
         'amver="1002592" ffver="106" am="com.alightcreative.motion/5.0.275" '

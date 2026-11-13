@@ -54,6 +54,11 @@ from text_fx import (
     build_text_fx_xml,
     list_text_fx_styles,
 )
+from text3d import (
+    TEXT3D_MODES,
+    build_text3d_xml,
+    list_text3d_styles,
+)
 
 # --------------------------------------------------------------------------- #
 # Konfigurasi dasar
@@ -1387,6 +1392,7 @@ def guard():
         "static", "login", "health", "public_profile",
         "teks_creator", "teks_creator_generate", "academy", "daftar_academy",
         "text_fx_tool", "text_fx_generate",
+        "text3d_tool", "text3d_generate",
     ):
         pass
     elif not session.get("logged_in"):
@@ -2603,6 +2609,49 @@ def text_fx_generate():
         return {"error": "Payload tidak valid. Kirim JSON dari form Text FX."}, 400
     try:
         xml_text, filename = build_text_fx_xml(payload)
+    except ValidationError as exc:
+        return {"error": str(exc)}, 400
+    except Exception:
+        return {"error": "Terjadi kesalahan tak terduga saat membuat XML. Coba lagi."}, 500
+    return Response(
+        xml_text,
+        mimetype="application/xml",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
+
+
+# --------------------------------------------------------------------------- #
+# 3D Text — animasi teks 3D (extrude/flip/long-shadow), terinspirasi tool
+# "3D Text Animate" Flamo Creative. Halaman terpisah di bawah /tools/.
+# --------------------------------------------------------------------------- #
+@app.route("/tools/3d-text")
+def text3d_tool():
+    """Halaman 3D Text: animasi extrude/flip/long-shadow, 7 preset asli."""
+    db = load_db()
+    profile = normalize_profile(db.get("profile"))
+    wa_url = public_whatsapp_url(db)
+    primary_url = profile.get("hero_primary_url") or wa_url or "#"
+    return render_template(
+        "text_3d.html",
+        page_title="3D Text — Animasi Teks Extrude/Flip 3D | FYY MOTION",
+        styles=list_text3d_styles(),
+        modes=TEXT3D_MODES,
+        fonts=FONTS,
+        canvas_presets=CANVAS_PRESETS,
+        curves=CURVES,
+        primary_url=primary_url,
+        is_admin=bool(session.get("logged_in")),
+    )
+
+
+@app.route("/api/tools/3d-text/generate", methods=["POST"])
+def text3d_generate():
+    """Validasi input lalu bangun file .xml 3D Text di memori (tanpa tulis disk)."""
+    payload = request.get_json(silent=True)
+    if not isinstance(payload, dict):
+        return {"error": "Payload tidak valid. Kirim JSON dari form 3D Text."}, 400
+    try:
+        xml_text, filename = build_text3d_xml(payload)
     except ValidationError as exc:
         return {"error": str(exc)}, 400
     except Exception:

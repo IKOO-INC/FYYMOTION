@@ -57,11 +57,41 @@ from __future__ import annotations
 
 import time
 import xml.etree.ElementTree as ET
+from datetime import datetime
 from xml.sax.saxutils import escape as _xml_escape
 
 
 class ValidationError(ValueError):
     """Input dari pengguna tidak valid untuk dibuatkan XML preset."""
+
+
+# --------------------------------------------------------------------------- #
+# Header komentar XML — WAJIB identik dengan hasil export asli Alight Motion.
+# Format ini terbukti verbatim di SEMUA sample .xml asli yang diberikan
+# pengguna (folder "teks 2d" & "teks 3d" Google Drive), contoh persis:
+#
+#   <?xml version='1.0' encoding='UTF-8' ?>
+#   <!--
+#   Created by Alight Motion (http://alightmotion.com)
+#   Exported: 2026-06-17 01:09 AM
+#   6.2.53 (859)
+#   -->
+#
+# Instruksi pengguna: header ini tidak boleh dihapus/diubah strukturnya dan
+# WAJIB dipakai di SEMUA output XML tool ini (Teks Creator, Text FX, 3D
+# Text). Satu-satunya bagian yang dinamis adalah baris "Exported: ..."
+# (waktu generate saat ini, format sama persis dengan sample).
+# --------------------------------------------------------------------------- #
+def am_xml_header() -> str:
+    exported_at = datetime.now().strftime("%Y-%m-%d %I:%M %p")
+    return (
+        "<?xml version='1.0' encoding='UTF-8' ?>\n"
+        "<!--\n"
+        "Created by Alight Motion (http://alightmotion.com)\n"
+        f"Exported: {exported_at}\n"
+        "6.2.53 (859)\n"
+        "-->\n"
+    )
 
 
 # Kurva cubic-bezier universal yang terbukti ada verbatim di SEMUA 30 file
@@ -1327,11 +1357,8 @@ def build_text_scene_xml(payload: dict) -> tuple[str, str]:
         total_ms = data["duration_ms"]
 
     xml_text = (
-        "<?xml version='1.0' encoding='UTF-8' ?><!--\n"
-        "Dibuat oleh FYY MOTION Teks Creator (bukan diekspor dari aplikasi Alight Motion)\n"
-        f"Preset: {data['preset']['name']} ({CATEGORY_LABELS.get(data['preset']['category'], '')})\n"
-        "-->\r\n"
-        f'<scene title="{esc_attr(title)}" width="{w}" height="{h}" exportWidth="{w}" '
+        am_xml_header()
+        + f'<scene title="{esc_attr(title)}" width="{w}" height="{h}" exportWidth="{w}" '
         f'exportHeight="{h}" precompose="dynamicResolution" bgcolor="#00000000" '
         f'totalTime="{total_ms}" fps="30" modifiedTime="{now_ms}" '
         'amver="1002592" ffver="106" am="com.alightcreative.motion/5.0.275" '

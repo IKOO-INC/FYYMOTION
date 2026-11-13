@@ -81,6 +81,8 @@
         <i class="fa-solid fa-wand-magic-sparkles"></i> Teks Creator</a>
       <a class="nav-link {% if request.endpoint=='text_fx_tool' %}active{% endif %}" href="{{ url_for('text_fx_tool') }}" target="_blank" rel="noopener">
         <i class="fa-solid fa-shuffle"></i> Text FX</a>
+      <a class="nav-link {% if request.endpoint=='text3d_tool' %}active{% endif %}" href="{{ url_for('text3d_tool') }}" target="_blank" rel="noopener">
+        <i class="fa-solid fa-cube"></i> 3D Text</a>
       <a class="nav-link {% if request.endpoint=='academy' %}active{% endif %}" href="{{ url_for('academy') }}" target="_blank" rel="noopener">
         <i class="fa-solid fa-graduation-cap"></i> FYY MOTION Academy</a>
     </nav>
