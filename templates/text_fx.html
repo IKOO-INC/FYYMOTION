@@ -178,6 +178,28 @@
       </div>
     </div>
 
+    <!-- Curve editor: hanya tampil untuk preset yang kurva utamanya cubicBezier -->
+    <div class="tc-field tf-curve-wrap" id="tfCurveWrap" style="display:none;">
+      <label>Kurva pergerakan (lanjutan)</label>
+      <div class="tc-hint tf-curve-hint">Geser dua titik kontrol untuk mengubah rasa percepatan/perlambatan animasi masuk. Nilai bawaan diambil dari sample Alight Motion asli preset ini.</div>
+      <div class="tf-curve-editor">
+        <svg id="tfCurveSvg" viewBox="0 0 260 260" class="tf-curve-svg"></svg>
+        <div class="tf-curve-side">
+          <div class="tf-curve-presets" id="tfCurvePresets"></div>
+          <div class="tf-curve-inputs">
+            <label>X1 <input class="tc-input" type="number" id="tfCurveX1" step="0.01" min="0" max="1"></label>
+            <label>Y1 <input class="tc-input" type="number" id="tfCurveY1" step="0.01" min="-3" max="4"></label>
+            <label>X2 <input class="tc-input" type="number" id="tfCurveX2" step="0.01" min="0" max="1"></label>
+            <label>Y2 <input class="tc-input" type="number" id="tfCurveY2" step="0.01" min="-3" max="4"></label>
+          </div>
+          <button type="button" class="tc-btn tc-btn-ghost tf-curve-reset" id="tfCurveReset"><i class="fa-solid fa-rotate-left"></i> Reset ke Bawaan</button>
+        </div>
+      </div>
+    </div>
+    <div class="tc-field tf-curve-locked" id="tfCurveLocked" style="display:none;">
+      <div class="tc-hint"><i class="fa-solid fa-lock"></i> Preset ini memakai kurva pegas (elastic) atau statis yang persis dari sample Alight Motion asli — tidak tersedia editor kurva supaya nuansanya tetap otentik.</div>
+    </div>
+
     <div class="tc-actions">
       <button type="button" class="tc-btn tc-btn-ghost" id="tfBack2"><i class="fa-solid fa-arrow-left"></i> Kembali</button>
       <div class="tc-actions-right">
@@ -194,6 +216,15 @@
     <div class="tc-preview-box tf-preview-box">
       <div class="tf-preview-text" id="tfPreviewText"></div>
       <button type="button" class="tc-btn tc-btn-ghost tc-replay-btn" id="tfReplay"><i class="fa-solid fa-rotate-right"></i> Replay</button>
+    </div>
+
+    <div class="tf-layer-panel">
+      <div class="tf-layer-head">
+        <span><i class="fa-solid fa-layer-group"></i> Layer</span>
+        <span id="tfLayerCount">0 layer</span>
+      </div>
+      <div class="tf-layer-ruler" id="tfLayerRuler"></div>
+      <div class="tf-layer-rows" id="tfLayerRows"></div>
     </div>
 
     <div class="tc-actions">
@@ -260,6 +291,7 @@
   window.TF_MAPPINGS = {{ mappings|tojson }};
   window.TF_FONTS = {{ fonts|tojson }};
   window.TF_CANVAS = {{ canvas_presets|tojson }};
+  window.TF_CURVES = {{ curves|tojson }};
 </script>
 <script src="{{ url_for('static', filename='js/text-fx.js') }}"></script>
 </body>
