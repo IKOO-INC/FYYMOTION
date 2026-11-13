@@ -1,0 +1,307 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Buat animasi teks 3D (extrude, flip, long shadow, offset) untuk Alight Motion dari 7 preset asli — 3D Text ala FYY MOTION.">
+  <meta name="csrf-token" content="{{ csrf_token() }}">
+  <title>{{ page_title }}</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Inter+Tight:wght@700;800;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link href="{{ url_for('static', filename='css/teks-creator.css') }}" rel="stylesheet">
+  <link href="{{ url_for('static', filename='css/text-fx.css') }}" rel="stylesheet">
+  <link href="{{ url_for('static', filename='css/text3d.css') }}" rel="stylesheet">
+</head>
+<body class="tc-body">
+
+<header class="tc-nav-wrap public-nav-wrap">
+  <nav class="tc-public-nav public-nav" aria-label="Navigasi 3D Text">
+    <a class="tc-public-brand public-brand" href="{{ url_for('public_profile') }}">
+      <span class="tc-public-brand-mark public-brand-mark"><i class="fa-solid fa-play"></i></span>
+      <span>{{ settings.nama_usaha or 'FYY MOTION' }}</span>
+    </a>
+    <div class="tc-public-links public-links">
+      <a href="{{ url_for('public_profile') }}">Beranda</a>
+      <a href="{{ url_for('academy') }}">Academy</a>
+      <a href="{{ url_for('teks_creator') }}">Teks Creator</a>
+      <a href="{{ url_for('text_fx_tool') }}">Text FX</a>
+      <a class="is-active" href="{{ url_for('text3d_tool') }}">3D Text</a>
+    </div>
+    <div class="tc-public-nav-actions public-nav-actions">
+      {% if is_admin %}
+      <a class="tc-public-login public-login-link" href="{{ url_for('dashboard') }}">Dashboard</a>
+      {% else %}
+      <a class="tc-public-login public-login-link" href="{{ url_for('login') }}">Admin</a>
+      {% endif %}
+      <a class="btn tc-public-cta public-cta-btn" href="{{ primary_url }}" {% if primary_url.startswith('http') %}target="_blank" rel="noopener"{% endif %}>
+        <span class="tc-public-cta-label">{{ profile.nav_cta_label or 'Order Sekarang' }}</span> <i class="fa-solid fa-arrow-up-right-from-square"></i>
+      </a>
+      <button type="button" class="tc-drawer-btn" id="t3dDrawerBtn" aria-label="Buka menu" aria-expanded="false" aria-controls="t3dDrawer">
+        <i class="fa-solid fa-bars"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+
+<div class="tc-drawer-backdrop" id="t3dDrawerBackdrop"></div>
+<aside class="tc-drawer" id="t3dDrawer" aria-hidden="true">
+  <div class="tc-drawer-head">
+    <a class="tc-public-brand" href="{{ url_for('public_profile') }}">
+      <span class="tc-public-brand-mark public-brand-mark"><i class="fa-solid fa-play"></i></span>
+      <span>{{ settings.nama_usaha or 'FYY MOTION' }}</span>
+    </a>
+    <button type="button" class="tc-drawer-close" id="t3dDrawerClose" aria-label="Tutup menu"><i class="fa-solid fa-xmark"></i></button>
+  </div>
+  <nav class="tc-drawer-links">
+    <a href="{{ url_for('public_profile') }}"><i class="fa-solid fa-house"></i> Beranda</a>
+    <a href="{{ url_for('academy') }}"><i class="fa-solid fa-graduation-cap"></i> Academy</a>
+    <a href="{{ url_for('teks_creator') }}"><i class="fa-solid fa-wand-magic-sparkles"></i> Teks Creator</a>
+    <a href="{{ url_for('text_fx_tool') }}"><i class="fa-solid fa-shuffle"></i> Text FX</a>
+    <a class="is-active" href="{{ url_for('text3d_tool') }}"><i class="fa-solid fa-cube"></i> 3D Text</a>
+    {% if is_admin %}
+    <a href="{{ url_for('dashboard') }}"><i class="fa-solid fa-gauge-high"></i> Dashboard</a>
+    {% else %}
+    <a href="{{ url_for('login') }}"><i class="fa-solid fa-lock"></i> Admin</a>
+    {% endif %}
+  </nav>
+  <a class="btn tc-public-cta public-cta-btn tc-drawer-cta" href="{{ primary_url }}" {% if primary_url.startswith('http') %}target="_blank" rel="noopener"{% endif %}>
+    <span class="tc-public-cta-label">{{ profile.nav_cta_label or 'Order Sekarang' }}</span> <i class="fa-solid fa-arrow-up-right-from-square"></i>
+  </a>
+</aside>
+
+<div class="tc-wrap t3d-wrap">
+  <div class="tc-hero">
+    <h1>Animasikan teks jadi 3D.<br>Extrude, flip, long shadow, offset.</h1>
+    <p>Pilih preset 3D, atur teks &amp; warna, lihat hasilnya berubah langsung di panel preview — lalu export file .xml siap pakai di Alight Motion. Tiap preset dibangun dari sample export Alight Motion asli, bukan kurva karangan.</p>
+  </div>
+
+  <section class="t3d-section">
+    <h2>Pilih preset 3D</h2>
+    <p class="tc-sub">7 preset animasi teks 3D — flip, extrude berputar, long shadow, dan offset dengan/ tanpa latar aksen.</p>
+    <div class="tc-preset-grid" id="t3dStyleGrid"></div>
+  </section>
+
+  <div class="t3d-layout">
+    <!-- ===================== KOLOM FORM ===================== -->
+    <div class="t3d-form-col">
+
+      <section class="t3d-section">
+        <h2>Teks</h2>
+        <div class="tc-field">
+          <label for="t3dText">Isi teks (maks. 3 baris)</label>
+          <textarea class="tc-textarea" id="t3dText" maxlength="90" placeholder="Tulis teks di sini...">FYY MOTION</textarea>
+          <div class="tc-hint">Maksimal 60 karakter gabungan, 3 baris, 24 unit animasi (huruf/kata).</div>
+        </div>
+        <div class="tc-field">
+          <label>Timing Target</label>
+          <div class="tf-mode-toggle" id="t3dModeToggle">
+            <button type="button" class="tf-mode-btn active" data-mode="character"><i class="fa-solid fa-font"></i> Per Character</button>
+            <button type="button" class="tf-mode-btn" data-mode="word"><i class="fa-solid fa-text-width"></i> Per Word</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="t3d-section">
+        <h2>Font &amp; Tata Letak</h2>
+        <div class="tc-grid-2">
+          <div class="tc-field">
+            <label for="t3dFont">Font</label>
+            <select class="tc-select" id="t3dFont"></select>
+          </div>
+          <div class="tc-field">
+            <label for="t3dWeight">Style / Weight</label>
+            <select class="tc-select" id="t3dWeight">
+              <option value="400">Regular (400)</option>
+              <option value="500">Medium (500)</option>
+              <option value="600">Semibold (600)</option>
+              <option value="700" selected>Bold (700)</option>
+              <option value="800">Extra Bold (800)</option>
+              <option value="900">Black (900)</option>
+            </select>
+          </div>
+          <div class="tc-field">
+            <label for="t3dFontSize">Font Size (px)</label>
+            <input class="tc-input" type="number" id="t3dFontSize" min="20" max="220" value="90">
+          </div>
+          <div class="tc-field">
+            <label for="t3dCanvas">Canvas</label>
+            <select class="tc-select" id="t3dCanvas"></select>
+          </div>
+          <div class="tc-field">
+            <label for="t3dSpacing">Spacing (px)</label>
+            <input class="tc-input" type="number" id="t3dSpacing" min="10" max="600" step="2" value="120">
+          </div>
+          <div class="tc-field">
+            <label for="t3dLineGap">Line Gap (px)</label>
+            <input class="tc-input" type="number" id="t3dLineGap" min="10" max="800" step="2" value="200">
+          </div>
+          <div class="tc-field">
+            <label for="t3dX">X Position</label>
+            <input class="tc-input" type="number" id="t3dX" min="-2000" max="2000" step="5" value="0">
+          </div>
+          <div class="tc-field">
+            <label for="t3dY">Y Position</label>
+            <input class="tc-input" type="number" id="t3dY" min="-2000" max="2000" step="5" value="0">
+          </div>
+        </div>
+      </section>
+
+      <section class="t3d-section">
+        <h2>Extrude &amp; Border</h2>
+        <div class="tc-field">
+          <label for="t3dExtrude">Extrude / Depth (<span id="t3dExtrudeLabel">50</span>%)</label>
+          <input class="tc-input" type="range" id="t3dExtrude" min="0" max="100" step="5" value="50">
+          <div class="tc-hint" id="t3dExtrudeHint">Hanya berpengaruh untuk preset Right &amp; Popup Rotate Extrude.</div>
+        </div>
+        <div class="tc-field">
+          <label><input type="checkbox" id="t3dBorder" checked> Tampilkan border / outline huruf</label>
+        </div>
+      </section>
+
+      <section class="t3d-section">
+        <h2>Warna</h2>
+        <p class="tc-sub">Role warna berubah sesuai preset yang dipilih (persis struktur warna di sample Alight Motion asli).</p>
+        <div class="t3d-color-roles" id="t3dColorRoles"></div>
+      </section>
+
+      <section class="t3d-section">
+        <h2>Timing</h2>
+        <div class="tc-grid-2">
+          <div class="tc-field">
+            <label for="t3dStagger">Stagger (ms)</label>
+            <input class="tc-input" type="number" id="t3dStagger" min="0" max="400" step="5" value="60">
+          </div>
+          <div class="tc-field">
+            <label for="t3dLastStart">Last Start (ms)</label>
+            <input class="tc-input" type="number" id="t3dLastStart" min="0" max="4000" step="20" value="500">
+          </div>
+          <div class="tc-field">
+            <label for="t3dEndHold">End Hold (ms)</label>
+            <input class="tc-input" type="number" id="t3dEndHold" min="0" max="6000" step="50" value="1000">
+          </div>
+        </div>
+      </section>
+
+      <!-- ============= LAYER GRAPH CONTROLLER ============= -->
+      <section class="t3d-section t3d-lgc-wrap" id="t3dLgcWrap" style="display:none;">
+        <h2><i class="fa-solid fa-chart-line"></i> Layer Graph Controller</h2>
+        <p class="tc-sub">Atur kurva percepatan/perlambatan animasi masuk tiap huruf — gaya panel kurva editor Alight Motion. Nilai bawaan diambil dari sample Alight Motion asli preset ini.</p>
+
+        <div class="lgc-panel">
+          <div class="lgc-toolbar">
+            <div class="lgc-toolbar-group" id="t3dLgcPresets"></div>
+            <button type="button" class="tc-btn tc-btn-ghost lgc-reset" id="t3dLgcReset"><i class="fa-solid fa-rotate-left"></i> Reset</button>
+          </div>
+
+          <div class="lgc-graph-row">
+            <div class="lgc-graph-stage">
+              <div class="lgc-axis-label lgc-axis-y">Nilai (Value)</div>
+              <svg id="t3dLgcSvg" viewBox="0 0 320 320" class="lgc-svg" preserveAspectRatio="xMidYMid meet"></svg>
+              <div class="lgc-axis-label lgc-axis-x">Waktu (Time)</div>
+            </div>
+            <div class="lgc-side">
+              <div class="lgc-readout">
+                <div class="lgc-readout-row"><span>Handle 1</span><b id="t3dLgcH1Read">0.00, 0.00</b></div>
+                <div class="lgc-readout-row"><span>Handle 2</span><b id="t3dLgcH2Read">0.13, 1.00</b></div>
+              </div>
+              <div class="lgc-inputs">
+                <label>X1 <input class="tc-input" type="number" id="t3dLgcX1" step="0.01" min="0" max="1"></label>
+                <label>Y1 <input class="tc-input" type="number" id="t3dLgcY1" step="0.01" min="-3" max="4"></label>
+                <label>X2 <input class="tc-input" type="number" id="t3dLgcX2" step="0.01" min="0" max="1"></label>
+                <label>Y2 <input class="tc-input" type="number" id="t3dLgcY2" step="0.01" min="-3" max="4"></label>
+              </div>
+              <button type="button" class="tc-btn tc-btn-dark lgc-play" id="t3dLgcPlay"><i class="fa-solid fa-play"></i> Mainkan kurva</button>
+            </div>
+          </div>
+        </div>
+      </section>
+      <div class="tc-field tf-curve-locked" id="t3dLgcLocked">
+        <div class="tc-hint"><i class="fa-solid fa-lock"></i> Preset ini memakai kombinasi kurva (cubic-bezier + pegas/elastic bertahap) persis sample Alight Motion asli — Layer Graph Controller dikunci supaya nuansanya tetap otentik.</div>
+      </div>
+
+    </div>
+
+    <!-- ===================== KOLOM PREVIEW (sticky, real-time) ===================== -->
+    <div class="t3d-preview-col">
+      <div class="t3d-sticky">
+        <div class="t3d-preview-box">
+          <div class="t3d-preview-chrome">
+            <span class="t3d-dot r"></span><span class="t3d-dot y"></span><span class="t3d-dot g"></span>
+            <span class="t3d-preview-chrome-label" id="t3dPreviewCanvasLabel">Square</span>
+          </div>
+          <div class="t3d-preview-stage">
+            <div class="t3d-preview-text" id="t3dPreviewText"></div>
+          </div>
+          <button type="button" class="tc-btn tc-btn-ghost tc-replay-btn" id="t3dReplay"><i class="fa-solid fa-rotate-right"></i> Replay</button>
+        </div>
+
+        <div class="tf-layer-panel">
+          <div class="tf-layer-head">
+            <span><i class="fa-solid fa-layer-group"></i> Layer</span>
+            <span id="t3dLayerCount">0 layer</span>
+          </div>
+          <div class="tf-layer-ruler" id="t3dLayerRuler"></div>
+          <div class="tf-layer-rows" id="t3dLayerRows"></div>
+        </div>
+
+        <div class="t3d-export-box">
+          <h3>Export XML</h3>
+          <div class="tc-summary" id="t3dSummary"></div>
+          <div class="tc-actions">
+            <span></span>
+            <div class="tc-actions-right">
+              <button type="button" class="tc-btn tc-btn-dark" id="t3dCopyBtn"><i class="fa-solid fa-copy"></i> Copy XML</button>
+              <button type="button" class="tc-btn tc-btn-primary" id="t3dExportBtn"><i class="fa-solid fa-download"></i> Export XML</button>
+            </div>
+          </div>
+          <div class="tc-result" id="t3dResult"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tc-howto">
+    <h3>Cara memasang di Alight Motion</h3>
+    <ol>
+      <li>Unduh atau salin file <code>.xml</code> hasil export, lalu simpan di penyimpanan HP (misal folder Download).</li>
+      <li>Buka aplikasi Alight Motion, masuk ke project yang ingin ditambahkan teks 3D ini.</li>
+      <li>Gunakan menu Import/Insert layer dari file, lalu pilih file <code>.xml</code> yang sudah disimpan.</li>
+      <li>Layer-layer teks (satu per huruf/kata), beserta layer latar dekoratif bila ada, akan muncul di project.</li>
+      <li>Langkah menu tepatnya bisa sedikit berbeda tergantung versi aplikasi Alight Motion yang kamu pakai.</li>
+    </ol>
+  </div>
+</div>
+
+<footer class="tc-public-footer public-footer">
+  <div class="tc-public-container public-container">
+    <div class="footer-top">
+      <a class="tc-public-brand public-brand footer-brand" href="{{ url_for('public_profile') }}">
+        <span class="tc-public-brand-mark public-brand-mark"><i class="fa-solid fa-play"></i></span>
+        <span>{{ settings.nama_usaha or 'FYY MOTION' }}</span>
+      </a>
+      <div class="footer-links">
+        <a href="{{ url_for('public_profile') }}">Beranda</a>
+        <a href="{{ url_for('academy') }}">Academy</a>
+        <a href="{{ url_for('teks_creator') }}">Teks Creator</a>
+        <a href="{{ url_for('text_fx_tool') }}">Text FX</a>
+        <a href="{{ url_for('text3d_tool') }}">3D Text</a>
+        {% if is_admin %}<a href="{{ url_for('dashboard') }}">Dashboard</a>{% else %}<a href="{{ url_for('login') }}">Login Admin</a>{% endif %}
+      </div>
+    </div>
+    <div class="footer-giant">{{ settings.nama_usaha or 'FYY MOTION' }}</div>
+    <div class="footer-bottom"><span>{{ profile.footer_text or '© ' ~ (settings.nama_usaha or 'FYY MOTION') }}</span><span>&copy; {{ now_year }}</span></div>
+  </div>
+</footer>
+
+<script>
+  window.T3D_STYLES = {{ styles|tojson }};
+  window.T3D_MODES = {{ modes|tojson }};
+  window.T3D_FONTS = {{ fonts|tojson }};
+  window.T3D_CANVAS = {{ canvas_presets|tojson }};
+  window.T3D_CURVES = {{ curves|tojson }};
+</script>
+<script src="{{ url_for('static', filename='js/text3d.js') }}"></script>
+</body>
+</html>

@@ -1,0 +1,136 @@
+/* ==========================================================================
+   3D Text — halaman form+preview real-time (tanpa wizard step), plus
+   "Layer Graph Controller" bergaya panel kurva editor Alight Motion.
+   ========================================================================== */
+
+.t3d-wrap{ max-width:1320px; }
+
+.t3d-section{
+  background:var(--tc-surface); border-radius:var(--tc-radius); box-shadow:var(--tc-shadow);
+  padding:30px 32px; margin-bottom:22px;
+}
+.t3d-section h2{
+  font-size:1.05rem; font-weight:800; letter-spacing:-.01em; margin:0 0 6px;
+  display:flex; align-items:center; gap:10px;
+}
+.t3d-section h2 i{ color:var(--tc-accent); }
+.t3d-section .tc-sub{ color:var(--tc-muted); margin:0 0 20px; font-size:.9rem; }
+.t3d-section .tc-field:last-child{ margin-bottom:0; }
+
+/* Two-column layout: form (scroll) | sticky preview */
+.t3d-layout{
+  display:grid; grid-template-columns:minmax(0,1.5fr) minmax(320px,1fr); gap:24px; align-items:start;
+}
+.t3d-form-col{ min-width:0; }
+.t3d-preview-col{ min-width:0; }
+.t3d-sticky{ position:sticky; top:20px; display:flex; flex-direction:column; gap:20px; }
+
+@media (max-width:1100px){
+  .t3d-layout{ grid-template-columns:1fr; }
+  .t3d-sticky{ position:static; }
+}
+
+/* Preview stage */
+.t3d-preview-box{
+  background:var(--tc-surface); border-radius:var(--tc-radius); box-shadow:var(--tc-shadow);
+  padding:16px; overflow:hidden;
+}
+.t3d-preview-chrome{
+  display:flex; align-items:center; gap:7px; padding:4px 6px 14px;
+}
+.t3d-dot{ width:10px; height:10px; border-radius:50%; display:inline-block; }
+.t3d-dot.r{ background:#ff5f57; } .t3d-dot.y{ background:#febc2e; } .t3d-dot.g{ background:#28c840; }
+.t3d-preview-chrome-label{
+  margin-left:auto; font-size:.72rem; font-weight:700; color:var(--tc-muted); text-transform:uppercase; letter-spacing:.04em;
+}
+.t3d-preview-stage{
+  background:radial-gradient(circle at 50% 30%, #1a1a1d 0%, #0b0b0d 70%);
+  border-radius:16px; min-height:280px; display:flex; align-items:center; justify-content:center;
+  padding:28px; perspective:900px;
+}
+.t3d-preview-text{
+  display:flex; flex-wrap:wrap; justify-content:center; align-items:center; gap:0 2px;
+  color:#fff; text-align:center; width:100%; transform-style:preserve-3d;
+}
+.t3d-preview-text .t3d-line{
+  display:flex; flex-wrap:wrap; justify-content:center; align-items:center; width:100%; gap:0 2px;
+}
+.t3d-preview-text .t3d-unit{
+  display:inline-block; will-change:transform,opacity,filter; white-space:pre;
+  text-shadow:0 6px 18px rgba(0,0,0,.35);
+}
+.t3d-preview-box .tc-replay-btn{ margin:14px 2px 2px; }
+
+.t3d-export-box{
+  background:var(--tc-surface); border-radius:var(--tc-radius); box-shadow:var(--tc-shadow); padding:22px 24px;
+}
+.t3d-export-box h3{ font-size:.98rem; font-weight:800; margin:0 0 14px; }
+
+/* Color roles grid (dynamic per preset) */
+.t3d-color-roles{ display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:14px; }
+.t3d-color-role{
+  display:flex; align-items:center; gap:10px; border:1.5px solid var(--tc-line); border-radius:999px;
+  padding:7px 14px 7px 7px; background:#fafafa;
+}
+.t3d-color-role input[type=color]{
+  width:34px; height:34px; border:1.5px solid var(--tc-line); border-radius:50%; padding:0; overflow:hidden; flex-shrink:0;
+}
+.t3d-color-role span{ font-size:.82rem; font-weight:700; color:var(--tc-ink); line-height:1.2; }
+
+/* ==========================================================================
+   LAYER GRAPH CONTROLLER — panel kurva editor bergaya Alight Motion/Flamo:
+   latar gelap, grid halus, sumbu berlabel, playhead animasi.
+   ========================================================================== */
+.t3d-lgc-wrap h2{ margin-bottom:4px; }
+.lgc-panel{
+  background:#101013; border-radius:18px; padding:18px; border:1px solid #232327;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.03);
+}
+.lgc-toolbar{
+  display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:16px; flex-wrap:wrap;
+}
+.lgc-toolbar-group{ display:flex; flex-wrap:wrap; gap:8px; }
+.lgc-toolbar-group .tc-chip{
+  background:#1c1c20; color:#c9c9cf; border:1.5px solid #2e2e34; font-size:.76rem;
+}
+.lgc-toolbar-group .tc-chip:hover{ background:#232329; border-color:#3a3a42; color:#fff; }
+.lgc-toolbar-group .tc-chip.active{ background:#0a84ff; border-color:#0a84ff; color:#fff; }
+.lgc-reset{ background:#1c1c20; color:#e5e5ea; border:1.5px solid #2e2e34; }
+.lgc-reset:hover{ border-color:#3a3a42; }
+
+.lgc-graph-row{ display:grid; grid-template-columns:minmax(0,1fr) 220px; gap:20px; align-items:start; }
+@media (max-width:760px){ .lgc-graph-row{ grid-template-columns:1fr; } }
+
+.lgc-graph-stage{ position:relative; display:flex; flex-direction:column; }
+.lgc-svg{
+  width:100%; aspect-ratio:1/1; border-radius:14px; background:#0a0a0c; touch-action:none; user-select:none;
+  border:1px solid #1d1d22;
+}
+.lgc-axis-label{
+  font-size:.66rem; font-weight:700; color:#6b6b72; text-transform:uppercase; letter-spacing:.08em;
+}
+.lgc-axis-y{
+  position:absolute; left:-10px; top:50%; transform:translate(-100%,-50%) rotate(-90deg); transform-origin:right center;
+}
+.lgc-axis-x{ text-align:center; margin-top:8px; }
+
+.lgc-side{ display:flex; flex-direction:column; gap:14px; }
+.lgc-readout{
+  background:#1a1a1e; border:1px solid #28282e; border-radius:12px; padding:10px 12px; font-size:.78rem;
+}
+.lgc-readout-row{ display:flex; align-items:center; justify-content:space-between; padding:3px 0; color:#9c9ca3; }
+.lgc-readout-row b{ color:#fff; font-weight:700; font-variant-numeric:tabular-nums; }
+.lgc-inputs{ display:grid; grid-template-columns:repeat(2,1fr); gap:8px; }
+.lgc-inputs label{
+  font-size:.72rem; font-weight:700; color:#8d8d94; display:flex; flex-direction:column; gap:4px;
+}
+.lgc-inputs input{
+  background:#1a1a1e; border:1.5px solid #2a2a30; color:#fff; border-radius:9px; padding:8px 10px; font-size:.85rem;
+}
+.lgc-inputs input:focus{ outline:none; border-color:#0a84ff; background:#1f1f24; }
+.lgc-play{ width:100%; justify-content:center; background:#0a84ff; }
+.lgc-play:hover{ background:#2e96ff; }
+
+@media (max-width:640px){
+  .lgc-panel{ padding:14px; }
+}

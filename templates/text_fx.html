@@ -26,6 +26,7 @@
       <a href="{{ url_for('academy') }}">Academy</a>
       <a href="{{ url_for('teks_creator') }}">Teks Creator</a>
       <a class="is-active" href="{{ url_for('text_fx_tool') }}">Text FX</a>
+      <a href="{{ url_for('text3d_tool') }}">3D Text</a>
     </div>
     <div class="tc-public-nav-actions public-nav-actions">
       {% if is_admin %}
@@ -57,6 +58,7 @@
     <a href="{{ url_for('academy') }}"><i class="fa-solid fa-graduation-cap"></i> Academy</a>
     <a href="{{ url_for('teks_creator') }}"><i class="fa-solid fa-wand-magic-sparkles"></i> Teks Creator</a>
     <a class="is-active" href="{{ url_for('text_fx_tool') }}"><i class="fa-solid fa-shuffle"></i> Text FX</a>
+    <a href="{{ url_for('text3d_tool') }}"><i class="fa-solid fa-cube"></i> 3D Text</a>
     {% if is_admin %}
     <a href="{{ url_for('dashboard') }}"><i class="fa-solid fa-gauge-high"></i> Dashboard</a>
     {% else %}
@@ -277,6 +279,7 @@
         <a href="{{ url_for('academy') }}">Academy</a>
         <a href="{{ url_for('teks_creator') }}">Teks Creator</a>
         <a href="{{ url_for('text_fx_tool') }}">Text FX</a>
+        <a href="{{ url_for('text3d_tool') }}">3D Text</a>
         {% if is_admin %}<a href="{{ url_for('dashboard') }}">Dashboard</a>{% else %}<a href="{{ url_for('login') }}">Login Admin</a>{% endif %}
       </div>
     </div>
