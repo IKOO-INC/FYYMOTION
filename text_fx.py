@@ -55,6 +55,7 @@ import xml.etree.ElementTree as ET
 from alight_presets import (
     ALLOWED_WEIGHTS,
     CANVAS_PRESETS,
+    CURVES,
     FONTS,
     ValidationError,
     _font_attr,
@@ -104,6 +105,8 @@ TEXT_FX_STYLES = {
         "description": "Setiap unit membesar dari nol ke ukuran penuh. Sumber: engine 'pop' (preset oc01_keep_it, alight_presets.py).",
         "icon": "fa-solid fa-circle-up",
         "engine": "pop",
+        "supports_curve_edit": True,
+        "default_curve": {"x1": 0.25, "y1": 0.25, "x2": 0.20753138, "y2": 1.0},
     },
     "blur": {
         "name": "Blur",
@@ -116,12 +119,16 @@ TEXT_FX_STYLES = {
         "description": "Meluncur naik sambil buram hilang dan fade in. Sumber asli: fyy-motion#blur-up.xml.",
         "icon": "fa-solid fa-wind",
         "engine": "blur_up",
+        "supports_curve_edit": True,
+        "default_curve": {"x1": 0.0, "y1": 0.0, "x2": 0.16407079, "y2": 1.0},
     },
     "bounce_move": {
         "name": "Bounce Move",
         "description": "Meluncur horizontal sambil memantul (squash Y elastis). Sumber asli: fyy-motion#bounce-move.xml.",
         "icon": "fa-solid fa-arrows-left-right",
         "engine": "bounce_move",
+        "supports_curve_edit": True,
+        "default_curve": {"x1": 0.0, "y1": 0.20526315, "x2": 0.0014749262, "y2": 1.0},
     },
     "random_in": {
         "name": "Random In",
@@ -129,6 +136,8 @@ TEXT_FX_STYLES = {
         "icon": "fa-solid fa-shuffle",
         "engine": "random_in",
         "supports_random": True,
+        "supports_curve_edit": True,
+        "default_curve": {"x1": 0.67330384, "y1": 0.015789473, "x2": 0.32669616, "y2": 1.0},
     },
     "random_in_out": {
         "name": "Random In & Out",
@@ -136,6 +145,8 @@ TEXT_FX_STYLES = {
         "icon": "fa-solid fa-shuffle",
         "engine": "random_in_out",
         "supports_random": True,
+        "supports_curve_edit": True,
+        "default_curve": {"x1": 0.67330384, "y1": 0.015789473, "x2": 0.32669616, "y2": 1.0},
     },
     "squish_up": {
         "name": "Squish Up",
@@ -166,6 +177,8 @@ TEXT_FX_STYLES = {
         "description": "Meluncur masuk lalu memantul/stretch dua kali dan menghilang sendiri di akhir — animasi satu paket lengkap. Sumber asli: fyy-motion#stretch-half.xml.",
         "icon": "fa-solid fa-arrows-up-down",
         "engine": "stretch_half",
+        "supports_curve_edit": True,
+        "default_curve": {"x1": 0.0, "y1": 0.0, "x2": 0.16407079, "y2": 1.0},
     },
 }
 
@@ -184,6 +197,8 @@ def list_text_fx_styles() -> list:
             "description": style["description"],
             "icon": style["icon"],
             "supports_random": style.get("supports_random", False),
+            "supports_curve_edit": style.get("supports_curve_edit", False),
+            "default_curve": style.get("default_curve"),
         })
     return out
 
@@ -203,6 +218,43 @@ def _validate_colors(raw) -> list:
     if not colors:
         raise ValidationError("Palet warna tidak boleh kosong.")
     return colors
+
+
+def _validate_text_fx_curve(payload: dict, style: dict) -> dict | None:
+    """Validasi override kurva cubicBezier (opsional). Hanya berlaku untuk preset
+    yang `supports_curve_edit=True` (satu kurva utama berbasis cubicBezier tunggal
+    yang terbukti dari sample asli) — preset berbasis 'local elastic' murni
+    (squish_up/up/elastic/squish_rot) dan 'blur' (statis, tanpa kurva posisi)
+    TIDAK mendukung override, supaya tidak menyamarkan kurva pegas asli yang
+    sudah terbukti dari sample XML.
+    """
+    if not style.get("supports_curve_edit"):
+        return None
+    default = style.get("default_curve") or {"x1": 0.25, "y1": 0.1, "x2": 0.25, "y2": 1.0}
+
+    curve_id = str(payload.get("curve_id") or "").strip()
+    if curve_id and curve_id in CURVES:
+        c = CURVES[curve_id]
+        return {"x1": c["x1"], "y1": c["y1"], "x2": c["x2"], "y2": c["y2"]}
+
+    custom = payload.get("curve") or {}
+    if not custom:
+        return dict(default)
+
+    try:
+        x1 = float(custom.get("x1", default["x1"]))
+        y1 = float(custom.get("y1", default["y1"]))
+        x2 = float(custom.get("x2", default["x2"]))
+        y2 = float(custom.get("y2", default["y2"]))
+    except (TypeError, ValueError) as exc:
+        raise ValidationError("Nilai kurva cubic-bezier tidak valid.") from exc
+
+    if not (0.0 <= x1 <= 1.0) or not (0.0 <= x2 <= 1.0):
+        raise ValidationError("Nilai X pada kurva cubic-bezier harus di antara 0 dan 1.")
+    for label, v in (("Y1", y1), ("Y2", y2)):
+        if not (-3.0 <= v <= 4.0):
+            raise ValidationError(f"Nilai {label} pada kurva di luar batas wajar (-3 s.d. 4).")
+    return {"x1": x1, "y1": y1, "x2": x2, "y2": y2}
 
 
 def _pick_color(colors: list, idx: int, n: int, mapping: str) -> str:
@@ -302,6 +354,7 @@ def _validate_text_fx_payload(payload: dict) -> dict:
         raise ValidationError("Layer duration harus di antara 300 ms dan 8000 ms.")
 
     extend_to_end = bool(payload.get("extend_to_end", True))
+    curve = _validate_text_fx_curve(payload, style)
 
     return {
         "text": text,
@@ -309,6 +362,7 @@ def _validate_text_fx_payload(payload: dict) -> dict:
         "units": units,
         "style_id": style_id,
         "style": style,
+        "curve": curve,
         "font_size": font_size,
         "font_id": font_id,
         "font_family": FONTS[font_id]["family"],
@@ -340,9 +394,21 @@ def _scalar_kf_list(kfs) -> list:
     return [_kf(t, f"{v:.6f}", e) for (t, v, e) in kfs]
 
 
+def _curve_e(curve_override: dict | None, default_tuple: tuple) -> str:
+    """Kembalikan string easing cubicBezier: pakai override user jika ada
+    (sudah divalidasi lewat _validate_text_fx_curve), kalau tidak pakai nilai
+    bawaan yang terbukti dari sample XML asli."""
+    if curve_override:
+        return _cubic(curve_override["x1"], curve_override["y1"], curve_override["x2"], curve_override["y2"])
+    return _cubic(*default_tuple)
+
+
 def _build_unit_xml(engine: str, lx: float, cy: float, rnd: random.Random,
-                     random_pct: int, font_size: int, own_dur_s: float) -> tuple[list, list]:
-    """Kembalikan (transform_lines, effect_lines) untuk satu unit, sesuai engine."""
+                     random_pct: int, font_size: int, own_dur_s: float,
+                     curve_override: dict | None = None) -> tuple[list, list]:
+    """Kembalikan (transform_lines, effect_lines) untuk satu unit, sesuai engine.
+    `curve_override` (opsional) hanya dipakai pada preset yang
+    `supports_curve_edit=True` di TEXT_FX_STYLES — lihat _validate_text_fx_curve."""
     transform_lines = []
     effect_lines = []
 
@@ -352,7 +418,7 @@ def _build_unit_xml(engine: str, lx: float, cy: float, rnd: random.Random,
         transform_lines.append("      <scale>")
         transform_lines += _scale_kf_list([
             (0.0, 0.0, 0.0, None),
-            (pop_s, 1.0, 1.0, _cubic(0.25, 0.25, 0.20753138, 1.0)),
+            (pop_s, 1.0, 1.0, _curve_e(curve_override, (0.25, 0.25, 0.20753138, 1.0))),
         ])
         transform_lines.append("      </scale>")
 
@@ -375,7 +441,7 @@ def _build_unit_xml(engine: str, lx: float, cy: float, rnd: random.Random,
         transform_lines.append("      <location>")
         transform_lines += _loc_kf_list([
             (0.0, lx, cy + offset_y, None),
-            (0.11475, lx, cy, _cubic(0.0, 0.0, 0.16407079, 1.0)),
+            (0.11475, lx, cy, _curve_e(curve_override, (0.0, 0.0, 0.16407079, 1.0))),
         ])
         transform_lines.append("      </location>")
         transform_lines.append("      <opacity>")
@@ -395,7 +461,7 @@ def _build_unit_xml(engine: str, lx: float, cy: float, rnd: random.Random,
         transform_lines.append("      <location>")
         transform_lines += _loc_kf_list([
             (0.0, lx + offset_x, cy, None),
-            (0.16675, lx, cy, _cubic(0.0, 0.20526315, 0.0014749262, 1.0)),
+            (0.16675, lx, cy, _curve_e(curve_override, (0.0, 0.20526315, 0.0014749262, 1.0))),
         ])
         transform_lines.append("      </location>")
         transform_lines.append("      <scale>")
@@ -416,14 +482,14 @@ def _build_unit_xml(engine: str, lx: float, cy: float, rnd: random.Random,
         transform_lines += _loc_kf_list([
             (0.0, lx + jx, cy + jy, None),
             (0.060969, lx + jx * 0.03, cy + jy * 0.03, _cubic(0.42, 0.0, 0.15227138, 1.0)),
-            (0.125, lx, cy, _cubic(0.67330384, 0.015789473, 0.32669616, 1.0)),
+            (0.125, lx, cy, _curve_e(curve_override, (0.67330384, 0.015789473, 0.32669616, 1.0))),
         ])
         if engine == "random_in_out" and own_dur_s > 0.25:
             jx2 = rnd.uniform(-1.0, 1.0) * max_jitter
             jy2 = rnd.uniform(-1.0, 1.0) * max_jitter
             out_small_s = max(0.125, own_dur_s - 0.0641)
             transform_lines += _loc_kf_list([
-                (out_small_s, lx + jx2 * 0.03, cy + jy2 * 0.03, _cubic(0.67330384, 0.015789473, 0.32669616, 1.0)),
+                (out_small_s, lx + jx2 * 0.03, cy + jy2 * 0.03, _curve_e(curve_override, (0.67330384, 0.015789473, 0.32669616, 1.0))),
                 (own_dur_s, lx + jx2, cy + jy2, _cubic(0.42, 0.0, 0.15227138, 1.0)),
             ])
         transform_lines.append("      </location>")
@@ -485,7 +551,7 @@ def _build_unit_xml(engine: str, lx: float, cy: float, rnd: random.Random,
         transform_lines.append("      <location>")
         transform_lines += _loc_kf_list([
             (0.0, lx + offset_x, cy, None),
-            (0.11475, lx, cy, _cubic(0.0, 0.0, 0.16407079, 1.0)),
+            (0.11475, lx, cy, _curve_e(curve_override, (0.0, 0.0, 0.16407079, 1.0))),
         ])
         transform_lines.append("      </location>")
         transform_lines.append("      <scale>")
@@ -554,7 +620,7 @@ def build_text_fx_xml(payload: dict) -> tuple[str, str]:
         color_hex = _pick_color(data["colors"], idx, n, data["color_mapping"])
 
         transform_lines, effect_lines = _build_unit_xml(
-            engine, lx, cy, rnd, data["random_pct"], font_size, own_dur_s
+            engine, lx, cy, rnd, data["random_pct"], font_size, own_dur_s, data.get("curve")
         )
 
         wrap_w = _wrap_width_for_unit(unit, font_size)

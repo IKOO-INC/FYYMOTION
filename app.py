@@ -2589,6 +2589,7 @@ def text_fx_tool():
         mappings=TEXT_FX_MAPPINGS,
         fonts=FONTS,
         canvas_presets=CANVAS_PRESETS,
+        curves=CURVES,
         primary_url=primary_url,
         is_admin=bool(session.get("logged_in")),
     )
