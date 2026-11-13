@@ -48,6 +48,12 @@ from alight_presets import (
     build_text_scene_xml,
     list_presets_by_category,
 )
+from text_fx import (
+    TEXT_FX_MAPPINGS,
+    TEXT_FX_MODES,
+    build_text_fx_xml,
+    list_text_fx_styles,
+)
 
 # --------------------------------------------------------------------------- #
 # Konfigurasi dasar
@@ -1380,6 +1386,7 @@ def guard():
     if endpoint in (
         "static", "login", "health", "public_profile",
         "teks_creator", "teks_creator_generate", "academy", "daftar_academy",
+        "text_fx_tool", "text_fx_generate",
     ):
         pass
     elif not session.get("logged_in"):
@@ -2552,6 +2559,49 @@ def teks_creator_generate():
         return {"error": "Payload tidak valid. Kirim JSON dari form Teks Creator."}, 400
     try:
         xml_text, filename = build_text_scene_xml(payload)
+    except ValidationError as exc:
+        return {"error": str(exc)}, 400
+    except Exception:
+        return {"error": "Terjadi kesalahan tak terduga saat membuat XML. Coba lagi."}, 500
+    return Response(
+        xml_text,
+        mimetype="application/xml",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
+
+
+# --------------------------------------------------------------------------- #
+# Text FX — animasi teks per huruf/kata, terinspirasi tool "Text FX" Flamo
+# Creative (publik, tanpa login). Halaman terpisah di bawah /tools/.
+# --------------------------------------------------------------------------- #
+@app.route("/tools/text-fx")
+def text_fx_tool():
+    """Halaman Text FX: animasi masuk per-huruf/per-kata, 11 preset asli."""
+    db = load_db()
+    profile = normalize_profile(db.get("profile"))
+    wa_url = public_whatsapp_url(db)
+    primary_url = profile.get("hero_primary_url") or wa_url or "#"
+    return render_template(
+        "text_fx.html",
+        page_title="Text FX — Animasi Teks Per Huruf/Kata | FYY MOTION",
+        styles=list_text_fx_styles(),
+        modes=TEXT_FX_MODES,
+        mappings=TEXT_FX_MAPPINGS,
+        fonts=FONTS,
+        canvas_presets=CANVAS_PRESETS,
+        primary_url=primary_url,
+        is_admin=bool(session.get("logged_in")),
+    )
+
+
+@app.route("/api/tools/text-fx/generate", methods=["POST"])
+def text_fx_generate():
+    """Validasi input lalu bangun file .xml Text FX di memori (tanpa tulis disk)."""
+    payload = request.get_json(silent=True)
+    if not isinstance(payload, dict):
+        return {"error": "Payload tidak valid. Kirim JSON dari form Text FX."}, 400
+    try:
+        xml_text, filename = build_text_fx_xml(payload)
     except ValidationError as exc:
         return {"error": str(exc)}, 400
     except Exception:

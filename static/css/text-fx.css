@@ -1,0 +1,45 @@
+/* ==========================================================================
+   Text FX — pelengkap teks-creator.css. File ini hanya berisi komponen yang
+   belum ada di teks-creator.css (toggle mode, daftar warna, preview gelap).
+   ========================================================================== */
+
+/* Mode toggle (Per Character / Per Word) */
+.tf-mode-toggle{ display:flex; gap:10px; flex-wrap:wrap; }
+.tf-mode-btn{
+  display:inline-flex; align-items:center; gap:8px;
+  border:1.5px solid var(--tc-line); background:#fafafa; color:var(--tc-muted);
+  border-radius:999px; padding:10px 18px; font-size:.88rem; font-weight:700; cursor:pointer;
+  transition:all .25s var(--tc-ease);
+}
+.tf-mode-btn:hover{ border-color:var(--tc-accent); color:var(--tc-ink); }
+.tf-mode-btn.active{ background:var(--tc-ink); color:#fff; border-color:var(--tc-ink); }
+
+/* Color palette editor */
+.tf-color-list{ display:flex; flex-wrap:wrap; gap:10px; margin-bottom:12px; }
+.tf-color-chip{
+  display:flex; align-items:center; gap:8px;
+  border:1.5px solid var(--tc-line); border-radius:999px; padding:6px 10px 6px 6px; background:#fafafa;
+}
+.tf-color-chip input[type=color]{
+  width:30px; height:30px; border:1.5px solid var(--tc-line); border-radius:50%; padding:0; overflow:hidden;
+}
+.tf-color-chip .tf-color-remove{
+  border:none; background:none; color:var(--tc-muted); cursor:pointer; font-size:.85rem; padding:2px;
+}
+.tf-color-chip .tf-color-remove:hover{ color:#b4232c; }
+.tf-color-actions{ display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
+.tf-mapping-select{ width:auto; min-width:180px; }
+
+/* Preview (dark stage, similar to tc-preview-box but roomier) */
+.tf-preview-box{ min-height:260px; padding:32px; }
+.tf-preview-text{
+  display:flex; flex-wrap:wrap; justify-content:center; align-items:center; gap:0;
+  color:#fff; text-align:center; width:100%;
+}
+.tf-preview-text .tf-unit{
+  display:inline-block; will-change:transform,opacity,filter; white-space:pre;
+}
+
+@media (max-width:640px){
+  .tf-preview-box{ padding:20px; min-height:200px; }
+}
