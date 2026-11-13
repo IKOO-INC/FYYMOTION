@@ -1,0 +1,266 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Buat animasi teks per-huruf atau per-kata untuk Alight Motion dari 11 preset asli — Text FX ala FYY MOTION.">
+  <meta name="csrf-token" content="{{ csrf_token() }}">
+  <title>{{ page_title }}</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Inter+Tight:wght@700;800;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link href="{{ url_for('static', filename='css/teks-creator.css') }}" rel="stylesheet">
+  <link href="{{ url_for('static', filename='css/text-fx.css') }}" rel="stylesheet">
+</head>
+<body class="tc-body">
+
+<header class="tc-nav-wrap public-nav-wrap">
+  <nav class="tc-public-nav public-nav" aria-label="Navigasi Text FX">
+    <a class="tc-public-brand public-brand" href="{{ url_for('public_profile') }}">
+      <span class="tc-public-brand-mark public-brand-mark"><i class="fa-solid fa-play"></i></span>
+      <span>{{ settings.nama_usaha or 'FYY MOTION' }}</span>
+    </a>
+    <div class="tc-public-links public-links">
+      <a href="{{ url_for('public_profile') }}">Beranda</a>
+      <a href="{{ url_for('academy') }}">Academy</a>
+      <a href="{{ url_for('teks_creator') }}">Teks Creator</a>
+      <a class="is-active" href="{{ url_for('text_fx_tool') }}">Text FX</a>
+    </div>
+    <div class="tc-public-nav-actions public-nav-actions">
+      {% if is_admin %}
+      <a class="tc-public-login public-login-link" href="{{ url_for('dashboard') }}">Dashboard</a>
+      {% else %}
+      <a class="tc-public-login public-login-link" href="{{ url_for('login') }}">Admin</a>
+      {% endif %}
+      <a class="btn tc-public-cta public-cta-btn" href="{{ primary_url }}" {% if primary_url.startswith('http') %}target="_blank" rel="noopener"{% endif %}>
+        <span class="tc-public-cta-label">{{ profile.nav_cta_label or 'Order Sekarang' }}</span> <i class="fa-solid fa-arrow-up-right-from-square"></i>
+      </a>
+      <button type="button" class="tc-drawer-btn" id="tfDrawerBtn" aria-label="Buka menu" aria-expanded="false" aria-controls="tfDrawer">
+        <i class="fa-solid fa-bars"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+
+<div class="tc-drawer-backdrop" id="tfDrawerBackdrop"></div>
+<aside class="tc-drawer" id="tfDrawer" aria-hidden="true">
+  <div class="tc-drawer-head">
+    <a class="tc-public-brand" href="{{ url_for('public_profile') }}">
+      <span class="tc-public-brand-mark public-brand-mark"><i class="fa-solid fa-play"></i></span>
+      <span>{{ settings.nama_usaha or 'FYY MOTION' }}</span>
+    </a>
+    <button type="button" class="tc-drawer-close" id="tfDrawerClose" aria-label="Tutup menu"><i class="fa-solid fa-xmark"></i></button>
+  </div>
+  <nav class="tc-drawer-links">
+    <a href="{{ url_for('public_profile') }}"><i class="fa-solid fa-house"></i> Beranda</a>
+    <a href="{{ url_for('academy') }}"><i class="fa-solid fa-graduation-cap"></i> Academy</a>
+    <a href="{{ url_for('teks_creator') }}"><i class="fa-solid fa-wand-magic-sparkles"></i> Teks Creator</a>
+    <a class="is-active" href="{{ url_for('text_fx_tool') }}"><i class="fa-solid fa-shuffle"></i> Text FX</a>
+    {% if is_admin %}
+    <a href="{{ url_for('dashboard') }}"><i class="fa-solid fa-gauge-high"></i> Dashboard</a>
+    {% else %}
+    <a href="{{ url_for('login') }}"><i class="fa-solid fa-lock"></i> Admin</a>
+    {% endif %}
+  </nav>
+  <a class="btn tc-public-cta public-cta-btn tc-drawer-cta" href="{{ primary_url }}" {% if primary_url.startswith('http') %}target="_blank" rel="noopener"{% endif %}>
+    <span class="tc-public-cta-label">{{ profile.nav_cta_label or 'Order Sekarang' }}</span> <i class="fa-solid fa-arrow-up-right-from-square"></i>
+  </a>
+</aside>
+
+<div class="tc-wrap">
+  <div class="tc-hero">
+    <h1>Animasikan teks per huruf<br>atau per kata.</h1>
+    <p>Pilih gaya animasi masuk, atur teks &amp; warna, lalu export file .xml yang siap diimpor ke Alight Motion — satu layer teks per huruf/kata lengkap dengan timing-nya sendiri.</p>
+  </div>
+
+  <div class="tc-steps" id="tfSteps">
+    <span class="tc-step-pill active" data-step="1"><span class="num">1</span> Pilih Animasi</span>
+    <span class="tc-step-pill" data-step="2"><span class="num">2</span> Teks &amp; Gaya</span>
+    <span class="tc-step-pill" data-step="3"><span class="num">3</span> Preview</span>
+    <span class="tc-step-pill" data-step="4"><span class="num">4</span> Export</span>
+  </div>
+
+  <!-- STEP 1: PILIH ANIMASI -->
+  <section class="tc-panel active" data-panel="1">
+    <h2>Pilih gaya animasi</h2>
+    <p class="tc-sub">11 preset animasi masuk per unit (huruf/kata), setiap kurva pergerakannya diambil langsung dari file .xml asli Alight Motion — bukan kurva karangan.</p>
+    <div class="tc-preset-grid" id="tfStyleGrid"></div>
+    <div class="tc-actions">
+      <span></span>
+      <div class="tc-actions-right">
+        <button type="button" class="tc-btn tc-btn-primary" id="tfNext1" disabled>Lanjut <i class="fa-solid fa-arrow-right"></i></button>
+      </div>
+    </div>
+  </section>
+
+  <!-- STEP 2: TEKS & GAYA -->
+  <section class="tc-panel" data-panel="2">
+    <h2>Teks &amp; pengaturan</h2>
+    <p class="tc-sub">Atur isi teks, mode animasi (per huruf/kata), font, warna, dan timing.</p>
+
+    <div class="tc-field">
+      <label for="tfText">Isi teks</label>
+      <textarea class="tc-textarea" id="tfText" maxlength="60" placeholder="Tulis teks di sini...">FYY MOTION</textarea>
+      <div class="tc-hint">Maksimal 60 karakter. Mode Per Character maks. 28 huruf, mode Per Word maks. 10 kata.</div>
+    </div>
+
+    <div class="tc-field">
+      <label>Mode animasi</label>
+      <div class="tf-mode-toggle" id="tfModeToggle">
+        <button type="button" class="tf-mode-btn active" data-mode="character"><i class="fa-solid fa-font"></i> Per Character</button>
+        <button type="button" class="tf-mode-btn" data-mode="word"><i class="fa-solid fa-text-width"></i> Per Word</button>
+      </div>
+    </div>
+
+    <div class="tc-grid-2">
+      <div class="tc-field">
+        <label for="tfFontSize">Ukuran teks (px)</label>
+        <input class="tc-input" type="number" id="tfFontSize" min="10" max="260" value="90">
+      </div>
+      <div class="tc-field">
+        <label for="tfFont">Font</label>
+        <select class="tc-select" id="tfFont"></select>
+      </div>
+      <div class="tc-field">
+        <label for="tfWeight">Ketebalan font</label>
+        <select class="tc-select" id="tfWeight">
+          <option value="400">Regular (400)</option>
+          <option value="500">Medium (500)</option>
+          <option value="600">Semibold (600)</option>
+          <option value="700" selected>Bold (700)</option>
+          <option value="800">Extra Bold (800)</option>
+          <option value="900">Black (900)</option>
+        </select>
+      </div>
+      <div class="tc-field">
+        <label for="tfCanvas">Ukuran kanvas</label>
+        <select class="tc-select" id="tfCanvas"></select>
+      </div>
+      <div class="tc-field">
+        <label for="tfStagger">Jeda antar unit (ms)</label>
+        <input class="tc-input" type="number" id="tfStagger" min="0" max="500" step="5" value="80">
+      </div>
+      <div class="tc-field">
+        <label for="tfDuration">Lama tampil per unit (ms)</label>
+        <input class="tc-input" type="number" id="tfDuration" min="300" max="8000" step="50" value="1100">
+      </div>
+    </div>
+
+    <div class="tc-grid-2" id="tfRandomRow" style="display:none;">
+      <div class="tc-field">
+        <label for="tfRandomPct">Random (%)</label>
+        <input class="tc-input" type="range" id="tfRandomPct" min="0" max="100" step="5" value="60">
+        <div class="tc-hint"><span id="tfRandomPctLabel">60</span>% — besar jarak posisi acak tiap unit saat masuk.</div>
+      </div>
+      <div class="tc-field">
+        <label for="tfSeed">Seed (acak tapi konsisten)</label>
+        <input class="tc-input" type="number" id="tfSeed" min="0" max="999999" value="7">
+      </div>
+    </div>
+
+    <div class="tc-field">
+      <label>
+        <input type="checkbox" id="tfExtendToEnd" checked> Samakan waktu selesai semua unit (rapi di akhir)
+      </label>
+    </div>
+
+    <div class="tc-field">
+      <label>Palet warna</label>
+      <div class="tf-color-list" id="tfColorList"></div>
+      <div class="tf-color-actions">
+        <button type="button" class="tc-btn tc-btn-ghost" id="tfAddColor"><i class="fa-solid fa-plus"></i> Tambah Warna</button>
+        <select class="tc-select tf-mapping-select" id="tfMapping">
+          <option value="cycle" selected>Ulang Berurutan</option>
+          <option value="mirror">Bolak-balik</option>
+          <option value="single">Satu Warna</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="tc-actions">
+      <button type="button" class="tc-btn tc-btn-ghost" id="tfBack2"><i class="fa-solid fa-arrow-left"></i> Kembali</button>
+      <div class="tc-actions-right">
+        <button type="button" class="tc-btn tc-btn-primary" id="tfNext2">Lanjut <i class="fa-solid fa-arrow-right"></i></button>
+      </div>
+    </div>
+  </section>
+
+  <!-- STEP 3: PREVIEW -->
+  <section class="tc-panel" data-panel="3">
+    <h2>Preview</h2>
+    <p class="tc-sub">Preview ini adalah simulasi kasar di browser (bukan render Alight Motion yang sebenarnya), untuk memberi gambaran arah gerak &amp; timing animasi.</p>
+
+    <div class="tc-preview-box tf-preview-box">
+      <div class="tf-preview-text" id="tfPreviewText"></div>
+      <button type="button" class="tc-btn tc-btn-ghost tc-replay-btn" id="tfReplay"><i class="fa-solid fa-rotate-right"></i> Replay</button>
+    </div>
+
+    <div class="tc-actions">
+      <button type="button" class="tc-btn tc-btn-ghost" id="tfBack3"><i class="fa-solid fa-arrow-left"></i> Kembali</button>
+      <div class="tc-actions-right">
+        <button type="button" class="tc-btn tc-btn-primary" id="tfNext3">Lanjut <i class="fa-solid fa-arrow-right"></i></button>
+      </div>
+    </div>
+  </section>
+
+  <!-- STEP 4: EXPORT -->
+  <section class="tc-panel" data-panel="4">
+    <h2>Export XML</h2>
+    <p class="tc-sub">Cek ringkasan di bawah, lalu unduh atau salin XML untuk dipasang di Alight Motion.</p>
+
+    <div class="tc-summary" id="tfSummary"></div>
+
+    <div class="tc-actions">
+      <button type="button" class="tc-btn tc-btn-ghost" id="tfBack4"><i class="fa-solid fa-arrow-left"></i> Kembali</button>
+      <div class="tc-actions-right">
+        <button type="button" class="tc-btn tc-btn-dark" id="tfCopyBtn"><i class="fa-solid fa-copy"></i> Copy XML</button>
+        <button type="button" class="tc-btn tc-btn-primary" id="tfExportBtn"><i class="fa-solid fa-download"></i> Export XML</button>
+      </div>
+    </div>
+
+    <div class="tc-result" id="tfResult"></div>
+
+    <div class="tc-howto">
+      <h3>Cara memasang di Alight Motion</h3>
+      <ol>
+        <li>Unduh atau salin file <code>.xml</code> hasil export, lalu simpan di penyimpanan HP (misal folder Download).</li>
+        <li>Buka aplikasi Alight Motion, masuk ke project yang ingin ditambahkan teks ini.</li>
+        <li>Gunakan menu Import/Insert layer dari file, lalu pilih file <code>.xml</code> yang sudah disimpan.</li>
+        <li>Layer-layer teks (satu per huruf/kata) akan muncul di project — sesuaikan posisi atau waktu mulai bila perlu.</li>
+        <li>Langkah menu tepatnya bisa sedikit berbeda tergantung versi aplikasi Alight Motion yang kamu pakai.</li>
+      </ol>
+    </div>
+  </section>
+</div>
+
+<footer class="tc-public-footer public-footer">
+  <div class="tc-public-container public-container">
+    <div class="footer-top">
+      <a class="tc-public-brand public-brand footer-brand" href="{{ url_for('public_profile') }}">
+        <span class="tc-public-brand-mark public-brand-mark"><i class="fa-solid fa-play"></i></span>
+        <span>{{ settings.nama_usaha or 'FYY MOTION' }}</span>
+      </a>
+      <div class="footer-links">
+        <a href="{{ url_for('public_profile') }}">Beranda</a>
+        <a href="{{ url_for('academy') }}">Academy</a>
+        <a href="{{ url_for('teks_creator') }}">Teks Creator</a>
+        <a href="{{ url_for('text_fx_tool') }}">Text FX</a>
+        {% if is_admin %}<a href="{{ url_for('dashboard') }}">Dashboard</a>{% else %}<a href="{{ url_for('login') }}">Login Admin</a>{% endif %}
+      </div>
+    </div>
+    <div class="footer-giant">{{ settings.nama_usaha or 'FYY MOTION' }}</div>
+    <div class="footer-bottom"><span>{{ profile.footer_text or '© ' ~ (settings.nama_usaha or 'FYY MOTION') }}</span><span>&copy; {{ now_year }}</span></div>
+  </div>
+</footer>
+
+<script>
+  window.TF_STYLES = {{ styles|tojson }};
+  window.TF_MODES = {{ modes|tojson }};
+  window.TF_MAPPINGS = {{ mappings|tojson }};
+  window.TF_FONTS = {{ fonts|tojson }};
+  window.TF_CANVAS = {{ canvas_presets|tojson }};
+</script>
+<script src="{{ url_for('static', filename='js/text-fx.js') }}"></script>
+</body>
+</html>
