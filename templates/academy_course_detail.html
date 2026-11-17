@@ -1,0 +1,47 @@
+{% extends "academy_base.html" %}
+{% block title %}{{ course.judul }} — FYY MOTION Academy{% endblock %}
+{% block content %}
+<a class="small d-inline-block mb-3" href="{{ url_for('academy_catalog_view') }}"><i class="fa-solid fa-arrow-left"></i> Kembali ke katalog</a>
+<div class="row g-4">
+  <div class="col-lg-8">
+    <div class="card shadow-sm">
+      {% if course.thumbnail_url %}<img src="{{ course.thumbnail_url }}" class="card-img-top" style="max-height:320px;object-fit:cover" alt="{{ course.judul }}">{% endif %}
+      <div class="card-body">
+        <h4 class="fw-bold mb-2">{{ course.judul }}</h4>
+        <span class="badge text-bg-light border mb-3">{{ course.jumlah_pelajaran }} pelajaran</span>
+        <p style="white-space:pre-line">{{ course.deskripsi }}</p>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-4">
+    <div class="card shadow-sm sticky-top" style="top:90px">
+      <div class="card-body text-center">
+        <div class="fs-3 fw-bold text-primary mb-2">{{ "Rp{:,}".format(course.harga).replace(',', '.') }}</div>
+        {% if enrolled %}
+        <div class="alert alert-success small"><i class="fa-solid fa-circle-check"></i> Kamu sudah terdaftar di kelas ini.</div>
+        <a class="btn btn-success w-100 fw-bold" href="{{ url_for('academy_ruang_belajar_view', slug=course.slug) }}"><i class="fa-solid fa-play"></i> Masuk Ruang Belajar</a>
+        {% elif pending %}
+        <div class="alert alert-warning small"><i class="fa-solid fa-hourglass-half"></i> Kamu punya transaksi menunggu konfirmasi untuk kelas ini.</div>
+        <a class="btn btn-warning w-100 fw-bold" href="{{ url_for('academy_transaksi_view', kode=pending.kode_transaksi) }}"><i class="fa-solid fa-receipt"></i> Lihat Transaksi</a>
+        {% else %}
+        <form method="post" action="{{ url_for('academy_beli_view', slug=course.slug) }}" id="formBeli">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button class="btn btn-primary w-100 fw-bold" type="submit" id="btnBeli"><i class="fa-solid fa-cart-shopping"></i> Beli Kelas Ini</button>
+        </form>
+        <p class="small text-muted mt-2 mb-0">Pembayaran via GoPay Merchant QRIS, dikonfirmasi lewat WhatsApp.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+var f = document.getElementById('formBeli');
+if (f) f.addEventListener('submit', function(){
+  var btn = document.getElementById('btnBeli');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Memproses...';
+});
+</script>
+{% endblock %}
