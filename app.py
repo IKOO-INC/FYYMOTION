@@ -59,6 +59,7 @@ from text3d import (
     build_text3d_xml,
     list_text3d_styles,
 )
+from academy_routes import PUBLIC_ACADEMY_ENDPOINTS, register_academy_routes
 
 # --------------------------------------------------------------------------- #
 # Konfigurasi dasar
@@ -1393,7 +1394,7 @@ def guard():
         "teks_creator", "teks_creator_generate", "academy", "daftar_academy",
         "text_fx_tool", "text_fx_generate",
         "text3d_tool", "text3d_generate",
-    ):
+    ) or endpoint in PUBLIC_ACADEMY_ENDPOINTS:
         pass
     elif not session.get("logged_in"):
         return redirect(url_for("login", next=request.path))
@@ -2685,12 +2686,31 @@ def daftar_academy():
     return redirect(f"https://wa.me/{wa_number}?text={quote('J-ACADEMY')}", code=302)
 
 
+register_academy_routes(app)
+
+
 @app.errorhandler(404)
 def not_found(e):
+    if request.path.startswith("/academy") or request.path.startswith("/admin/academy"):
+        if session.get("academy_user_id"):
+            flash("Halaman tidak ditemukan.", "warning")
+            return redirect(url_for("academy_dashboard"))
+        if session.get("logged_in") and request.path.startswith("/admin/academy"):
+            flash("Halaman tidak ditemukan.", "warning")
+            return redirect(url_for("admin_academy_home"))
+        return redirect(url_for("academy_login_page"))
     if session.get("logged_in"):
         flash("Halaman tidak ditemukan.", "warning")
         return redirect(url_for("dashboard"))
     return redirect(url_for("login"))
+
+
+@app.errorhandler(403)
+def forbidden(e):
+    if request.path.startswith("/academy"):
+        flash("Kamu belum terdaftar di kelas ini. Daftar/beli dulu untuk mengakses Ruang Belajar.", "danger")
+        return redirect(url_for("academy_dashboard")) if session.get("academy_user_id") else redirect(url_for("academy_login_page"))
+    return e
 
 
 @app.errorhandler(413)

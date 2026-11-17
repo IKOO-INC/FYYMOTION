@@ -27,6 +27,9 @@
       <a href="{{ url_for('teks_creator') }}">Teks Creator</a>
     </div>
     <div class="public-nav-actions">
+      <a class="btn btn-soft d-none d-md-inline-flex" href="{{ url_for('academy_login_page') }}">
+        <i class="fa-solid fa-right-to-bracket"></i> Masuk Siswa
+      </a>
       <a class="btn public-cta-btn" href="{{ url_for('daftar_academy') }}" target="_blank" rel="noopener">
         Daftar Sekarang <i class="fa-solid fa-arrow-up-right-from-square"></i>
       </a>
@@ -116,7 +119,13 @@
             <a class="btn hero-btn hero-btn-lime" href="{{ url_for('daftar_academy') }}" target="_blank" rel="noopener">
               <i class="fa-brands fa-whatsapp"></i> Daftar Sekarang <span class="btn-arrow">→</span>
             </a>
+            <a class="btn hero-btn hero-btn-light" href="{{ url_for('academy_register_view') }}">
+              <i class="fa-solid fa-graduation-cap"></i> Buat Akun &amp; Belajar Online <span class="btn-arrow">↘</span>
+            </a>
           </div>
+          <p class="small mt-3" style="opacity:.8">
+            Sudah punya akun? <a href="{{ url_for('academy_login_page') }}" style="text-decoration:underline">Masuk ke dashboard belajar</a>
+          </p>
           {% if not wa_configured %}
           <p class="small mt-3" style="opacity:.75">
             <i class="fa-solid fa-triangle-exclamation"></i>
