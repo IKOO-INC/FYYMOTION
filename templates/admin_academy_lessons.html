@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+{% block title %}Pelajaran — {{ course.judul }}{% endblock %}
+{% block page_title %}<i class="fa-solid fa-film text-primary"></i> Pelajaran: {{ course.judul }}{% endblock %}
+{% block content %}
+<a class="small d-inline-block mb-3" href="{{ url_for('admin_academy_courses') }}"><i class="fa-solid fa-arrow-left"></i> Kembali ke daftar kelas</a>
+
+<div class="row g-3">
+  <div class="col-lg-7">
+    <div class="card shadow-sm">
+      <div class="card-header bg-white fw-bold">Daftar Pelajaran ({{ lessons|length }})</div>
+      <div class="list-group list-group-flush">
+      {% for l in lessons %}
+        <div class="list-group-item">
+          <div class="d-flex justify-content-between align-items-start">
+            <div>
+              <span class="badge text-bg-light border me-1">{{ loop.index }}</span>
+              <b>{{ l.judul }}</b>
+              {% if l.durasi_menit %}<span class="text-muted small"> · {{ l.durasi_menit }} menit</span>{% endif %}
+              <div class="small text-muted text-truncate" style="max-width:420px">{{ l.video_url }}</div>
+            </div>
+            <div class="text-nowrap">
+              <form class="d-inline" method="post" action="{{ url_for('admin_academy_lesson_reorder', course_id=course._id, lesson_id=l._id) }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="arah" value="atas">
+                <button class="btn btn-sm btn-outline-secondary" {% if loop.first %}disabled{% endif %}><i class="fa-solid fa-arrow-up"></i></button>
+              </form>
+              <form class="d-inline" method="post" action="{{ url_for('admin_academy_lesson_reorder', course_id=course._id, lesson_id=l._id) }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="arah" value="bawah">
+                <button class="btn btn-sm btn-outline-secondary" {% if loop.last %}disabled{% endif %}><i class="fa-solid fa-arrow-down"></i></button>
+              </form>
+              <button type="button" class="btn btn-sm btn-warning" onclick='isiForm({{ l|tojson }})'><i class="fa-solid fa-pen"></i></button>
+              <form class="d-inline" method="post" action="{{ url_for('admin_academy_lesson_delete', course_id=course._id, lesson_id=l._id) }}" onsubmit="return confirm('Hapus pelajaran {{ l.judul }}?')">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="btn btn-sm btn-danger"><i class="fa-solid fa-trash"></i></button>
+              </form>
+            </div>
+          </div>
+        </div>
+      {% else %}
+        <div class="list-group-item text-center text-muted py-4">Belum ada pelajaran.</div>
+      {% endfor %}
+      </div>
+    </div>
+
+    <div class="card shadow-sm mt-3">
+      <div class="card-header bg-white fw-bold"><i class="fa-solid fa-file-import"></i> Impor Massal (maks 100 pelajaran)</div>
+      <div class="card-body">
+        <form method="post" action="{{ url_for('admin_academy_lesson_import', course_id=course._id) }}" enctype="multipart/form-data">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <label class="form-label small fw-bold">Tempel JSON (array of object: judul, video_url, deskripsi, durasi_menit)</label>
+          <textarea name="json_data" class="form-control mb-2" rows="5" placeholder='[{"judul":"Intro","video_url":"https://youtu.be/xxx","durasi_menit":10}]'></textarea>
+          <label class="form-label small fw-bold">atau Unggah File CSV (kolom: judul,video_url,deskripsi,durasi_menit)</label>
+          <input type="file" name="csv_file" accept=".csv" class="form-control mb-3">
+          <button class="btn btn-outline-primary w-100" type="submit"><i class="fa-solid fa-upload"></i> Impor Sekarang</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-5">
+    <div class="card shadow-sm sticky-top" style="top:80px">
+      <div class="card-header bg-white fw-bold"><span id="formTitle">Tambah Pelajaran Baru</span></div>
+      <div class="card-body">
+        <form method="post" action="{{ url_for('admin_academy_lessons', course_id=course._id) }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <input type="hidden" name="lesson_id" id="fId">
+          <label class="form-label small fw-bold">Judul *</label>
+          <input name="judul" id="fJudul" class="form-control mb-2" required placeholder="cth: Pengenalan Timeline">
+          <label class="form-label small fw-bold">URL Video (YouTube/Drive/Vimeo) *</label>
+          <input name="video_url" id="fVideo" class="form-control mb-2" required placeholder="https://youtu.be/..." oninput="updatePreview()">
+          <label class="form-label small fw-bold">Deskripsi</label>
+          <textarea name="deskripsi" id="fDeskripsi" class="form-control mb-2" rows="3"></textarea>
+          <label class="form-label small fw-bold">Durasi (menit)</label>
+          <input name="durasi_menit" id="fDurasi" type="number" min="0" class="form-control mb-3" value="0">
+          <div class="ratio ratio-16x9 mb-3 bg-light border rounded" id="previewWrap" style="display:none">
+            <iframe id="previewFrame" src="" allowfullscreen></iframe>
+          </div>
+          <button class="btn btn-primary w-100 fw-bold" type="submit"><i class="fa-solid fa-floppy-disk"></i> Simpan Pelajaran</button>
+          <button class="btn btn-outline-secondary w-100 mt-2" type="button" onclick="resetForm()">Bersihkan (mode tambah baru)</button>
+        </form>
+        <div class="small text-muted mt-2">URL otomatis dikonversi jadi embed (YouTube/Google Drive/Vimeo) saat disimpan.</div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+function isiForm(l){
+  document.getElementById('fId').value = l._id;
+  document.getElementById('fJudul').value = l.judul;
+  document.getElementById('fVideo').value = l.video_url || '';
+  document.getElementById('fDeskripsi').value = l.deskripsi || '';
+  document.getElementById('fDurasi').value = l.durasi_menit || 0;
+  document.getElementById('formTitle').textContent = 'Edit: ' + l.judul;
+  updatePreview();
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+function resetForm(){
+  ['fId','fJudul','fVideo','fDeskripsi'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('fDurasi').value=0;
+  document.getElementById('formTitle').textContent='Tambah Pelajaran Baru';
+  document.getElementById('previewWrap').style.display='none';
+}
+function toEmbed(url){
+  if (!url) return '';
+  var m;
+  if ((m = url.match(/youtu\.be\/([A-Za-z0-9_-]{6,})/)) || (m = url.match(/youtube\.com\/watch\?v=([A-Za-z0-9_-]{6,})/)) || (m = url.match(/youtube\.com\/shorts\/([A-Za-z0-9_-]{6,})/))) {
+    return 'https://www.youtube.com/embed/' + m[1];
+  }
+  if ((m = url.match(/drive\.google\.com\/file\/d\/([A-Za-z0-9_-]+)/))) {
+    return 'https://drive.google.com/file/d/' + m[1] + '/preview';
+  }
+  if ((m = url.match(/vimeo\.com\/(\d+)/))) {
+    return 'https://player.vimeo.com/video/' + m[1];
+  }
+  return url;
+}
+function updatePreview(){
+  var url = document.getElementById('fVideo').value.trim();
+  var embed = toEmbed(url);
+  var wrap = document.getElementById('previewWrap');
+  if (embed) {
+    document.getElementById('previewFrame').src = embed;
+    wrap.style.display = '';
+  } else {
+    wrap.style.display = 'none';
+  }
+}
+</script>
+{% endblock %}

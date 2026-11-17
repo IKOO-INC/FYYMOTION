@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+{% block title %}Kelola Kelas{% endblock %}
+{% block page_title %}<i class="fa-solid fa-chalkboard text-primary"></i> Academy — Kelola Kelas{% endblock %}
+{% block content %}
+<div class="row g-3">
+  <div class="col-lg-8">
+    <div class="card shadow-sm"><div class="table-responsive">
+      <table class="table table-hover mb-0 align-middle">
+        <thead class="table-light"><tr><th>Urutan</th><th>Judul</th><th>Harga</th><th>Status</th><th>Pelajaran</th><th>Siswa</th><th class="text-end">Aksi</th></tr></thead>
+        <tbody>
+        {% for c in courses %}
+          <tr>
+            <td>{{ c.urutan }}</td>
+            <td class="fw-semibold">{{ c.judul }}<br><small class="text-muted">/{{ c.slug }}</small></td>
+            <td>{{ "Rp{:,}".format(c.harga).replace(',', '.') }}</td>
+            <td>{% if c.status=='published' %}<span class="badge text-bg-success">Published</span>{% else %}<span class="badge text-bg-secondary">Draft</span>{% endif %}</td>
+            <td><a href="{{ url_for('admin_academy_lessons', course_id=c._id) }}" class="badge text-bg-light border text-decoration-none">{{ c.jumlah_pelajaran }} pelajaran</a></td>
+            <td>{{ c.jumlah_siswa }}</td>
+            <td class="text-end text-nowrap">
+              <button type="button" class="btn btn-sm btn-warning" title="Edit"
+                onclick='isiForm({{ c|tojson }})'><i class="fa-solid fa-pen"></i></button>
+              <a class="btn btn-sm btn-primary" href="{{ url_for('admin_academy_lessons', course_id=c._id) }}" title="Kelola Pelajaran"><i class="fa-solid fa-film"></i></a>
+              {% if c.jumlah_siswa == 0 %}
+              <form class="d-inline" method="post" action="{{ url_for('admin_academy_course_delete', course_id=c._id) }}" onsubmit="return confirm('Hapus kelas {{ c.judul }}?')">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="btn btn-sm btn-danger"><i class="fa-solid fa-trash"></i></button>
+              </form>
+              {% else %}<span class="badge text-bg-secondary" title="Sudah punya siswa">terpakai</span>{% endif %}
+            </td>
+          </tr>
+        {% else %}
+          <tr><td colspan="7" class="text-center text-muted py-4">Belum ada kelas. Buat kelas pertama di form sebelah kanan.</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div></div>
+  </div>
+
+  <div class="col-lg-4">
+    <div class="card shadow-sm sticky-top" style="top:80px">
+      <div class="card-header bg-white fw-bold"><i class="fa-solid fa-circle-plus text-primary"></i> <span id="formTitle">Tambah Kelas Baru</span></div>
+      <div class="card-body">
+        <form method="post" action="{{ url_for('admin_academy_courses') }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <input type="hidden" name="course_id" id="fId">
+          <label class="form-label fw-bold small">Judul Kelas *</label>
+          <input name="judul" id="fJudul" class="form-control mb-2" required placeholder="cth: Motion Graphic Dasar">
+          <label class="form-label fw-bold small">Deskripsi</label>
+          <textarea name="deskripsi" id="fDeskripsi" class="form-control mb-2" rows="4" placeholder="Jelaskan isi kelas ini..."></textarea>
+          <label class="form-label fw-bold small">Harga (Rp) *</label>
+          <input name="harga" id="fHarga" type="number" min="0" class="form-control mb-2" required placeholder="150000">
+          <label class="form-label fw-bold small">URL Thumbnail</label>
+          <input name="thumbnail_url" id="fThumb" class="form-control mb-2" placeholder="https://...">
+          <label class="form-label fw-bold small">Status</label>
+          <select name="status" id="fStatus" class="form-select mb-2">
+            <option value="draft">Draft (belum tampil ke siswa)</option>
+            <option value="published">Published (tampil di katalog)</option>
+          </select>
+          <label class="form-label fw-bold small">Urutan Tampil</label>
+          <input name="urutan" id="fUrutan" type="number" class="form-control mb-3" value="0">
+          <button class="btn btn-primary w-100 fw-bold" type="submit"><i class="fa-solid fa-floppy-disk"></i> Simpan Kelas</button>
+          <button class="btn btn-outline-secondary w-100 mt-2" type="button" onclick="resetForm()">Bersihkan (mode tambah baru)</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+function isiForm(c){
+  document.getElementById('fId').value = c._id;
+  document.getElementById('fJudul').value = c.judul;
+  document.getElementById('fDeskripsi').value = c.deskripsi || '';
+  document.getElementById('fHarga').value = c.harga;
+  document.getElementById('fThumb').value = c.thumbnail_url || '';
+  document.getElementById('fStatus').value = c.status;
+  document.getElementById('fUrutan').value = c.urutan;
+  document.getElementById('formTitle').textContent = 'Edit Kelas: ' + c.judul;
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+function resetForm(){
+  ['fId','fJudul','fDeskripsi','fThumb'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('fHarga').value='';
+  document.getElementById('fUrutan').value=0;
+  document.getElementById('fStatus').value='draft';
+  document.getElementById('formTitle').textContent='Tambah Kelas Baru';
+}
+</script>
+{% endblock %}
