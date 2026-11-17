@@ -5,11 +5,13 @@
 <p class="small text-center text-muted">Kode OTP dikirim ke <b>{{ email }}</b>, berlaku 10 menit.</p>
 {% if dev_otp %}
 <div class="alert alert-warning small">
-  <i class="fa-solid fa-triangle-exclamation"></i> <b>Mode developer:</b> SMTP belum dikonfigurasi admin,
-  jadi kode OTP ditampilkan langsung di sini supaya alur tetap bisa dipakai/diuji:
+  <i class="fa-solid fa-triangle-exclamation"></i> <b>Mode developer:</b> layanan email (Fyymail/SMTP) belum
+  dikonfigurasi admin, jadi kode OTP ditampilkan langsung di sini supaya alur tetap bisa dipakai/diuji:
   <div class="fs-4 fw-bold text-center my-1">{{ dev_otp }}</div>
-  Setelah SMTP diisi di Environment Variables, kode OTP hanya akan dikirim lewat email.
+  Setelah <code>FYMAIL_API_KEY</code> atau SMTP diisi di Environment Variables, kode OTP hanya akan dikirim lewat email.
 </div>
+{% elif otp_mode == 'fyymail' %}
+<p class="small text-center text-muted"><i class="fa-solid fa-envelope-circle-check text-success"></i> Dikirim lewat layanan email Fyymotion Auth.</p>
 {% endif %}
 <form method="post" novalidate>
   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">

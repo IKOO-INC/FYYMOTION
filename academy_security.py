@@ -3,10 +3,13 @@ FYY MOTION Academy — util keamanan: hash password/OTP, rate limit, validasi.
 """
 from __future__ import annotations
 
+import json
 import os
 import re
 import secrets
 import smtplib
+import urllib.error
+import urllib.request
 from datetime import timedelta
 from email.mime.text import MIMEText
 
@@ -124,6 +127,72 @@ def send_email(to_email: str, subject: str, body: str) -> tuple[bool, str]:
         return True, ""
     except Exception as exc:  # pragma: no cover - butuh SMTP nyata
         return False, str(exc)
+
+
+# --------------------------------------------------------------------------- #
+# Fyymail (Fyymotion Auth) — layanan OTP email terpusat (IKOO-INC/fyymail)
+# Dipakai sebagai metode pengiriman OTP UTAMA. Kalau FYMAIL_API_KEY belum
+# diisi, kode otomatis jatuh ke mode SMTP langsung / dev-mode (lihat
+# academy_routes.py::_issue_otp) supaya platform tetap bisa dipakai.
+# --------------------------------------------------------------------------- #
+FYMAIL_URL = os.environ.get("FYMAIL_URL", "https://auth-fyymotion.vercel.app").rstrip("/")
+FYMAIL_APP_NAME = "FYY MOTION Academy"
+FYMAIL_TIMEOUT = 10
+
+
+def fyymail_configured() -> bool:
+    return bool(os.environ.get("FYMAIL_API_KEY", "").strip())
+
+
+def _fyymail_request(path: str, payload: dict) -> tuple[bool, dict, int]:
+    """POST ke Fyymail. Return (ok_koneksi, data_json, status_code)."""
+    api_key = os.environ.get("FYMAIL_API_KEY", "").strip()
+    url = f"{FYMAIL_URL}{path}"
+    body = json.dumps(payload).encode("utf-8")
+    req = urllib.request.Request(
+        url, data=body, method="POST",
+        headers={"Content-Type": "application/json", "x-api-key": api_key},
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=FYMAIL_TIMEOUT) as resp:
+            data = json.loads(resp.read().decode("utf-8") or "{}")
+            return True, data, resp.status
+    except urllib.error.HTTPError as exc:
+        try:
+            data = json.loads(exc.read().decode("utf-8") or "{}")
+        except Exception:
+            data = {}
+        return True, data, exc.code
+    except Exception as exc:  # timeout / DNS / koneksi putus, dsb.
+        return False, {"error": str(exc)}, 0
+
+
+def fyymail_send_otp(email: str, purpose_label: str) -> tuple[bool, str]:
+    """Minta Fyymail kirim OTP ke email. Return (sukses, pesan_error_jika_gagal)."""
+    ok, data, status = _fyymail_request("/api/send-otp", {
+        "email": email, "appName": FYMAIL_APP_NAME, "purpose": purpose_label,
+    })
+    if not ok:
+        return False, "Tidak bisa menghubungi layanan email (Fyymail). Coba lagi sebentar lagi."
+    if status == 200 and data.get("success"):
+        return True, ""
+    if status == 429:
+        return False, data.get("error") or "Terlalu banyak permintaan OTP. Coba lagi dalam beberapa menit."
+    if status == 401:
+        return False, "Konfigurasi FYMAIL_API_KEY di server tidak valid. Hubungi admin."
+    return False, data.get("error") or "Gagal mengirim kode OTP lewat email. Coba lagi sebentar lagi."
+
+
+def fyymail_verify_otp(email: str, otp: str) -> tuple[bool, str]:
+    """Verifikasi OTP lewat Fyymail. Return (valid, pesan_error_jika_tidak_valid)."""
+    ok, data, status = _fyymail_request("/api/verify-otp", {
+        "email": email, "otp": otp, "appName": FYMAIL_APP_NAME,
+    })
+    if not ok:
+        return False, "Tidak bisa menghubungi layanan email (Fyymail). Coba lagi sebentar lagi."
+    if status == 200 and data.get("valid"):
+        return True, ""
+    return False, data.get("error") or "Kode OTP tidak valid."
 
 
 def otp_email_body(nama: str, code: str, purpose_label: str) -> str:
