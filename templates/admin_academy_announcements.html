@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% block title %}Pengumuman Academy{% endblock %}
+{% block page_title %}<i class="fa-solid fa-bullhorn text-primary"></i> Academy — Pengumuman{% endblock %}
+{% block content %}
+<div class="row g-3">
+  <div class="col-lg-7">
+    <div class="card shadow-sm"><div class="table-responsive">
+      <table class="table table-hover mb-0 align-middle">
+        <thead class="table-light"><tr><th>Judul</th><th>Target</th><th>Status</th><th class="text-end">Aksi</th></tr></thead>
+        <tbody>
+        {% for a in announcements %}
+          <tr>
+            <td class="fw-semibold">{% if a.pinned %}<i class="fa-solid fa-thumbtack text-danger"></i>{% endif %} {{ a.judul }}</td>
+            <td>{{ a.course_judul }}</td>
+            <td>{% if a.aktif %}<span class="badge text-bg-success">Aktif</span>{% else %}<span class="badge text-bg-secondary">Nonaktif</span>{% endif %}</td>
+            <td class="text-end text-nowrap">
+              <form class="d-inline" method="post" action="{{ url_for('admin_academy_announcement_pin', ann_id=a._id) }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button class="btn btn-sm btn-outline-secondary" title="Pin/Unpin"><i class="fa-solid fa-thumbtack"></i></button>
+              </form>
+              <form class="d-inline" method="post" action="{{ url_for('admin_academy_announcement_toggle', ann_id=a._id) }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button class="btn btn-sm btn-outline-secondary" title="Aktif/Nonaktif"><i class="fa-solid fa-toggle-on"></i></button>
+              </form>
+              <button type="button" class="btn btn-sm btn-warning" onclick='isiForm({{ a|tojson }})'><i class="fa-solid fa-pen"></i></button>
+              <form class="d-inline" method="post" action="{{ url_for('admin_academy_announcement_delete', ann_id=a._id) }}" onsubmit="return confirm('Hapus pengumuman {{ a.judul }}?')">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="btn btn-sm btn-danger"><i class="fa-solid fa-trash"></i></button>
+              </form>
+            </td>
+          </tr>
+        {% else %}
+          <tr><td colspan="4" class="text-center text-muted py-4">Belum ada pengumuman.</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div></div>
+  </div>
+  <div class="col-lg-5">
+    <div class="card shadow-sm sticky-top" style="top:80px">
+      <div class="card-header bg-white fw-bold"><span id="formTitle">Buat Pengumuman Baru</span></div>
+      <div class="card-body">
+        <form method="post" action="{{ url_for('admin_academy_announcements') }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <input type="hidden" name="ann_id" id="fId">
+          <label class="form-label small fw-bold">Judul *</label>
+          <input name="judul" id="fJudul" class="form-control mb-2" required>
+          <label class="form-label small fw-bold">Isi Pengumuman *</label>
+          <textarea name="isi" id="fIsi" class="form-control mb-2" rows="4" required></textarea>
+          <label class="form-label small fw-bold">Target</label>
+          <select name="course_id" id="fCourse" class="form-select mb-2">
+            <option value="">Semua Siswa</option>
+            {% for c in courses %}<option value="{{ c._id }}">{{ c.judul }}</option>{% endfor %}
+          </select>
+          <div class="form-check mb-3">
+            <input class="form-check-input" type="checkbox" name="pinned" value="1" id="fPinned">
+            <label class="form-check-label" for="fPinned">Pin di atas (prioritas tampil)</label>
+          </div>
+          <button class="btn btn-primary w-100 fw-bold" type="submit"><i class="fa-solid fa-floppy-disk"></i> Simpan Pengumuman</button>
+          <button class="btn btn-outline-secondary w-100 mt-2" type="button" onclick="resetForm()">Bersihkan (mode tambah baru)</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+function isiForm(a){
+  document.getElementById('fId').value = a._id;
+  document.getElementById('fJudul').value = a.judul;
+  document.getElementById('fIsi').value = a.isi;
+  document.getElementById('fCourse').value = a.course_id || '';
+  document.getElementById('fPinned').checked = !!a.pinned;
+  document.getElementById('formTitle').textContent = 'Edit: ' + a.judul;
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+function resetForm(){
+  ['fId','fJudul','fIsi'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('fCourse').value='';
+  document.getElementById('fPinned').checked=false;
+  document.getElementById('formTitle').textContent='Buat Pengumuman Baru';
+}
+</script>
+{% endblock %}

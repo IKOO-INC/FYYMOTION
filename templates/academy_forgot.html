@@ -1,0 +1,15 @@
+{% extends "academy_auth_base.html" %}
+{% block title %}Lupa Password — FYY MOTION Academy{% endblock %}
+{% block subtitle %}Reset password lewat kode OTP email{% endblock %}
+{% block auth_content %}
+<form method="post" novalidate>
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <div class="mb-3">
+    <label class="form-label fw-bold small">Email terdaftar</label>
+    <div class="input-group"><span class="input-group-text"><i class="fa-solid fa-envelope"></i></span>
+      <input name="email" type="email" class="form-control" required autofocus placeholder="nama@email.com"></div>
+  </div>
+  <button class="btn btn-primary w-100 fw-bold" type="submit"><i class="fa-solid fa-paper-plane"></i> Kirim Kode OTP</button>
+</form>
+<p class="text-center small mt-3 mb-0"><a href="{{ url_for('academy_login_page') }}"><i class="fa-solid fa-arrow-left"></i> Kembali ke halaman login</a></p>
+{% endblock %}

@@ -1,0 +1,21 @@
+{% extends "academy_base.html" %}
+{% block title %}Pengumuman — FYY MOTION Academy{% endblock %}
+{% block content %}
+<h4 class="fw-bold mb-3"><i class="fa-solid fa-bullhorn text-info"></i> Pengumuman</h4>
+{% if not announcements %}
+<div class="card shadow-sm"><div class="card-body text-center py-5 text-muted">Belum ada pengumuman.</div></div>
+{% else %}
+{% for a in announcements %}
+<div class="card shadow-sm mb-3">
+  <div class="card-body">
+    <div class="d-flex justify-content-between align-items-start mb-1">
+      <h6 class="fw-bold mb-0">{% if a.pinned %}<i class="fa-solid fa-thumbtack text-danger"></i>{% endif %} {{ a.judul }}</h6>
+      <span class="badge text-bg-light border">{{ a.course_judul }}</span>
+    </div>
+    <p class="mb-1" style="white-space:pre-line">{{ a.isi }}</p>
+    <small class="text-muted">{{ a.created_at.strftime('%d %b %Y %H:%M') if a.created_at else '' }}</small>
+  </div>
+</div>
+{% endfor %}
+{% endif %}
+{% endblock %}

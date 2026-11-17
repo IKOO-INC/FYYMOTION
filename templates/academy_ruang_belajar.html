@@ -1,0 +1,76 @@
+{% extends "academy_base.html" %}
+{% block title %}Ruang Belajar — {{ course.judul }}{% endblock %}
+{% block content %}
+<a class="small d-inline-block mb-3" href="{{ url_for('academy_dashboard') }}"><i class="fa-solid fa-arrow-left"></i> Kembali ke dashboard</a>
+<div class="row g-4">
+  <div class="col-lg-8">
+    <div class="card shadow-sm mb-3">
+      <div class="card-body">
+        <h4 class="fw-bold mb-1">{{ course.judul }}</h4>
+        <div class="progress mb-2" style="height:10px">
+          <div class="progress-bar bg-success" id="progBar" style="width:{{ progress.persen }}%"></div>
+        </div>
+        <small class="text-muted" id="progText">{{ progress.selesai }}/{{ progress.total }} pelajaran selesai ({{ progress.persen }}%)</small>
+      </div>
+    </div>
+
+    {% if not progress.lessons %}
+    <div class="card shadow-sm"><div class="card-body text-center py-5 text-muted">Belum ada pelajaran di kelas ini. Cek lagi nanti ya.</div></div>
+    {% else %}
+    {% for l in progress.lessons %}
+    <div class="card shadow-sm mb-3" id="lesson-{{ l._id }}">
+      <div class="card-header bg-white d-flex justify-content-between align-items-center">
+        <span class="fw-bold"><span class="badge text-bg-light border me-1">{{ loop.index }}</span> {{ l.judul }}</span>
+        {% if l.selesai %}<span class="badge text-bg-success"><i class="fa-solid fa-check"></i> Selesai</span>{% endif %}
+      </div>
+      <div class="ratio ratio-16x9">
+        {% if l.embed_url %}
+        <iframe src="{{ l.embed_url }}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen loading="lazy"></iframe>
+        {% else %}
+        <div class="d-flex align-items-center justify-content-center text-muted">Video belum tersedia</div>
+        {% endif %}
+      </div>
+      <div class="card-body">
+        {% if l.deskripsi %}<p class="small text-muted mb-2">{{ l.deskripsi }}</p>{% endif %}
+        {% if l.durasi_menit %}<span class="badge text-bg-light border me-2"><i class="fa-regular fa-clock"></i> {{ l.durasi_menit }} menit</span>{% endif %}
+        {% if not l.selesai %}
+        <button class="btn btn-sm btn-outline-success float-end" onclick="tandaiSelesai('{{ l._id }}')"><i class="fa-solid fa-check"></i> Tandai Selesai</button>
+        {% endif %}
+      </div>
+    </div>
+    {% endfor %}
+    {% endif %}
+  </div>
+  <div class="col-lg-4">
+    <div class="card shadow-sm sticky-top" style="top:90px">
+      <div class="card-header bg-white fw-bold"><i class="fa-solid fa-list-ol"></i> Daftar Pelajaran</div>
+      <div class="list-group list-group-flush">
+        {% for l in progress.lessons %}
+        <a class="list-group-item list-group-item-action d-flex justify-content-between align-items-center" href="#lesson-{{ l._id }}">
+          <span>{{ loop.index }}. {{ l.judul }}</span>
+          {% if l.selesai %}<i class="fa-solid fa-circle-check text-success"></i>{% else %}<i class="fa-regular fa-circle text-muted"></i>{% endif %}
+        </a>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+function tandaiSelesai(lessonId) {
+  fetch('/academy/pelajaran/' + lessonId + '/selesai', {
+    method: 'POST',
+    headers: { 'X-CSRFToken': '{{ csrf_token() }}' },
+  }).then(r => r.json()).then(data => {
+    if (data.ok) {
+      document.getElementById('progBar').style.width = data.persen + '%';
+      document.getElementById('progText').textContent = data.selesai + '/' + data.total + ' pelajaran selesai (' + data.persen + '%)';
+      window.location.reload();
+    } else {
+      alert(data.message || 'Gagal menandai pelajaran selesai.');
+    }
+  });
+}
+</script>
+{% endblock %}

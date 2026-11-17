@@ -1,0 +1,32 @@
+{% extends "academy_base.html" %}
+{% block title %}Riwayat Pembayaran — FYY MOTION Academy{% endblock %}
+{% block content %}
+<h4 class="fw-bold mb-3"><i class="fa-solid fa-receipt text-primary"></i> Riwayat Pembayaran</h4>
+{% if not txs %}
+<div class="card shadow-sm"><div class="card-body text-center py-5 text-muted">Belum ada transaksi.</div></div>
+{% else %}
+<div class="card shadow-sm">
+  <div class="table-responsive">
+    <table class="table table-hover mb-0 align-middle">
+      <thead class="table-light"><tr><th>Kode</th><th>Kelas</th><th class="text-end">Total</th><th>Status</th><th>Tanggal</th><th></th></tr></thead>
+      <tbody>
+      {% for t in txs %}
+        <tr>
+          <td class="fw-bold">{{ t.kode_transaksi }}</td>
+          <td>{{ t.course_judul }}</td>
+          <td class="text-end">{{ "Rp{:,}".format(t.harga).replace(',', '.') }}</td>
+          <td>
+            {% if t.status=='menunggu' %}<span class="badge text-bg-warning">Menunggu</span>
+            {% elif t.status=='approved' %}<span class="badge text-bg-success">Disetujui</span>
+            {% else %}<span class="badge text-bg-danger">Ditolak</span>{% endif %}
+          </td>
+          <td>{{ t.created_at.strftime('%d %b %Y') if t.created_at else '-' }}</td>
+          <td class="text-end"><a class="btn btn-sm btn-outline-primary" href="{{ url_for('academy_transaksi_view', kode=t.kode_transaksi) }}">Detail</a></td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

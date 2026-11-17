@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}Siswa Academy{% endblock %}
+{% block page_title %}<i class="fa-solid fa-user-graduate text-primary"></i> Academy — Siswa{% endblock %}
+{% block content %}
+<form class="card shadow-sm mb-3" method="get">
+  <div class="card-body py-3">
+    <div class="row g-2 align-items-end">
+      <div class="col-md-5">
+        <label class="form-label small fw-bold mb-1">Cari (nama / email)</label>
+        <input name="q" value="{{ q }}" class="form-control form-control-sm">
+      </div>
+      <div class="col-md-3">
+        <label class="form-label small fw-bold mb-1">Status</label>
+        <select name="status" class="form-select form-select-sm">
+          <option value="">— Semua —</option>
+          <option value="active" {% if status_f=='active' %}selected{% endif %}>Aktif</option>
+          <option value="blocked" {% if status_f=='blocked' %}selected{% endif %}>Diblokir</option>
+        </select>
+      </div>
+      <div class="col-auto">
+        <button class="btn btn-primary btn-sm" type="submit"><i class="fa-solid fa-filter"></i> Filter</button>
+        <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('admin_academy_students') }}">Reset</a>
+      </div>
+    </div>
+  </div>
+</form>
+
+<div class="card shadow-sm"><div class="table-responsive">
+  <table class="table table-hover mb-0 align-middle">
+    <thead class="table-light"><tr><th>Nama</th><th>Email</th><th>Status</th><th>Terverifikasi</th><th>Jumlah Kelas</th><th>Terdaftar</th><th class="text-end">Aksi</th></tr></thead>
+    <tbody>
+    {% for s in students %}
+      <tr>
+        <td class="fw-semibold">{{ s.nama }}</td>
+        <td>{{ s.email }}</td>
+        <td>{% if s.status=='blocked' %}<span class="badge text-bg-danger">Diblokir</span>{% else %}<span class="badge text-bg-success">Aktif</span>{% endif %}</td>
+        <td>{% if s.email_verified %}<i class="fa-solid fa-circle-check text-success"></i>{% else %}<i class="fa-solid fa-circle-xmark text-muted"></i>{% endif %}</td>
+        <td>{{ s.jumlah_kelas }}</td>
+        <td>{{ s.created_at.strftime('%d %b %Y') if s.created_at else '-' }}</td>
+        <td class="text-end"><a class="btn btn-sm btn-primary" href="{{ url_for('admin_academy_student_detail', user_id=s._id) }}"><i class="fa-solid fa-eye"></i> Detail</a></td>
+      </tr>
+    {% else %}
+      <tr><td colspan="7" class="text-center text-muted py-4">Tidak ada siswa ditemukan.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div></div>
+{% endblock %}

@@ -1,0 +1,42 @@
+{% extends "academy_auth_base.html" %}
+{% block title %}Daftar Akun — FYY MOTION Academy{% endblock %}
+{% block subtitle %}Buat akun baru untuk mulai belajar{% endblock %}
+{% block auth_content %}
+<form method="post" novalidate>
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <div class="mb-3">
+    <label class="form-label fw-bold small">Nama Lengkap</label>
+    <div class="input-group"><span class="input-group-text"><i class="fa-solid fa-user"></i></span>
+      <input name="nama" class="form-control" required minlength="3" maxlength="120" autofocus placeholder="Nama kamu" value="{{ request.form.get('nama','') }}"></div>
+  </div>
+  <div class="mb-3">
+    <label class="form-label fw-bold small">Email</label>
+    <div class="input-group"><span class="input-group-text"><i class="fa-solid fa-envelope"></i></span>
+      <input name="email" type="email" class="form-control" required maxlength="190" placeholder="nama@email.com" value="{{ request.form.get('email','') }}"></div>
+  </div>
+  <div class="mb-3">
+    <label class="form-label fw-bold small">Password</label>
+    <div class="input-group"><span class="input-group-text"><i class="fa-solid fa-lock"></i></span>
+      <input name="password" type="password" class="form-control" required minlength="6" maxlength="128" autocomplete="new-password" placeholder="Minimal 6 karakter"></div>
+  </div>
+  <div class="mb-3">
+    <label class="form-label fw-bold small">Konfirmasi Password</label>
+    <div class="input-group"><span class="input-group-text"><i class="fa-solid fa-lock"></i></span>
+      <input name="confirm_password" type="password" class="form-control" required minlength="6" maxlength="128" autocomplete="new-password" placeholder="Ulangi password"></div>
+  </div>
+  <button class="btn btn-primary w-100 fw-bold" type="submit" id="btnSubmit">
+    <span class="submit-text"><i class="fa-solid fa-user-plus"></i> Daftar Sekarang</span>
+  </button>
+</form>
+<p class="text-center small mt-3 mb-0">Sudah punya akun? <a href="{{ url_for('academy_login_page') }}">Masuk di sini</a></p>
+<p class="text-center small mt-1 mb-0"><a href="{{ url_for('academy') }}"><i class="fa-solid fa-arrow-left"></i> Kembali ke halaman Academy</a></p>
+{% endblock %}
+{% block scripts %}
+<script>
+document.querySelector('form').addEventListener('submit', function(){
+  var btn = document.getElementById('btnSubmit');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Memproses...';
+});
+</script>
+{% endblock %}

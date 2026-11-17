@@ -1,0 +1,86 @@
+{% extends "academy_base.html" %}
+{% block title %}Transaksi {{ tx.kode_transaksi }} — FYY MOTION Academy{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-7">
+    <div class="card shadow-sm receipt-card">
+      <div class="card-header bg-white text-center py-3">
+        <i class="fa-solid fa-receipt fs-2 text-primary d-block mb-1"></i>
+        <h5 class="fw-bold mb-0">Struk Transaksi</h5>
+        <span class="badge {% if tx.status=='menunggu' %}text-bg-warning{% elif tx.status=='approved' %}text-bg-success{% else %}text-bg-danger{% endif %} mt-2" id="statusBadge">
+          {% if tx.status=='menunggu' %}Menunggu Konfirmasi{% elif tx.status=='approved' %}Disetujui{% else %}Ditolak{% endif %}
+        </span>
+      </div>
+      <div class="card-body">
+        <table class="table table-sm mb-4">
+          <tr><td class="text-muted">Kode Transaksi</td><td class="text-end fw-bold">{{ tx.kode_transaksi }}</td></tr>
+          <tr><td class="text-muted">Kelas</td><td class="text-end">{{ tx.course_judul }}</td></tr>
+          <tr><td class="text-muted">Total Bayar</td><td class="text-end fw-bold text-primary fs-5">{{ "Rp{:,}".format(tx.harga).replace(',', '.') }}</td></tr>
+          <tr><td class="text-muted">Metode</td><td class="text-end">GoPay Merchant QRIS</td></tr>
+          <tr><td class="text-muted">Tanggal</td><td class="text-end">{{ tx.created_at.strftime('%d %b %Y %H:%M') if tx.created_at else '-' }}</td></tr>
+        </table>
+
+        {% if tx.status == 'menunggu' %}
+        <div class="text-center mb-3">
+          {% if qris_image_url %}
+          <img src="{{ qris_image_url }}" alt="QRIS GoPay Merchant" class="img-fluid rounded border mb-2" style="max-width:280px">
+          {% else %}
+          <div class="alert alert-secondary small">Gambar QRIS belum diatur admin. Hubungi admin lewat WhatsApp di bawah untuk instruksi pembayaran.</div>
+          {% endif %}
+          <p class="small text-muted mb-0">Scan QRIS di atas pakai GoPay/aplikasi pembayaran apa pun yang mendukung QRIS.</p>
+        </div>
+
+        <ol class="small text-muted mb-4">
+          <li>Scan QRIS dan bayar sesuai nominal di atas.</li>
+          <li>Klik tombol WhatsApp di bawah untuk kirim bukti transfer ke admin.</li>
+          <li>Setelah admin memverifikasi, klik "Refresh Status" untuk cek status terbaru.</li>
+        </ol>
+
+        {% if wa_configured %}
+        <a class="btn btn-success w-100 fw-bold mb-2" href="{{ wa_link }}" target="_blank" rel="noopener">
+          <i class="fa-brands fa-whatsapp"></i> Konfirmasi Pembayaran via WhatsApp
+        </a>
+        {% else %}
+        <div class="alert alert-danger small">Nomor WhatsApp admin belum diatur (<code>WA_ADMIN_NUMBER</code>). Hubungi admin FYY MOTION secara manual.</div>
+        {% endif %}
+        <button class="btn btn-outline-primary w-100" id="btnRefresh" onclick="refreshStatus()">
+          <i class="fa-solid fa-rotate"></i> Refresh Status
+        </button>
+        {% elif tx.status == 'approved' %}
+        <div class="alert alert-success text-center">
+          <i class="fa-solid fa-circle-check fs-3 d-block mb-1"></i>
+          Pembayaran berhasil! Kelas sudah muncul di Ruang Belajar kamu.
+        </div>
+        <a class="btn btn-primary w-100 fw-bold" href="{{ url_for('academy_dashboard') }}"><i class="fa-solid fa-gauge-high"></i> Ke Dashboard</a>
+        {% else %}
+        <div class="alert alert-danger text-center">
+          <i class="fa-solid fa-circle-xmark fs-3 d-block mb-1"></i>
+          Transaksi ditolak admin. {% if tx.reject_reason %}Alasan: {{ tx.reject_reason }}{% endif %}
+        </div>
+        <a class="btn btn-outline-primary w-100" href="{{ url_for('academy_catalog_view') }}">Kembali ke Katalog</a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+function refreshStatus() {
+  var btn = document.getElementById('btnRefresh');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Mengecek status...';
+  fetch("{{ url_for('academy_transaksi_status_api', kode=tx.kode_transaksi) }}")
+    .then(r => r.json())
+    .then(data => {
+      if (data.ok && data.status !== "{{ tx.status }}") {
+        window.location.reload();
+      } else {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-rotate"></i> Refresh Status';
+        if (data.ok) alert('Status belum berubah: masih "' + data.status + '"');
+      }
+    }).catch(() => { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-rotate"></i> Refresh Status'; });
+}
+</script>
+{% endblock %}

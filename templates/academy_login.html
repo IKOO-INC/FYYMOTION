@@ -1,0 +1,23 @@
+{% extends "academy_auth_base.html" %}
+{% block title %}Masuk — FYY MOTION Academy{% endblock %}
+{% block subtitle %}Masuk ke dashboard belajarmu{% endblock %}
+{% block auth_content %}
+<form method="post" novalidate>
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <input type="hidden" name="next" value="{{ request.args.get('next','') }}">
+  <div class="mb-3">
+    <label class="form-label fw-bold small">Email</label>
+    <div class="input-group"><span class="input-group-text"><i class="fa-solid fa-envelope"></i></span>
+      <input name="email" type="email" class="form-control" required autofocus placeholder="nama@email.com"></div>
+  </div>
+  <div class="mb-2">
+    <label class="form-label fw-bold small">Password</label>
+    <div class="input-group"><span class="input-group-text"><i class="fa-solid fa-lock"></i></span>
+      <input name="password" type="password" class="form-control" required autocomplete="current-password" placeholder="••••••••"></div>
+  </div>
+  <div class="text-end mb-3"><a class="small" href="{{ url_for('academy_forgot_view') }}">Lupa password?</a></div>
+  <button class="btn btn-primary w-100 fw-bold" type="submit"><i class="fa-solid fa-right-to-bracket"></i> Masuk</button>
+</form>
+<p class="text-center small mt-3 mb-0">Belum punya akun? <a href="{{ url_for('academy_register_view') }}">Daftar sekarang</a></p>
+<p class="text-center small mt-1 mb-0"><a href="{{ url_for('academy') }}"><i class="fa-solid fa-arrow-left"></i> Kembali ke halaman Academy</a></p>
+{% endblock %}

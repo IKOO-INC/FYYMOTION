@@ -88,6 +88,19 @@
         <i class="fa-solid fa-graduation-cap"></i> FYY MOTION Academy</a>
     </nav>
 
+    <div class="sidebar-heading">Academy — Panel Admin</div>
+    <nav class="nav flex-column sidebar-nav">
+      <a class="nav-link {% if request.endpoint=='admin_academy_courses' %}active{% endif %}" href="{{ url_for('admin_academy_courses') }}">
+        <i class="fa-solid fa-chalkboard"></i> Kelola Kelas</a>
+      <a class="nav-link {% if request.endpoint=='admin_academy_payments' %}active{% endif %}" href="{{ url_for('admin_academy_payments') }}">
+        <i class="fa-solid fa-money-check-dollar"></i> Pembayaran
+        {% if academy_pending_count %}<span class="badge text-bg-warning ms-auto">{{ academy_pending_count }}</span>{% endif %}</a>
+      <a class="nav-link {% if request.endpoint=='admin_academy_announcements' %}active{% endif %}" href="{{ url_for('admin_academy_announcements') }}">
+        <i class="fa-solid fa-bullhorn"></i> Pengumuman Academy</a>
+      <a class="nav-link {% if request.endpoint in ['admin_academy_students','admin_academy_student_detail'] %}active{% endif %}" href="{{ url_for('admin_academy_students') }}">
+        <i class="fa-solid fa-user-graduate"></i> Siswa Academy</a>
+    </nav>
+
     <div class="sidebar-heading">Sistem Data</div>
     <nav class="nav flex-column sidebar-nav">
       <a class="nav-link {% if request.endpoint in ['backup_page'] %}active{% endif %}" href="{{ url_for('backup_page') }}">

@@ -1,0 +1,60 @@
+{% extends "academy_auth_base.html" %}
+{% block title %}Verifikasi OTP — FYY MOTION Academy{% endblock %}
+{% block subtitle %}Masukkan kode OTP yang dikirim ke email kamu{% endblock %}
+{% block auth_content %}
+<p class="small text-center text-muted">Kode OTP dikirim ke <b>{{ email }}</b>, berlaku 10 menit.</p>
+{% if dev_otp %}
+<div class="alert alert-warning small">
+  <i class="fa-solid fa-triangle-exclamation"></i> <b>Mode developer:</b> SMTP belum dikonfigurasi admin,
+  jadi kode OTP ditampilkan langsung di sini supaya alur tetap bisa dipakai/diuji:
+  <div class="fs-4 fw-bold text-center my-1">{{ dev_otp }}</div>
+  Setelah SMTP diisi di Environment Variables, kode OTP hanya akan dikirim lewat email.
+</div>
+{% endif %}
+<form method="post" novalidate>
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <div class="mb-3">
+    <label class="form-label fw-bold small">Kode OTP (6 digit)</label>
+    <input name="otp" class="form-control form-control-lg text-center" style="letter-spacing:.5em" required minlength="6" maxlength="6" inputmode="numeric" pattern="[0-9]{6}" autofocus placeholder="000000">
+  </div>
+  <button class="btn btn-primary w-100 fw-bold" type="submit"><i class="fa-solid fa-shield-check"></i> Verifikasi</button>
+</form>
+<div class="text-center mt-3">
+  <button class="btn btn-sm btn-soft" id="btnResend" type="button" onclick="resendOtp()">Kirim ulang kode (<span id="cooldown">60</span>s)</button>
+</div>
+<p class="text-center small mt-3 mb-0"><a href="{{ url_for('academy_login_page') }}"><i class="fa-solid fa-arrow-left"></i> Kembali ke halaman login</a></p>
+{% endblock %}
+{% block scripts %}
+<script>
+let sisa = 60;
+const btn = document.getElementById('btnResend');
+const span = document.getElementById('cooldown');
+btn.disabled = true;
+const timer = setInterval(() => {
+  sisa -= 1;
+  if (sisa <= 0) { clearInterval(timer); btn.disabled = false; btn.textContent = 'Kirim ulang kode OTP'; }
+  else { span.textContent = sisa; }
+}, 1000);
+
+function resendOtp() {
+  btn.disabled = true;
+  fetch("{{ url_for('academy_resend_otp') }}", {
+    method: "POST",
+    headers: { "X-CSRFToken": "{{ csrf_token() }}" },
+  }).then(r => r.json()).then(data => {
+    if (data.ok) {
+      alert(data.message + (data.dev_otp ? ('\nKode OTP (mode dev): ' + data.dev_otp) : ''));
+      sisa = 60; btn.textContent = 'Kirim ulang kode (' + sisa + 's)';
+      const timer2 = setInterval(() => {
+        sisa -= 1;
+        if (sisa <= 0) { clearInterval(timer2); btn.disabled = false; btn.textContent = 'Kirim ulang kode OTP'; }
+        else { btn.textContent = 'Kirim ulang kode (' + sisa + 's)'; }
+      }, 1000);
+    } else {
+      alert(data.message);
+      btn.disabled = false;
+    }
+  }).catch(() => { alert('Gagal menghubungi server.'); btn.disabled = false; });
+}
+</script>
+{% endblock %}

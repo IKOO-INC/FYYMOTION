@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+{% block title %}Siswa — {{ student.nama }}{% endblock %}
+{% block page_title %}<i class="fa-solid fa-user-graduate text-primary"></i> Detail Siswa{% endblock %}
+{% block content %}
+<a class="small d-inline-block mb-3" href="{{ url_for('admin_academy_students') }}"><i class="fa-solid fa-arrow-left"></i> Kembali ke daftar siswa</a>
+
+<div class="row g-3">
+  <div class="col-lg-4">
+    <div class="card shadow-sm mb-3">
+      <div class="card-body">
+        <h5 class="fw-bold mb-0">{{ student.nama }}</h5>
+        <p class="text-muted small mb-2">{{ student.email }}</p>
+        <p class="mb-3">
+          {% if student.status=='blocked' %}<span class="badge text-bg-danger">Diblokir</span>{% else %}<span class="badge text-bg-success">Aktif</span>{% endif %}
+          {% if student.email_verified %}<span class="badge text-bg-info">Email Terverifikasi</span>{% else %}<span class="badge text-bg-secondary">Belum Verifikasi</span>{% endif %}
+        </p>
+        <form method="post" action="{{ url_for('admin_academy_student_block', user_id=student._id) }}" class="mb-2" onsubmit="return confirm('{% if student.status=='blocked' %}Buka blokir{% else %}Blokir{% endif %} akun {{ student.nama }}?')">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button class="btn w-100 {% if student.status=='blocked' %}btn-success{% else %}btn-warning{% endif %}">
+            {% if student.status=='blocked' %}<i class="fa-solid fa-unlock"></i> Buka Blokir{% else %}<i class="fa-solid fa-ban"></i> Blokir Akun{% endif %}
+          </button>
+        </form>
+        <form method="post" action="{{ url_for('admin_academy_student_reset_password', user_id=student._id) }}" class="mb-2" onsubmit="return confirm('Reset password {{ student.nama }} ke password sementara?')">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button class="btn btn-outline-primary w-100"><i class="fa-solid fa-key"></i> Reset Password</button>
+        </form>
+        <form method="post" action="{{ url_for('admin_academy_student_delete', user_id=student._id) }}" onsubmit="return confirm('HAPUS PERMANEN akun {{ student.nama }} beserta semua progres belajarnya? Tindakan ini tidak bisa dibatalkan.')">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button class="btn btn-outline-danger w-100"><i class="fa-solid fa-trash"></i> Hapus Akun</button>
+        </form>
+      </div>
+    </div>
+
+    <div class="card shadow-sm">
+      <div class="card-header bg-white fw-bold">Daftarkan Manual ke Kelas</div>
+      <div class="card-body">
+        <form method="post" action="{{ url_for('admin_academy_student_enroll', user_id=student._id) }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <select name="course_id" class="form-select mb-2" required>
+            <option value="">— Pilih Kelas —</option>
+            {% for c in all_courses %}<option value="{{ c._id }}">{{ c.judul }}</option>{% endfor %}
+          </select>
+          <button class="btn btn-primary w-100" type="submit"><i class="fa-solid fa-plus"></i> Daftarkan</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-8">
+    <div class="card shadow-sm mb-3">
+      <div class="card-header bg-white fw-bold">Kelas Dimiliki ({{ enrollments|length }})</div>
+      <div class="table-responsive">
+        <table class="table table-hover mb-0 align-middle">
+          <thead class="table-light"><tr><th>Kelas</th><th>Sumber</th><th>Progress</th><th>Terdaftar</th><th class="text-end">Aksi</th></tr></thead>
+          <tbody>
+          {% for e in enrollments %}
+            <tr>
+              <td>{{ e.course_judul }}</td>
+              <td><span class="badge text-bg-light border">{{ e.source }}</span></td>
+              <td>
+                <div class="progress" style="height:8px"><div class="progress-bar bg-success" style="width:{{ e.progress_persen }}%"></div></div>
+                <small class="text-muted">{{ e.progress_persen }}%</small>
+              </td>
+              <td>{{ e.enrolled_at.strftime('%d %b %Y') if e.enrolled_at else '-' }}</td>
+              <td class="text-end">
+                <form method="post" action="{{ url_for('admin_academy_student_revoke', user_id=student._id, course_id=e.course_id) }}" onsubmit="return confirm('Cabut akses kelas {{ e.course_judul }} dari siswa ini?')">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                  <button class="btn btn-sm btn-outline-danger"><i class="fa-solid fa-xmark"></i> Cabut</button>
+                </form>
+              </td>
+            </tr>
+          {% else %}
+            <tr><td colspan="5" class="text-center text-muted py-3">Belum punya kelas.</td></tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card shadow-sm">
+      <div class="card-header bg-white fw-bold">Riwayat Transaksi</div>
+      <div class="table-responsive">
+        <table class="table table-hover mb-0 align-middle">
+          <thead class="table-light"><tr><th>Kode</th><th>Kelas</th><th class="text-end">Total</th><th>Status</th><th>Tanggal</th></tr></thead>
+          <tbody>
+          {% for t in txs %}
+            <tr>
+              <td class="fw-bold">{{ t.kode_transaksi }}</td>
+              <td>{{ t.course_judul }}</td>
+              <td class="text-end">{{ "Rp{:,}".format(t.harga).replace(',', '.') }}</td>
+              <td>
+                {% if t.status=='menunggu' %}<span class="badge text-bg-warning">Menunggu</span>
+                {% elif t.status=='approved' %}<span class="badge text-bg-success">Disetujui</span>
+                {% else %}<span class="badge text-bg-danger">Ditolak</span>{% endif %}
+              </td>
+              <td>{{ t.created_at.strftime('%d %b %Y %H:%M') if t.created_at else '-' }}</td>
+            </tr>
+          {% else %}
+            <tr><td colspan="5" class="text-center text-muted py-3">Belum ada transaksi.</td></tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

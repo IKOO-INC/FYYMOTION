@@ -1,0 +1,81 @@
+{% extends "academy_base.html" %}
+{% import "_macros.html" as m with context %}
+{% block title %}Dashboard Siswa — FYY MOTION Academy{% endblock %}
+{% block content %}
+<div class="mb-3">
+  <h4 class="fw-bold mb-1"><i class="fa-solid fa-hand-sparkles text-primary"></i> Halo, {{ user.nama }}!</h4>
+  <p class="text-muted mb-0">Selamat datang kembali di dashboard belajar kamu.</p>
+</div>
+
+<div class="row g-3 mb-4">
+  {{ m.stat_card("Kelas yang Kamu Miliki", jumlah_kelas, "fa-solid fa-book-open", "primary") }}
+  {{ m.stat_card("Transaksi Menunggu", pending_tx|length, "fa-solid fa-hourglass-half", "warning") }}
+  {{ m.stat_card("Pengumuman Terbaru", announcements|length, "fa-solid fa-bullhorn", "info") }}
+</div>
+
+{% if pending_tx %}
+<div class="alert alert-warning d-flex flex-wrap gap-2 align-items-center justify-content-between">
+  <div><i class="fa-solid fa-circle-exclamation"></i> Kamu punya {{ pending_tx|length }} transaksi yang masih menunggu konfirmasi admin.</div>
+  <a class="btn btn-sm btn-warning" href="{{ url_for('academy_riwayat_view') }}">Lihat Transaksi</a>
+</div>
+{% endif %}
+
+<div class="row g-3">
+  <div class="col-lg-8">
+    <div class="card shadow-sm">
+      <div class="card-header bg-white fw-bold d-flex justify-content-between align-items-center">
+        <span><i class="fa-solid fa-chalkboard-user text-primary"></i> Kelas Saya</span>
+        <a class="btn btn-sm btn-primary" href="{{ url_for('academy_catalog_view') }}"><i class="fa-solid fa-plus"></i> Tambah Kelas</a>
+      </div>
+      <div class="card-body">
+        {% if not my_courses %}
+        <div class="text-center py-5">
+          <i class="fa-solid fa-inbox fs-1 text-muted mb-2 d-block"></i>
+          <p class="text-muted mb-3">Kamu belum punya kelas. Yuk mulai belajar dengan membeli kelas pertamamu!</p>
+          <a class="btn btn-primary" href="{{ url_for('academy_catalog_view') }}"><i class="fa-solid fa-book-open"></i> Lihat Katalog Kelas</a>
+        </div>
+        {% else %}
+        <div class="row g-3">
+          {% for c in my_courses %}
+          <div class="col-md-6">
+            <div class="card h-100 shadow-sm">
+              <div class="card-body">
+                <h6 class="fw-bold mb-1">{{ c.judul }}</h6>
+                <p class="small text-muted mb-2">{{ c.jumlah_pelajaran }} pelajaran</p>
+                <div class="progress mb-2" style="height:8px">
+                  <div class="progress-bar bg-success" style="width:{{ c.progress.persen }}%"></div>
+                </div>
+                <div class="d-flex justify-content-between align-items-center">
+                  <small class="text-muted">{{ c.progress.selesai }}/{{ c.progress.total }} selesai ({{ c.progress.persen }}%)</small>
+                  <a class="btn btn-sm btn-primary" href="{{ url_for('academy_ruang_belajar_view', slug=c.slug) }}"><i class="fa-solid fa-play"></i> Belajar</a>
+                </div>
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-4">
+    <div class="card shadow-sm">
+      <div class="card-header bg-white fw-bold"><i class="fa-solid fa-bullhorn text-info"></i> Pengumuman</div>
+      <div class="card-body">
+        {% if not announcements %}
+        <p class="text-muted small mb-0">Belum ada pengumuman.</p>
+        {% else %}
+        {% for a in announcements %}
+        <div class="mb-3 pb-3 border-bottom">
+          <div class="fw-bold small">{% if a.pinned %}<i class="fa-solid fa-thumbtack text-danger"></i>{% endif %} {{ a.judul }}</div>
+          <p class="small text-muted mb-0">{{ a.isi }}</p>
+        </div>
+        {% endfor %}
+        <a class="small" href="{{ url_for('academy_pengumuman_view') }}">Lihat semua pengumuman →</a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
