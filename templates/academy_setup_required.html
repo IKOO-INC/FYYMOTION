@@ -1,0 +1,11 @@
+{% extends "academy_auth_base.html" %}
+{% block title %}Academy Belum Dikonfigurasi{% endblock %}
+{% block subtitle %}Perlu konfigurasi admin{% endblock %}
+{% block auth_content %}
+<div class="alert alert-warning">
+  <i class="fa-solid fa-triangle-exclamation"></i>
+  Platform FYY MOTION Academy belum bisa dipakai karena <code>MONGODB_URI</code> belum terpasang di Environment Variables server.
+  Silakan hubungi admin untuk memasang environment variable tersebut lalu deploy ulang.
+</div>
+<p class="text-center small mb-0"><a href="{{ url_for('academy') }}"><i class="fa-solid fa-arrow-left"></i> Kembali ke halaman Academy</a></p>
+{% endblock %}

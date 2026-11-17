@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="id" data-bs-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="google-site-verification" content="J9SAGECy9ADN8YEDPCK_Y4cQEhl3s1n9U6kLphYhQpA" />
+  <title>{% block title %}FYY MOTION Academy{% endblock %}</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@500;600;700;800;900&family=Inter:wght@400;500;600;700;800&family=Instrument+Serif:ital@0;1&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
+  {% block head %}{% endblock %}
+</head>
+<body class="portal-body">
+<div class="layout">
+  <div class="main" style="flex:1;">
+    <nav class="navbar navbar-expand sticky-top topbar">
+      <div class="container-fluid topbar-inner">
+        <a class="d-flex align-items-center gap-2 text-decoration-none" href="{{ url_for('academy_dashboard') }}">
+          <span class="brand-icon"><i class="fa-solid fa-graduation-cap"></i></span>
+          <span class="page-heading">
+            <span class="page-eyebrow">FYY MOTION</span>
+            <span class="page-title">Academy</span>
+          </span>
+        </a>
+        <div class="d-none d-lg-flex gap-1 ms-3">
+          <a class="btn btn-sm {% if request.endpoint=='academy_dashboard' %}btn-primary{% else %}btn-soft{% endif %}" href="{{ url_for('academy_dashboard') }}"><i class="fa-solid fa-gauge-high"></i> Dashboard</a>
+          <a class="btn btn-sm {% if request.endpoint=='academy_catalog_view' %}btn-primary{% else %}btn-soft{% endif %}" href="{{ url_for('academy_catalog_view') }}"><i class="fa-solid fa-book-open"></i> Katalog Kelas</a>
+          <a class="btn btn-sm {% if request.endpoint=='academy_pengumuman_view' %}btn-primary{% else %}btn-soft{% endif %}" href="{{ url_for('academy_pengumuman_view') }}"><i class="fa-solid fa-bullhorn"></i> Pengumuman</a>
+          <a class="btn btn-sm {% if request.endpoint=='academy_riwayat_view' %}btn-primary{% else %}btn-soft{% endif %}" href="{{ url_for('academy_riwayat_view') }}"><i class="fa-solid fa-receipt"></i> Riwayat Bayar</a>
+        </div>
+        <div class="topbar-actions ms-auto">
+          <div class="topbar-user d-none d-md-flex">
+            <span class="avatar avatar-sm">{{ (academy_user.nama or 'S')[:1]|upper }}</span>
+            <span class="topbar-user-copy"><strong>{{ academy_user.nama }}</strong><small>{{ academy_user.email }}</small></span>
+          </div>
+          <form method="post" action="{{ url_for('academy_logout_view') }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button class="btn btn-outline-danger btn-sm" type="submit"><i class="fa-solid fa-right-from-bracket"></i> <span class="d-none d-sm-inline">Logout</span></button>
+          </form>
+        </div>
+      </div>
+    </nav>
+
+    <div class="d-lg-none d-flex gap-1 p-2 overflow-auto" style="white-space:nowrap;">
+      <a class="btn btn-sm {% if request.endpoint=='academy_dashboard' %}btn-primary{% else %}btn-soft{% endif %}" href="{{ url_for('academy_dashboard') }}">Dashboard</a>
+      <a class="btn btn-sm {% if request.endpoint=='academy_catalog_view' %}btn-primary{% else %}btn-soft{% endif %}" href="{{ url_for('academy_catalog_view') }}">Katalog</a>
+      <a class="btn btn-sm {% if request.endpoint=='academy_pengumuman_view' %}btn-primary{% else %}btn-soft{% endif %}" href="{{ url_for('academy_pengumuman_view') }}">Pengumuman</a>
+      <a class="btn btn-sm {% if request.endpoint=='academy_riwayat_view' %}btn-primary{% else %}btn-soft{% endif %}" href="{{ url_for('academy_riwayat_view') }}">Riwayat</a>
+    </div>
+
+    <main class="container-fluid page-shell py-4">
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for cat, msg in messages %}
+          <div class="alert alert-{{ cat }} alert-dismissible fade show shadow-sm" role="alert">
+            {{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+          </div>
+        {% endfor %}
+      {% endwith %}
+      {% block content %}{% endblock %}
+      <footer class="app-footer text-center small py-4">
+        FYY MOTION Academy &copy; {{ now_year }} — Belajar motion graphic dari dasar sampai bisa kerja.
+      </footer>
+    </main>
+  </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>
