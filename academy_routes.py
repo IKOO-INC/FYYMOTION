@@ -37,6 +37,9 @@ from flask import abort, flash, jsonify, redirect, render_template, request, ses
 import academy_db as adb
 from academy_security import (
     clean_text,
+    fyymail_configured,
+    fyymail_send_otp,
+    fyymail_verify_otp,
     generate_otp_code,
     hash_otp,
     hash_password,
@@ -230,6 +233,17 @@ def academy_register_view():
     return render_template("academy_register.html", page_title="Daftar Akun — FYY MOTION Academy")
 
 
+def _otp_delivery_mode() -> str:
+    """Urutan prioritas pengiriman OTP: Fyymail (layanan terpusat) -> SMTP
+    langsung -> mode developer (tampil di layar, hanya kalau dua-duanya belum
+    dikonfigurasi admin)."""
+    if fyymail_configured():
+        return "fyymail"
+    if smtp_configured():
+        return "smtp"
+    return "dev"
+
+
 def _issue_otp(email: str, purpose: str) -> tuple[bool, str]:
     if not rate_limit_hit(f"otp:{email}:{purpose}", max_hits=5, window_seconds=600):
         return False, "Terlalu banyak permintaan OTP untuk email ini. Coba lagi dalam beberapa menit."
@@ -238,11 +252,29 @@ def _issue_otp(email: str, purpose: str) -> tuple[bool, str]:
     if last and (now - last["created_at"]).total_seconds() < OTP_RESEND_COOLDOWN:
         sisa = int(OTP_RESEND_COOLDOWN - (now - last["created_at"]).total_seconds())
         return False, f"Tunggu {sisa} detik lagi sebelum minta kode OTP baru."
+
+    label = {"register": "verifikasi akun", "forgot": "reset password", "login": "login"}.get(purpose, "verifikasi")
+    mode = _otp_delivery_mode()
+
+    if mode == "fyymail":
+        # Layanan OTP terpusat (IKOO-INC/fyymail) yang men-generate, meng-hash,
+        # menyimpan, DAN mengirim kode OTP lewat email — kita hanya perlu catat
+        # "created_at" lokal untuk cooldown kirim-ulang (bukan untuk verifikasi).
+        ok, err = fyymail_send_otp(email, label)
+        if not ok:
+            return False, err
+        adb.col_otps().insert_one({
+            "_id": adb.new_id(), "email": email, "purpose": purpose, "provider": "fyymail",
+            "consumed": False, "created_at": now, "expires_at": now + timedelta(seconds=OTP_TTL_SECONDS),
+        })
+        return True, ""
+
     code = generate_otp_code()
     adb.col_otps().insert_one({
         "_id": adb.new_id(),
         "email": email,
         "purpose": purpose,
+        "provider": "local",
         "otp_hash": hash_otp(code),
         "attempts": 0,
         "max_attempts": OTP_MAX_ATTEMPTS,
@@ -250,17 +282,45 @@ def _issue_otp(email: str, purpose: str) -> tuple[bool, str]:
         "created_at": now,
         "expires_at": now + timedelta(seconds=OTP_TTL_SECONDS),
     })
-    label = {"register": "verifikasi akun", "forgot": "reset password", "login": "login"}.get(purpose, "verifikasi")
-    if smtp_configured():
+    if mode == "smtp":
         sent, err = send_email(email, "Kode OTP FYY MOTION Academy", otp_email_body("", code, label))
         if not sent:
             return False, f"Gagal mengirim email OTP: {err}"
     else:
-        # Mode developer: SMTP belum dikonfigurasi admin. Supaya alur tetap bisa
-        # dipakai/diuji, kode OTP disimpan ke session agar ditampilkan di halaman
-        # verifikasi dengan peringatan jelas. Di produksi dengan SMTP terpasang,
-        # jalur ini tidak pernah dipakai.
+        # Mode developer: Fyymail & SMTP belum dikonfigurasi admin. Supaya alur
+        # tetap bisa dipakai/diuji, kode OTP disimpan ke session agar ditampilkan
+        # di halaman verifikasi dengan peringatan jelas. Di produksi dengan
+        # FYMAIL_API_KEY atau SMTP terpasang, jalur ini tidak pernah dipakai.
         session["academy_dev_otp"] = code
+    return True, ""
+
+
+def _verify_otp(email: str, purpose: str, code: str) -> tuple[bool, str]:
+    """Verifikasi kode OTP, otomatis lewat Fyymail kalau OTP terakhir dikirim
+    lewat Fyymail, atau lewat hash lokal untuk mode SMTP/developer."""
+    otp_doc = adb.col_otps().find_one(
+        {"email": email, "purpose": purpose, "consumed": False}, sort=[("created_at", -1)]
+    )
+    now = adb.utcnow()
+    if not otp_doc:
+        return False, "Kode OTP tidak ditemukan. Minta kode baru ya."
+    if otp_doc["expires_at"] < now:
+        return False, "Kode OTP sudah kedaluwarsa. Minta kode baru ya."
+
+    if otp_doc.get("provider") == "fyymail":
+        valid, err = fyymail_verify_otp(email, code)
+        if not valid:
+            return False, err or "Kode OTP salah."
+        adb.col_otps().update_one({"_id": otp_doc["_id"]}, {"$set": {"consumed": True}})
+        return True, ""
+
+    if otp_doc.get("attempts", 0) >= otp_doc.get("max_attempts", OTP_MAX_ATTEMPTS):
+        return False, "Kode OTP sudah mencapai batas percobaan. Minta kode baru ya."
+    if not verify_otp_hash(code, otp_doc.get("otp_hash", "")):
+        adb.col_otps().update_one({"_id": otp_doc["_id"]}, {"$inc": {"attempts": 1}})
+        sisa = otp_doc.get("max_attempts", OTP_MAX_ATTEMPTS) - otp_doc.get("attempts", 0) - 1
+        return False, f"Kode OTP salah. Sisa percobaan: {max(sisa, 0)}."
+    adb.col_otps().update_one({"_id": otp_doc["_id"]}, {"$set": {"consumed": True}})
     return True, ""
 
 
@@ -275,22 +335,11 @@ def academy_verify_view():
         if not rate_limit_hit(f"otp-check:{email}", max_hits=10, window_seconds=600):
             flash("Terlalu banyak percobaan verifikasi. Coba lagi beberapa menit lagi.", "danger")
         else:
-            otp_doc = adb.col_otps().find_one(
-                {"email": email, "purpose": purpose, "consumed": False}, sort=[("created_at", -1)]
-            )
-            now = adb.utcnow()
-            if not otp_doc:
-                flash("Kode OTP tidak ditemukan. Minta kode baru ya.", "danger")
-            elif otp_doc["expires_at"] < now:
-                flash("Kode OTP sudah kedaluwarsa. Minta kode baru ya.", "danger")
-            elif otp_doc.get("attempts", 0) >= otp_doc.get("max_attempts", OTP_MAX_ATTEMPTS):
-                flash("Kode OTP sudah mencapai batas percobaan. Minta kode baru ya.", "danger")
-            elif not verify_otp_hash(code, otp_doc["otp_hash"]):
-                adb.col_otps().update_one({"_id": otp_doc["_id"]}, {"$inc": {"attempts": 1}})
-                sisa = otp_doc.get("max_attempts", OTP_MAX_ATTEMPTS) - otp_doc.get("attempts", 0) - 1
-                flash(f"Kode OTP salah. Sisa percobaan: {max(sisa, 0)}.", "danger")
+            ok, err = _verify_otp(email, purpose, code)
+            if not ok:
+                flash(err, "danger")
             else:
-                adb.col_otps().update_one({"_id": otp_doc["_id"]}, {"$set": {"consumed": True}})
+                now = adb.utcnow()
                 session.pop("academy_pending_email", None)
                 session.pop("academy_pending_purpose", None)
                 session.pop("academy_dev_otp", None)
@@ -307,8 +356,8 @@ def academy_verify_view():
         page_title="Verifikasi OTP — FYY MOTION Academy",
         email=email,
         purpose=purpose,
-        dev_otp=session.get("academy_dev_otp") if not smtp_configured() else None,
-        smtp_ready=smtp_configured(),
+        dev_otp=session.get("academy_dev_otp") if _otp_delivery_mode() == "dev" else None,
+        otp_mode=_otp_delivery_mode(),
     )
 
 
@@ -320,7 +369,7 @@ def academy_resend_otp():
     ok, err = _issue_otp(email, purpose)
     if not ok:
         return jsonify({"ok": False, "message": err}), 429
-    return jsonify({"ok": True, "message": "Kode OTP baru sudah dikirim.", "dev_otp": session.get("academy_dev_otp") if not smtp_configured() else None})
+    return jsonify({"ok": True, "message": "Kode OTP baru sudah dikirim.", "dev_otp": session.get("academy_dev_otp") if _otp_delivery_mode() == "dev" else None})
 
 
 # --------------------------------------------------------------------------- #
