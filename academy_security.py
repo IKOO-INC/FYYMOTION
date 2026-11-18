@@ -131,27 +131,31 @@ def send_email(to_email: str, subject: str, body: str) -> tuple[bool, str]:
 
 # --------------------------------------------------------------------------- #
 # Fyymail (Fyymotion Auth) — layanan OTP email terpusat (IKOO-INC/fyymail)
-# Dipakai sebagai metode pengiriman OTP UTAMA. Kalau FYMAIL_API_KEY belum
-# diisi, kode otomatis jatuh ke mode SMTP langsung / dev-mode (lihat
-# academy_routes.py::_issue_otp) supaya platform tetap bisa dipakai.
+# Dipakai sebagai metode pengiriman OTP UTAMA. Sejak update Fyymail, layanan
+# ini PRIVATE TANPA API KEY — cukup FYMAIL_URL. Kalau URL kosong (misal
+# sengaja dikosongkan di env), kode otomatis jatuh ke mode SMTP langsung /
+# dev-mode (lihat academy_routes.py::_issue_otp) supaya platform tetap bisa
+# dipakai.
 # --------------------------------------------------------------------------- #
-FYMAIL_URL = os.environ.get("FYMAIL_URL", "https://auth-fyymotion.vercel.app").rstrip("/")
+FYMAIL_URL = os.environ.get("FYMAIL_URL", "https://auth-fyymotion.vercel.app").strip().rstrip("/")
 FYMAIL_APP_NAME = "FYY MOTION Academy"
 FYMAIL_TIMEOUT = 10
 
 
 def fyymail_configured() -> bool:
-    return bool(os.environ.get("FYMAIL_API_KEY", "").strip())
+    return bool(FYMAIL_URL)
 
 
 def _fyymail_request(path: str, payload: dict) -> tuple[bool, dict, int]:
-    """POST ke Fyymail. Return (ok_koneksi, data_json, status_code)."""
-    api_key = os.environ.get("FYMAIL_API_KEY", "").strip()
+    """POST ke Fyymail (tanpa apikey — layanan private tanpa autentikasi).
+
+    Return (ok_koneksi, data_json, status_code).
+    """
     url = f"{FYMAIL_URL}{path}"
     body = json.dumps(payload).encode("utf-8")
     req = urllib.request.Request(
         url, data=body, method="POST",
-        headers={"Content-Type": "application/json", "x-api-key": api_key},
+        headers={"Content-Type": "application/json"},
     )
     try:
         with urllib.request.urlopen(req, timeout=FYMAIL_TIMEOUT) as resp:
@@ -167,30 +171,40 @@ def _fyymail_request(path: str, payload: dict) -> tuple[bool, dict, int]:
         return False, {"error": str(exc)}, 0
 
 
-def fyymail_send_otp(email: str, purpose_label: str) -> tuple[bool, str]:
-    """Minta Fyymail kirim OTP ke email. Return (sukses, pesan_error_jika_gagal)."""
+def fyymail_send_otp(email: str, purpose_label: str) -> tuple[bool, str, str]:
+    """Minta Fyymail kirim OTP ke email.
+
+    Return (sukses, pesan_error_jika_gagal, preview_url_jika_mode_temp_mail).
+    `preview_url` hanya terisi kalau Fyymail sedang jalan mode Ethereal
+    (TEMP_MAIL=true di sisi Fyymail) — email tidak benar-benar masuk inbox,
+    jadi kita tampilkan link pratinjau supaya alur tetap bisa diuji.
+    """
     ok, data, status = _fyymail_request("/api/send-otp", {
         "email": email, "appName": FYMAIL_APP_NAME, "purpose": purpose_label,
     })
     if not ok:
-        return False, "Tidak bisa menghubungi layanan email (Fyymail). Coba lagi sebentar lagi."
+        return False, "Tidak bisa menghubungi layanan email (Fyymail). Coba lagi sebentar lagi.", ""
     if status == 200 and data.get("success"):
-        return True, ""
+        return True, "", data.get("previewUrl") or ""
     if status == 429:
-        return False, data.get("error") or "Terlalu banyak permintaan OTP. Coba lagi dalam beberapa menit."
-    if status == 401:
-        return False, "Konfigurasi FYMAIL_API_KEY di server tidak valid. Hubungi admin."
-    return False, data.get("error") or "Gagal mengirim kode OTP lewat email. Coba lagi sebentar lagi."
+        return False, data.get("error") or "Terlalu banyak permintaan OTP. Coba lagi dalam beberapa menit.", ""
+    if status == 502:
+        return False, "Layanan email sedang bermasalah mengirim pesan. Coba lagi sebentar lagi.", ""
+    return False, data.get("error") or "Gagal mengirim kode OTP lewat email. Coba lagi sebentar lagi.", ""
 
 
 def fyymail_verify_otp(email: str, otp: str) -> tuple[bool, str]:
-    """Verifikasi OTP lewat Fyymail. Return (valid, pesan_error_jika_tidak_valid)."""
+    """Verifikasi OTP lewat Fyymail. Return (valid, pesan_error_jika_tidak_valid).
+
+    Fyymail selalu balas HTTP 200 untuk hasil verifikasi (valid true/false),
+    jadi kita baca field `valid`/`error` dari body, bukan status code.
+    """
     ok, data, status = _fyymail_request("/api/verify-otp", {
         "email": email, "otp": otp, "appName": FYMAIL_APP_NAME,
     })
     if not ok:
         return False, "Tidak bisa menghubungi layanan email (Fyymail). Coba lagi sebentar lagi."
-    if status == 200 and data.get("valid"):
+    if data.get("valid"):
         return True, ""
     return False, data.get("error") or "Kode OTP tidak valid."
 
