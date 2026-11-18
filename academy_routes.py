@@ -260,13 +260,20 @@ def _issue_otp(email: str, purpose: str) -> tuple[bool, str]:
         # Layanan OTP terpusat (IKOO-INC/fyymail) yang men-generate, meng-hash,
         # menyimpan, DAN mengirim kode OTP lewat email — kita hanya perlu catat
         # "created_at" lokal untuk cooldown kirim-ulang (bukan untuk verifikasi).
-        ok, err = fyymail_send_otp(email, label)
+        ok, err, preview_url = fyymail_send_otp(email, label)
         if not ok:
             return False, err
         adb.col_otps().insert_one({
             "_id": adb.new_id(), "email": email, "purpose": purpose, "provider": "fyymail",
             "consumed": False, "created_at": now, "expires_at": now + timedelta(seconds=OTP_TTL_SECONDS),
         })
+        if preview_url:
+            # Fyymail sedang jalan mode temp-mail (Ethereal) — email tidak
+            # benar-benar masuk inbox, jadi tampilkan link pratinjau di halaman
+            # verifikasi supaya alur tetap bisa diuji/dipakai.
+            session["academy_otp_preview_url"] = preview_url
+        else:
+            session.pop("academy_otp_preview_url", None)
         return True, ""
 
     code = generate_otp_code()
@@ -290,7 +297,7 @@ def _issue_otp(email: str, purpose: str) -> tuple[bool, str]:
         # Mode developer: Fyymail & SMTP belum dikonfigurasi admin. Supaya alur
         # tetap bisa dipakai/diuji, kode OTP disimpan ke session agar ditampilkan
         # di halaman verifikasi dengan peringatan jelas. Di produksi dengan
-        # FYMAIL_API_KEY atau SMTP terpasang, jalur ini tidak pernah dipakai.
+        # FYMAIL_URL atau SMTP terpasang, jalur ini tidak pernah dipakai.
         session["academy_dev_otp"] = code
     return True, ""
 
@@ -343,6 +350,7 @@ def academy_verify_view():
                 session.pop("academy_pending_email", None)
                 session.pop("academy_pending_purpose", None)
                 session.pop("academy_dev_otp", None)
+                session.pop("academy_otp_preview_url", None)
                 if purpose == "register":
                     adb.col_users().update_one({"email": email}, {"$set": {"email_verified": True, "updated_at": now}})
                     flash("Email berhasil diverifikasi! Silakan login.", "success")
@@ -358,6 +366,7 @@ def academy_verify_view():
         purpose=purpose,
         dev_otp=session.get("academy_dev_otp") if _otp_delivery_mode() == "dev" else None,
         otp_mode=_otp_delivery_mode(),
+        otp_preview_url=session.get("academy_otp_preview_url"),
     )
 
 
@@ -369,7 +378,12 @@ def academy_resend_otp():
     ok, err = _issue_otp(email, purpose)
     if not ok:
         return jsonify({"ok": False, "message": err}), 429
-    return jsonify({"ok": True, "message": "Kode OTP baru sudah dikirim.", "dev_otp": session.get("academy_dev_otp") if _otp_delivery_mode() == "dev" else None})
+    return jsonify({
+        "ok": True,
+        "message": "Kode OTP baru sudah dikirim.",
+        "dev_otp": session.get("academy_dev_otp") if _otp_delivery_mode() == "dev" else None,
+        "otp_preview_url": session.get("academy_otp_preview_url"),
+    })
 
 
 # --------------------------------------------------------------------------- #

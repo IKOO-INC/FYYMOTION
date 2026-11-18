@@ -8,10 +8,16 @@
   <i class="fa-solid fa-triangle-exclamation"></i> <b>Mode developer:</b> layanan email (Fyymail/SMTP) belum
   dikonfigurasi admin, jadi kode OTP ditampilkan langsung di sini supaya alur tetap bisa dipakai/diuji:
   <div class="fs-4 fw-bold text-center my-1">{{ dev_otp }}</div>
-  Setelah <code>FYMAIL_API_KEY</code> atau SMTP diisi di Environment Variables, kode OTP hanya akan dikirim lewat email.
+  Setelah <code>FYMAIL_URL</code> atau SMTP diisi di Environment Variables, kode OTP hanya akan dikirim lewat email.
 </div>
 {% elif otp_mode == 'fyymail' %}
 <p class="small text-center text-muted"><i class="fa-solid fa-envelope-circle-check text-success"></i> Dikirim lewat layanan email Fyymotion Auth.</p>
+{% if otp_preview_url %}
+<div class="alert alert-info small">
+  <i class="fa-solid fa-circle-info"></i> Layanan email sedang mode pratinjau (belum kirim ke inbox asli).
+  <a href="{{ otp_preview_url }}" target="_blank" rel="noopener">Buka pratinjau email di sini</a> untuk melihat kode OTP.
+</div>
+{% endif %}
 {% endif %}
 <form method="post" novalidate>
   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
@@ -45,7 +51,10 @@ function resendOtp() {
     headers: { "X-CSRFToken": "{{ csrf_token() }}" },
   }).then(r => r.json()).then(data => {
     if (data.ok) {
-      alert(data.message + (data.dev_otp ? ('\nKode OTP (mode dev): ' + data.dev_otp) : ''));
+      let pesan = data.message;
+      if (data.dev_otp) pesan += '\nKode OTP (mode dev): ' + data.dev_otp;
+      if (data.otp_preview_url) pesan += '\nPratinjau email: ' + data.otp_preview_url;
+      alert(pesan);
       sisa = 60; btn.textContent = 'Kirim ulang kode (' + sisa + 's)';
       const timer2 = setInterval(() => {
         sisa -= 1;

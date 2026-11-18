@@ -18,6 +18,10 @@ os.environ["ADMIN_USERNAME"] = "admin"
 os.environ["ADMIN_PASSWORD"] = "admin123"
 os.environ["WA_ADMIN_NUMBER"] = "6281234567890"
 os.environ["GOPAY_QRIS_IMAGE_URL"] = "https://example.com/qris.png"
+# Nonaktifkan Fyymail di test ini (default-nya aktif tanpa perlu API key) supaya
+# smoke test utama menguji jalur dev-mode/SMTP tanpa butuh akses jaringan nyata.
+# Jalur Fyymail diuji terpisah dengan HTTP yang di-mock, lihat local_test_fyymail.py.
+os.environ["FYMAIL_URL"] = ""
 
 import mongomock
 import pymongo
