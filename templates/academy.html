@@ -27,15 +27,45 @@
       <a href="{{ url_for('teks_creator') }}">Teks Creator</a>
     </div>
     <div class="public-nav-actions">
-      <a class="btn btn-soft d-none d-md-inline-flex" href="{{ url_for('academy_login_page') }}">
+      <a class="btn btn-soft d-none d-lg-inline-flex" href="{{ url_for('academy_login_page') }}">
         <i class="fa-solid fa-right-to-bracket"></i> Masuk Siswa
       </a>
-      <a class="btn public-cta-btn" href="{{ url_for('daftar_academy') }}" target="_blank" rel="noopener">
+      <a class="btn public-cta-btn d-none d-lg-inline-flex" href="{{ url_for('daftar_academy') }}" target="_blank" rel="noopener">
         Daftar Sekarang <i class="fa-solid fa-arrow-up-right-from-square"></i>
       </a>
+      <a class="btn public-cta-btn d-lg-none" href="{{ url_for('academy_register_view') }}">
+        Daftar Akun <i class="fa-solid fa-graduation-cap"></i>
+      </a>
+      <button type="button" class="public-drawer-btn d-lg-none" id="publicDrawerBtn" aria-label="Buka menu" aria-expanded="false" aria-controls="publicDrawer">
+        <i class="fa-solid fa-bars"></i>
+      </button>
     </div>
   </nav>
 </header>
+
+<div class="public-drawer-backdrop" id="publicDrawerBackdrop"></div>
+<aside class="public-drawer" id="publicDrawer" aria-hidden="true">
+  <div class="public-drawer-head">
+    <a class="public-brand" href="{{ url_for('public_profile') }}">
+      <span class="public-brand-mark"><i class="fa-solid fa-play"></i></span>
+      <span>FYY MOTION Academy</span>
+    </a>
+    <button type="button" class="public-drawer-close" id="publicDrawerClose" aria-label="Tutup menu"><i class="fa-solid fa-xmark"></i></button>
+  </div>
+  <nav class="public-drawer-links">
+    <a href="{{ url_for('public_profile') }}"><i class="fa-solid fa-house"></i> Beranda</a>
+    <a href="#benefit"><i class="fa-solid fa-star"></i> Yang Kamu Dapat</a>
+    <a href="{{ url_for('teks_creator') }}"><i class="fa-solid fa-wand-magic-sparkles"></i> Teks Creator</a>
+  </nav>
+  <div class="public-drawer-divider"></div>
+  <nav class="public-drawer-links">
+    <a href="{{ url_for('academy_login_page') }}"><i class="fa-solid fa-right-to-bracket"></i> Masuk Siswa (Login)</a>
+    <a href="{{ url_for('academy_register_view') }}"><i class="fa-solid fa-user-plus"></i> Daftar Akun (Register)</a>
+  </nav>
+  <a class="btn public-cta-btn public-drawer-cta" href="{{ url_for('academy_register_view') }}">
+    <i class="fa-solid fa-graduation-cap"></i> Buat Akun &amp; Belajar Online
+  </a>
+</aside>
 
 <main id="top">
   <!-- HERO -->
