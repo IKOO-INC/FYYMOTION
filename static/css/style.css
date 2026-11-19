@@ -1611,6 +1611,48 @@ pre { color: var(--ink); }
 }
 .public-cta-btn:hover { background: var(--violet) !important; color: #fff !important; }
 
+/* Hamburger button — tersembunyi di desktop, tampil di mobile/tablet (<992px) */
+.public-drawer-btn {
+  display: none; align-items: center; justify-content: center;
+  width: 42px; height: 42px; flex: 0 0 42px; border-radius: 50%;
+  border: 1.6px solid var(--ink); background: #fff; color: var(--ink);
+  font-size: 1.02rem; cursor: pointer;
+}
+.public-drawer-btn:hover { background: var(--lime); }
+
+/* Mobile drawer (sidebar) — dipakai halaman public (/academy, dst) */
+.public-drawer-backdrop {
+  position: fixed; inset: 0; z-index: 1040; background: rgba(17, 18, 15, .5);
+  opacity: 0; visibility: hidden; transition: opacity .25s ease, visibility .25s ease;
+}
+.public-drawer-backdrop.show { opacity: 1; visibility: visible; }
+.public-drawer {
+  position: fixed; top: 0; right: 0; bottom: 0; z-index: 1050;
+  width: min(320px, 86vw); background: var(--cream); color: var(--ink);
+  box-shadow: -8px 0 32px rgba(0, 0, 0, .18);
+  transform: translateX(100%); transition: transform .3s cubic-bezier(.25, .1, .25, 1);
+  display: flex; flex-direction: column; padding: 20px; overflow-y: auto;
+}
+.public-drawer.show { transform: translateX(0); }
+.public-drawer-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+.public-drawer-close {
+  width: 34px; height: 34px; flex: 0 0 34px; border-radius: 50%;
+  border: 1.4px solid var(--ink); background: #fff; color: var(--ink); cursor: pointer;
+}
+.public-drawer-links { display: flex; flex-direction: column; gap: 4px; }
+.public-drawer-links a {
+  display: flex; align-items: center; gap: 10px; color: var(--ink); text-decoration: none;
+  font-weight: 750; font-size: .98rem; padding: 12px 10px; border-radius: 12px;
+}
+.public-drawer-links a i { width: 20px; text-align: center; color: var(--muted, #6b6b63); }
+.public-drawer-links a:hover { background: rgba(17, 18, 15, .06); color: var(--violet); }
+.public-drawer-divider { height: 1.4px; background: rgba(17, 18, 15, .12); margin: 14px 0; }
+.public-drawer-cta { margin-top: auto; justify-content: center; }
+
+@media (max-width: 991.98px) {
+  .public-drawer-btn { display: inline-flex; }
+}
+
 .public-hero { position: relative; padding: clamp(4.2rem, 8vw, 7rem) 0 clamp(3.5rem, 7vw, 6rem); overflow: hidden; }
 .hero-copy { position: relative; z-index: 2; max-width: 1040px; text-align: center; }
 .public-badge {

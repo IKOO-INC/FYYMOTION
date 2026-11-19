@@ -12,6 +12,38 @@ document.addEventListener('DOMContentLoaded', function () {
   btn && btn.addEventListener('click', function () { toggle(!sidebar.classList.contains('show')); });
   backdrop && backdrop.addEventListener('click', function () { toggle(false); });
 
+  // Drawer mobile (sidebar) untuk halaman publik, mis. /academy
+  (function () {
+    var dBtn = document.getElementById('publicDrawerBtn');
+    var drawer = document.getElementById('publicDrawer');
+    var dBackdrop = document.getElementById('publicDrawerBackdrop');
+    var dClose = document.getElementById('publicDrawerClose');
+    if (!dBtn || !drawer || !dBackdrop) return;
+
+    function openDrawer() {
+      drawer.classList.add('show');
+      dBackdrop.classList.add('show');
+      drawer.setAttribute('aria-hidden', 'false');
+      dBtn.setAttribute('aria-expanded', 'true');
+      document.body.style.overflow = 'hidden';
+    }
+    function closeDrawer() {
+      drawer.classList.remove('show');
+      dBackdrop.classList.remove('show');
+      drawer.setAttribute('aria-hidden', 'true');
+      dBtn.setAttribute('aria-expanded', 'false');
+      document.body.style.overflow = '';
+    }
+
+    dBtn.addEventListener('click', openDrawer);
+    dBackdrop.addEventListener('click', closeDrawer);
+    if (dClose) dClose.addEventListener('click', closeDrawer);
+    drawer.querySelectorAll('a').forEach(function (a) { a.addEventListener('click', closeDrawer); });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') closeDrawer();
+    });
+  })();
+
   // Tombol salin (copy) teks pesanan / WA / JSON
   document.querySelectorAll('.btn-copy').forEach(function (b) {
     b.addEventListener('click', function () {
