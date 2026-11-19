@@ -116,6 +116,7 @@
     <div class="card shadow-sm mb-3">
       <div class="card-header bg-white fw-bold"><i class="fa-solid fa-sack-dollar text-primary"></i> Pembayaran</div>
       <div class="card-body">
+        <div class="table-responsive">
         <table class="table table-sm mb-2">
           <tr><td>Harga Total</td><td class="text-end money fw-bold">{{ o.harga|rupiah }}</td></tr>
           <tr><td>DP / Dibayar (di order)</td><td class="text-end money text-success">{{ o.dp|rupiah }}</td></tr>
@@ -124,6 +125,7 @@
           <tr><td>Metode</td><td class="text-end">{{ o.metode_bayar }}</td></tr>
           <tr class="table-light"><td>Tercatat masuk di Jurnal/Kas</td><td class="text-end money fw-bold">{{ total_trx_in|rupiah }}</td></tr>
         </table>
+        </div>
         <div class="small text-muted">Angka "tercatat di Jurnal" adalah uang yang benar-benar sudah Anda input di Transaksi untuk order ini — transparan &amp; bisa diaudit di Buku Besar Kas.</div>
       </div>
     </div>

@@ -12,6 +12,7 @@
         </span>
       </div>
       <div class="card-body">
+        <div class="table-responsive">
         <table class="table table-sm mb-4">
           <tr><td class="text-muted">Kode Transaksi</td><td class="text-end fw-bold">{{ tx.kode_transaksi }}</td></tr>
           <tr><td class="text-muted">Kelas</td><td class="text-end">{{ tx.course_judul }}</td></tr>
@@ -19,6 +20,7 @@
           <tr><td class="text-muted">Metode</td><td class="text-end">GoPay Merchant QRIS</td></tr>
           <tr><td class="text-muted">Tanggal</td><td class="text-end">{{ tx.created_at.strftime('%d %b %Y %H:%M') if tx.created_at else '-' }}</td></tr>
         </table>
+        </div>
 
         {% if tx.status == 'menunggu' %}
         <div class="text-center mb-3">
