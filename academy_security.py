@@ -171,17 +171,34 @@ def _fyymail_request(path: str, payload: dict) -> tuple[bool, dict, int]:
         return False, {"error": str(exc)}, 0
 
 
-def fyymail_send_otp(email: str, purpose_label: str) -> tuple[bool, str, str]:
-    """Minta Fyymail kirim OTP ke email.
+def fyymail_send_otp(email: str, purpose_label: str, otp_code: str = "") -> tuple[bool, str, str]:
+    """Minta Fyymail KIRIM email OTP saja (Fyymail dipakai murni sebagai jalur
+    pengiriman/SMTP, BUKAN sebagai penyimpan/pemverifikasi kode).
+
+    `otp_code` WAJIB diisi dengan kode yang sudah kita generate & simpan sendiri
+    (hash) di MongoDB kita (lihat academy_routes.py::_issue_otp). Fyymail
+    mendukung parameter `otp` kustom di /api/send-otp — kode itulah yang
+    ditulis ke body email, Fyymail TIDAK generate kode sendiri.
+
+    Kenapa tidak pakai penyimpanan/verifikasi bawaan Fyymail: Fyymail
+    menyimpan OTP di MEMORI proses serverless kalau Redis belum dikonfigurasi
+    di sisi Fyymail (lihat README mereka) — kode OTP bisa "hilang" kalau
+    request verifikasi mendarat di instance serverless yang berbeda dari yang
+    menerima request kirim, sehingga OTP yang baru beberapa detik terkirim
+    bisa terlihat "kedaluwarsa"/"tidak ditemukan" padahal TTL belum lewat sama
+    sekali. Dengan menyimpan & memverifikasi SENDIRI di MongoDB kita
+    (persisten, bukan in-memory), masalah itu hilang total dan TTL (1 jam,
+    lihat OTP_TTL_SECONDS) benar-benar dihormati.
 
     Return (sukses, pesan_error_jika_gagal, preview_url_jika_mode_temp_mail).
     `preview_url` hanya terisi kalau Fyymail sedang jalan mode Ethereal
     (TEMP_MAIL=true di sisi Fyymail) — email tidak benar-benar masuk inbox,
     jadi kita tampilkan link pratinjau supaya alur tetap bisa diuji.
     """
-    ok, data, status = _fyymail_request("/api/send-otp", {
-        "email": email, "appName": FYMAIL_APP_NAME, "purpose": purpose_label,
-    })
+    payload = {"email": email, "appName": FYMAIL_APP_NAME, "purpose": purpose_label}
+    if otp_code:
+        payload["otp"] = otp_code
+    ok, data, status = _fyymail_request("/api/send-otp", payload)
     if not ok:
         return False, "Tidak bisa menghubungi layanan email (Fyymail). Coba lagi sebentar lagi.", ""
     if status == 200 and data.get("success"):
@@ -193,28 +210,12 @@ def fyymail_send_otp(email: str, purpose_label: str) -> tuple[bool, str, str]:
     return False, data.get("error") or "Gagal mengirim kode OTP lewat email. Coba lagi sebentar lagi.", ""
 
 
-def fyymail_verify_otp(email: str, otp: str) -> tuple[bool, str]:
-    """Verifikasi OTP lewat Fyymail. Return (valid, pesan_error_jika_tidak_valid).
-
-    Fyymail selalu balas HTTP 200 untuk hasil verifikasi (valid true/false),
-    jadi kita baca field `valid`/`error` dari body, bukan status code.
-    """
-    ok, data, status = _fyymail_request("/api/verify-otp", {
-        "email": email, "otp": otp, "appName": FYMAIL_APP_NAME,
-    })
-    if not ok:
-        return False, "Tidak bisa menghubungi layanan email (Fyymail). Coba lagi sebentar lagi."
-    if data.get("valid"):
-        return True, ""
-    return False, data.get("error") or "Kode OTP tidak valid."
-
-
-def otp_email_body(nama: str, code: str, purpose_label: str) -> str:
+def otp_email_body(nama: str, code: str, purpose_label: str, ttl_minutes: int = 60) -> str:
     return (
         f"Halo {nama or 'Sahabat FYY MOTION'},\n\n"
         f"Kode OTP {purpose_label} kamu di FYY MOTION Academy adalah:\n\n"
         f"    {code}\n\n"
-        "Kode ini berlaku 10 menit dan hanya bisa dipakai 1 kali. "
+        f"Kode ini berlaku {ttl_minutes} menit dan hanya bisa dipakai 1 kali. "
         "Jangan bagikan kode ini ke siapa pun, termasuk pihak yang mengaku dari FYY MOTION.\n\n"
         "Jika kamu tidak merasa meminta kode ini, abaikan saja email ini.\n\n"
         "Salam,\nTim FYY MOTION Academy"

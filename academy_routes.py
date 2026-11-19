@@ -10,8 +10,11 @@ mengimpor apa pun dari `app.py`).
 Keamanan & aturan bisnis penting (lihat juga academy_db.py / academy_security.py):
 - Semua data tersimpan di MongoDB (koleksi terpisah di database `fyymotion_academy`),
   TIDAK ada state di memori proses / file lokal (serverless-safe).
-- Password & OTP selalu di-hash (pbkdf2:sha256). OTP kedaluwarsa 10 menit, maksimal
-  5 kali percobaan, cooldown kirim ulang 60 detik, serta rate-limit per email/IP.
+- Password & OTP selalu di-hash (pbkdf2:sha256) dan diverifikasi SENDIRI dari
+  MongoDB kita (persisten) — TIDAK pernah bergantung ke penyimpanan/verifikasi
+  OTP bawaan Fyymail (yang bisa in-memory/hilang di serverless). OTP kedaluwarsa
+  1 jam, maksimal 5 kali percobaan, cooldown kirim ulang 60 detik, serta
+  rate-limit per email/IP.
 - Harga transaksi SELALU diambil dari database course di server — tidak pernah
   dipercaya dari input client.
 - Akses "Ruang Belajar" (daftar pelajaran) diverifikasi di backend: 403 bila
@@ -39,7 +42,6 @@ from academy_security import (
     clean_text,
     fyymail_configured,
     fyymail_send_otp,
-    fyymail_verify_otp,
     generate_otp_code,
     hash_otp,
     hash_password,
@@ -55,7 +57,13 @@ from academy_security import (
     verify_password,
 )
 
-OTP_TTL_SECONDS = 10 * 60
+# OTP selalu disimpan (hash) & diverifikasi di MongoDB kita sendiri — TIDAK
+# pernah bergantung ke penyimpanan/verifikasi OTP bawaan Fyymail, karena
+# Fyymail bisa menyimpan OTP di memori proses serverless (hilang kalau
+# request verify mendarat di instance berbeda dari request kirim, bikin OTP
+# yang baru beberapa detik terlihat "kedaluwarsa"/"tidak ditemukan" padahal
+# belum lewat TTL). Fyymail dipakai MURNI sebagai jalur pengiriman email.
+OTP_TTL_SECONDS = 60 * 60  # 1 jam
 OTP_MAX_ATTEMPTS = 5
 OTP_RESEND_COOLDOWN = 60
 
@@ -256,17 +264,19 @@ def _issue_otp(email: str, purpose: str) -> tuple[bool, str]:
     label = {"register": "verifikasi akun", "forgot": "reset password", "login": "login"}.get(purpose, "verifikasi")
     mode = _otp_delivery_mode()
 
+    # Kode OTP SELALU kita generate, hash, simpan, DAN verifikasi sendiri di
+    # MongoDB (persisten, aman di lingkungan serverless multi-instance) —
+    # Fyymail (kalau dipakai) hanya jadi jalur PENGIRIMAN email, bukan
+    # penyimpan/pemverifikasi kode. Ini menghindari bug "OTP langsung
+    # kedaluwarsa/tidak ditemukan" yang muncul kalau verifikasi bergantung ke
+    # penyimpanan in-memory Fyymail di instance serverless yang berbeda.
+    code = generate_otp_code()
+    ttl_minutes = max(1, OTP_TTL_SECONDS // 60)
+
     if mode == "fyymail":
-        # Layanan OTP terpusat (IKOO-INC/fyymail) yang men-generate, meng-hash,
-        # menyimpan, DAN mengirim kode OTP lewat email — kita hanya perlu catat
-        # "created_at" lokal untuk cooldown kirim-ulang (bukan untuk verifikasi).
-        ok, err, preview_url = fyymail_send_otp(email, label)
+        ok, err, preview_url = fyymail_send_otp(email, label, otp_code=code)
         if not ok:
             return False, err
-        adb.col_otps().insert_one({
-            "_id": adb.new_id(), "email": email, "purpose": purpose, "provider": "fyymail",
-            "consumed": False, "created_at": now, "expires_at": now + timedelta(seconds=OTP_TTL_SECONDS),
-        })
         if preview_url:
             # Fyymail sedang jalan mode temp-mail (Ethereal) — email tidak
             # benar-benar masuk inbox, jadi tampilkan link pratinjau di halaman
@@ -274,23 +284,8 @@ def _issue_otp(email: str, purpose: str) -> tuple[bool, str]:
             session["academy_otp_preview_url"] = preview_url
         else:
             session.pop("academy_otp_preview_url", None)
-        return True, ""
-
-    code = generate_otp_code()
-    adb.col_otps().insert_one({
-        "_id": adb.new_id(),
-        "email": email,
-        "purpose": purpose,
-        "provider": "local",
-        "otp_hash": hash_otp(code),
-        "attempts": 0,
-        "max_attempts": OTP_MAX_ATTEMPTS,
-        "consumed": False,
-        "created_at": now,
-        "expires_at": now + timedelta(seconds=OTP_TTL_SECONDS),
-    })
-    if mode == "smtp":
-        sent, err = send_email(email, "Kode OTP FYY MOTION Academy", otp_email_body("", code, label))
+    elif mode == "smtp":
+        sent, err = send_email(email, "Kode OTP FYY MOTION Academy", otp_email_body("", code, label, ttl_minutes))
         if not sent:
             return False, f"Gagal mengirim email OTP: {err}"
     else:
@@ -299,12 +294,26 @@ def _issue_otp(email: str, purpose: str) -> tuple[bool, str]:
         # di halaman verifikasi dengan peringatan jelas. Di produksi dengan
         # FYMAIL_URL atau SMTP terpasang, jalur ini tidak pernah dipakai.
         session["academy_dev_otp"] = code
+
+    adb.col_otps().insert_one({
+        "_id": adb.new_id(),
+        "email": email,
+        "purpose": purpose,
+        "provider": mode,
+        "otp_hash": hash_otp(code),
+        "attempts": 0,
+        "max_attempts": OTP_MAX_ATTEMPTS,
+        "consumed": False,
+        "created_at": now,
+        "expires_at": now + timedelta(seconds=OTP_TTL_SECONDS),
+    })
     return True, ""
 
 
 def _verify_otp(email: str, purpose: str, code: str) -> tuple[bool, str]:
-    """Verifikasi kode OTP, otomatis lewat Fyymail kalau OTP terakhir dikirim
-    lewat Fyymail, atau lewat hash lokal untuk mode SMTP/developer."""
+    """Verifikasi kode OTP — SELALU dari hash yang kita simpan sendiri di
+    MongoDB (berlaku untuk semua mode pengiriman: fyymail, smtp, developer),
+    tidak pernah bergantung ke layanan eksternal untuk keputusan valid/tidak."""
     otp_doc = adb.col_otps().find_one(
         {"email": email, "purpose": purpose, "consumed": False}, sort=[("created_at", -1)]
     )
@@ -313,13 +322,6 @@ def _verify_otp(email: str, purpose: str, code: str) -> tuple[bool, str]:
         return False, "Kode OTP tidak ditemukan. Minta kode baru ya."
     if otp_doc["expires_at"] < now:
         return False, "Kode OTP sudah kedaluwarsa. Minta kode baru ya."
-
-    if otp_doc.get("provider") == "fyymail":
-        valid, err = fyymail_verify_otp(email, code)
-        if not valid:
-            return False, err or "Kode OTP salah."
-        adb.col_otps().update_one({"_id": otp_doc["_id"]}, {"$set": {"consumed": True}})
-        return True, ""
 
     if otp_doc.get("attempts", 0) >= otp_doc.get("max_attempts", OTP_MAX_ATTEMPTS):
         return False, "Kode OTP sudah mencapai batas percobaan. Minta kode baru ya."
